@@ -21,6 +21,7 @@ export default function RootLayout() {
     if (loaded) {
       SplashScreen.hideAsync();
     }
+    console.log(colorScheme)
   }, [loaded]);
 
   if (!loaded) {
