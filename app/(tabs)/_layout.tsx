@@ -2,10 +2,10 @@ import React from 'react';
 import { Tabs } from 'expo-router';
 import { Platform } from 'react-native';
 import { HapticTab } from '@/components/HapticTab';
-import TabBarBackground from '@/components/ui/TabBarBackground';
-import TabBarBackgroundIOS from '@/components/ui/TabBarBackground.ios';
+import TabBarBackground from '@/components/TabBarBackground';
+import TabBarBackgroundIOS from '@/components/TabBarBackground.ios';
 import { useTheme } from '@/hooks/useTheme';
-import { Icon } from '@/components/ui/Icon';
+import { Icon } from '@/components/Icon';
 
 export default function TabLayout() {
   const { theme } = useTheme();
