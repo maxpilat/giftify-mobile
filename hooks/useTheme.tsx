@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { Appearance } from 'react-native';
-import { Themes, DefaultCustomColors, Theme, type ThemeType } from '@/constants/Themes';
+import { Themes, Colors, Theme, type ThemeType } from '@/constants/Themes';
 
 const ThemeContext = createContext<{
   theme: Theme;
@@ -14,9 +14,10 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [currentSystemThemeType, setCurrentSystemThemeType] = useState<ThemeType>(
     Appearance.getColorScheme() || 'light'
   );
-  const [currentCustomColors, setCurrentCustomColors] = useState<{ primary: string; secondary: string }>(
-    DefaultCustomColors
-  );
+  const [currentCustomColors, setCurrentCustomColors] = useState<{ primary: string; secondary: string }>({
+    primary: Colors.primary,
+    secondary: Colors.secondary,
+  });
 
   const currentTheme: Theme = useMemo(
     () => ({

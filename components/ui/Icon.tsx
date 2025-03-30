@@ -1,29 +1,18 @@
-import { type IconName, Icons } from '@/constants/Icons';
-import { StyleProp, Image, ImageStyle } from 'react-native';
+import React from 'react';
+import { StyleProp } from 'react-native';
+import { Icons } from '@/constants/Icons';
+import { SvgXml } from 'react-native-svg';
 
 export function Icon({
   name,
-  color,
   size = 24,
+  color,
   style,
 }: {
-  name: IconName;
+  name: keyof typeof Icons;
   size?: number;
   color: string;
-  style?: StyleProp<ImageStyle>;
-  weight?: number;
+  style?: StyleProp<any>;
 }) {
-  return (
-    <Image
-      source={Icons[name]}
-      style={[
-        {
-          width: size,
-          height: size,
-          tintColor: color,
-        },
-        style,
-      ]}
-    />
-  );
+  return <SvgXml xml={Icons[name]} width={size} height={size} style={[style, { color }]} />;
 }

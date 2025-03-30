@@ -5,7 +5,7 @@ import { HapticTab } from '@/components/HapticTab';
 import TabBarBackground from '@/components/ui/TabBarBackground';
 import TabBarBackgroundIOS from '@/components/ui/TabBarBackground.ios';
 import { useTheme } from '@/hooks/useTheme';
-import Heart from '@/assets/icons/Heart.svg';
+import { Icon } from '@/components/ui/Icon';
 
 export default function TabLayout() {
   const { theme } = useTheme();
@@ -36,28 +36,28 @@ export default function TabLayout() {
         name="index"
         options={{
           title: 'Профиль',
-          tabBarIcon: ({ color }) => <Heart color={color} />,
+          tabBarIcon: ({ color }) => <Icon name="heart" color={color} />,
         }}
       />
       <Tabs.Screen
         name="friends"
         options={{
           title: 'Друзья',
-          tabBarIcon: ({ color }) => <Heart color={color} />,
+          tabBarIcon: ({ color }) => <Icon name="friends" color={color} />,
         }}
       />
       <Tabs.Screen
         name="chats"
         options={{
           title: 'Чаты',
-          tabBarIcon: ({ color }) => <Heart color={color} />,
+          tabBarIcon: ({ color }) => <Icon name="chats" color={color} />,
         }}
       />
       <Tabs.Screen
         name="settings"
         options={{
           title: 'Настройки',
-          tabBarIcon: ({ color }) => <Heart color={color} />,
+          tabBarIcon: ({ color }) => <Icon name="settings" color={color} />,
         }}
       />
     </Tabs>

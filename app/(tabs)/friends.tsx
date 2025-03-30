@@ -23,5 +23,6 @@ const styles = StyleSheet.create({
   titleContainer: {
     justifyContent: 'center',
     alignItems: 'center',
+    height: '110%',
   },
 });
