@@ -23,7 +23,7 @@ export function ThemedText({ style, type = 'bodyBase', ...rest }: ThemedTextProp
   return (
     <Text
       style={[
-        { color: theme.text, fontFamily: 'stolzl' },
+        { color: theme.text },
         type === 'bodyBase' ? styles.bodyBase : undefined,
         type === 'h1' ? styles.h1 : undefined,
         type === 'h2' ? styles.h2 : undefined,
@@ -45,63 +45,75 @@ export function ThemedText({ style, type = 'bodyBase', ...rest }: ThemedTextProp
 
 const styles = StyleSheet.create({
   h1: {
-    fontSize: 34,
+    fontSize: 26,
     lineHeight: 38,
     fontWeight: 500,
+    fontFamily: 'stolzl-medium',
   },
   h2: {
-    fontSize: 28,
+    fontSize: 24,
     lineHeight: 32,
     fontWeight: 500,
+    fontFamily: 'stolzl-medium',
   },
   h3: {
-    fontSize: 24,
+    fontSize: 22,
     lineHeight: 28,
     fontWeight: 500,
+    fontFamily: 'stolzl-medium',
   },
   h4: {
     fontSize: 22,
     lineHeight: 26,
     fontWeight: 500,
+    fontFamily: 'stolzl-medium',
   },
   h5: {
     fontSize: 20,
     lineHeight: 24,
     fontWeight: 500,
+    fontFamily: 'stolzl-medium',
   },
   bodyLargeMedium: {
-    fontSize: 18,
+    fontSize: 16,
     lineHeight: 26,
     fontWeight: 500,
+    fontFamily: 'stolzl-medium',
   },
   bodyLarge: {
-    fontSize: 18,
+    fontSize: 16,
     lineHeight: 26,
     fontWeight: 400,
+    fontFamily: 'stolzl-regular',
   },
   bodyBase: {
     fontSize: 16,
     lineHeight: 24,
     fontWeight: 400,
+    fontFamily: 'stolzl-regular',
   },
   bodySmall: {
     fontSize: 14,
     lineHeight: 20,
     fontWeight: 400,
+    fontFamily: 'stolzl-regular',
   },
   labelLarge: {
     fontSize: 14,
     lineHeight: 20,
     fontWeight: 500,
+    fontFamily: 'stolzl-medium',
   },
   labelBase: {
     fontSize: 12,
     lineHeight: 16,
     fontWeight: 500,
+    fontFamily: 'stolzl-medium',
   },
   labelSmall: {
     fontSize: 10,
     lineHeight: 15,
     fontWeight: 500,
+    fontFamily: 'stolzl-medium',
   },
 });

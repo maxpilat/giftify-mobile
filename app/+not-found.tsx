@@ -25,7 +25,7 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   link: {
-    marginTop: 15,
-    paddingVertical: 15,
+    marginTop: 16,
+    paddingVertical: 16,
   },
 });

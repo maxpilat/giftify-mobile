@@ -10,7 +10,8 @@ SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const [loaded] = useFonts({
-    stolzl: require('../assets/fonts/stolzl_regular.otf'),
+    'stolzl-regular': require('../assets/fonts/stolzl_regular.otf'),
+    'stolzl-medium': require('../assets/fonts/stolzl_medium.otf'),
   });
 
   useEffect(() => {

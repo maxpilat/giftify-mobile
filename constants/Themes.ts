@@ -1,5 +1,6 @@
 export interface Theme {
     text: string;
+    subtext: string,
     background: string;
     tabIconDefault: string;
     tabIconSelected: string;
@@ -25,6 +26,7 @@ export const Colors = {
 export const Themes: { light: Theme; dark: Theme } = {
     light: {
         text: Colors.black,
+        subtext: Colors.grey,
         background: Colors.white,
         tabIconDefault: Colors.black,
         tabIconSelected: Colors.secondary,
@@ -34,6 +36,7 @@ export const Themes: { light: Theme; dark: Theme } = {
     },
     dark: {
         text: Colors.white,
+        subtext: Colors.white,
         background: Colors.black,
         tabIconDefault: Colors.white,
         tabIconSelected: Colors.secondary,

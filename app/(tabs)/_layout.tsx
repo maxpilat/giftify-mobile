@@ -40,21 +40,21 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="friends"
+        name="friends/index"
         options={{
           title: 'Друзья',
           tabBarIcon: ({ color }) => <Icon name="friends" color={color} />,
         }}
       />
       <Tabs.Screen
-        name="chats"
+        name="chats/index"
         options={{
           title: 'Чаты',
           tabBarIcon: ({ color }) => <Icon name="chats" color={color} />,
         }}
       />
       <Tabs.Screen
-        name="settings"
+        name="settings/index"
         options={{
           title: 'Настройки',
           tabBarIcon: ({ color }) => <Icon name="settings" color={color} />,
