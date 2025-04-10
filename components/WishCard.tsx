@@ -1,12 +1,11 @@
 import MaskedView from '@react-native-masked-view/masked-view';
 import React, { useEffect, useState } from 'react';
-import { View, Image, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Image, StyleSheet } from 'react-native';
 import { SvgXml } from 'react-native-svg';
 import { ThemedView } from '@/components/ThemedView';
-import { Icon } from '@/components/Icon';
-import { Colors } from '@/constants/Themes';
 import { ThemedText } from '@/components/ThemedText';
 import { useTheme } from '@/hooks/useTheme';
+import { ActionButton } from './ActionsButton';
 
 const mask = `
 <svg width="88" height="86" viewBox="0 0 88 86" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -39,6 +38,7 @@ export function WishCard({ image, name, price, currency }: Props) {
     if (!image.width || !image.height) {
       Image.getSize(image.uri, (width, height) => {
         setAspectRatio(width / height);
+        // set width and height to store
       });
     } else {
       setAspectRatio(image.width / image.height);
@@ -63,13 +63,9 @@ export function WishCard({ image, name, price, currency }: Props) {
         <ThemedView style={styles.themedBlock} />
       </MaskedView>
 
-      <TouchableOpacity
-        activeOpacity={0.5}
-        style={[styles.button, { backgroundColor: Colors.black }]}
-        onPress={handleActions}
-      >
-        <Icon name="actions" />
-      </TouchableOpacity>
+      <View style={styles.actionButton}>
+        <ActionButton actions={[{ label: 'Поделиться', onPress: () => console.log('Поделиться') }]} />
+      </View>
 
       {name && (
         <View style={styles.info}>
@@ -100,16 +96,10 @@ const styles = StyleSheet.create({
   themedBlock: {
     flex: 1,
   },
-  button: {
+  actionButton: {
     position: 'absolute',
     top: 0,
     right: 0,
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: 'black',
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   info: {
     marginTop: 5,

@@ -41,6 +41,26 @@ const wishes: (TWish & { id: number; categoryId: number })[] = [
     currency: 'BYN',
     categoryId: 2,
   },
+  {
+    id: 3,
+    image: {
+      uri: 'https://images.pexels.com/photos/1156684/pexels-photo-1156684.jpeg?cs=srgb&dl=pexels-arunbabuthomas-1156684.jpg&fm=jpg',
+    },
+    name: 'Робот Emo',
+    price: 1800,
+    currency: 'BYN',
+    categoryId: 2,
+  },
+  {
+    id: 4,
+    image: {
+      uri: 'https://images.pexels.com/photos/1156684/pexels-photo-1156684.jpeg?cs=srgb&dl=pexels-arunbabuthomas-1156684.jpg&fm=jpg',
+    },
+    name: 'Робот Emo',
+    price: 1800,
+    currency: 'BYN',
+    categoryId: 2,
+  },
 ] as const;
 
 type TCategory = {
@@ -103,10 +123,14 @@ export default function ProfileScreen() {
       style={{ flex: 1 }}
     >
       <View style={styles.container}>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categories}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.categoriesContainer}
+        >
           {categories.map((category, index) => (
             <React.Fragment key={category.id}>
-              <View style={styles.categoryWrapper}>
+              <View style={styles.categoryContainer}>
                 <Category
                   name={category.name}
                   count={category.count}
@@ -115,7 +139,7 @@ export default function ProfileScreen() {
                 />
               </View>
               {index === 0 && (
-                <TouchableOpacity activeOpacity={0.5} style={[styles.categoryWrapper, styles.plusCategoryButton]}>
+                <TouchableOpacity activeOpacity={0.9} style={[styles.categoryContainer, styles.addCategoryButton]}>
                   <Icon name="plus"></Icon>
                 </TouchableOpacity>
               )}
@@ -153,20 +177,22 @@ const styles = StyleSheet.create({
     marginTop: 16,
     gap: 16,
   },
-  categories: {
-    marginLeft: 16,
+  categoriesContainer: {
+    paddingLeft: 16,
+    paddingRight: 10,
   },
-  categoryWrapper: {
+  categoryContainer: {
     marginRight: 6,
   },
-  plusCategoryButton: {
+  addCategoryButton: {
     borderRadius: 20,
     padding: 14,
     backgroundColor: Colors.black,
     justifyContent: 'center',
   },
-  plusItemButton: {},
+  addItemButton: {},
   list: {
     marginHorizontal: 16,
+    paddingBottom: 80,
   },
 });

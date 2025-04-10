@@ -86,7 +86,7 @@ export function ProfileHeader({
             </ThemedView>
           </MaskedView>
           <Reanimated.View style={infoAnimatedStyle}>
-            <ThemedView style={{ ...styles.info, borderColor: theme.background }}>
+            <ThemedView style={[styles.info, { borderColor: theme.background }]}>
               <ThemedText type="h2" style={styles.fullname} numberOfLines={1}>
                 {fullname}
               </ThemedText>
@@ -115,7 +115,7 @@ export function ProfileHeader({
           <ThemedView style={styles.tabs}>
             {tabs.map((tab, index) => (
               <TouchableOpacity
-                activeOpacity={0.5}
+                activeOpacity={0.9}
                 key={index}
                 style={[styles.tab, currentTab === index && { backgroundColor: theme.secondary }]}
                 onPress={() => {

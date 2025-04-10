@@ -2,8 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { LayoutChangeEvent, StyleSheet, TouchableOpacity } from 'react-native';
 import { Colors } from '@/constants/Themes';
 import { ThemedText } from '@/components/ThemedText';
-import { Icon } from '@/components/Icon';
 import { useTheme } from '@/hooks/useTheme';
+import { ActionButton } from '@/components/ActionsButton';
 
 const WIDTH_DIFF = 36;
 
@@ -12,9 +12,10 @@ export type Props = {
   count: number;
   isActive?: boolean;
   onPress?: () => void;
+  pressOpacity?: number;
 };
 
-export function Category({ name, count, isActive, onPress }: Props) {
+export function Category({ name, count, isActive, onPress, pressOpacity = 0.9 }: Props) {
   const [width, setWidth] = useState<number | null>(null);
   const { theme } = useTheme();
 
@@ -28,7 +29,7 @@ export function Category({ name, count, isActive, onPress }: Props) {
 
   return (
     <TouchableOpacity
-      activeOpacity={0.5}
+      activeOpacity={pressOpacity}
       style={[styles.container, { backgroundColor: isActive ? theme.secondary : Colors.black, width: width || 'auto' }]}
       onPress={onPress}
       onLayout={handleLayout}
@@ -39,9 +40,13 @@ export function Category({ name, count, isActive, onPress }: Props) {
       <ThemedText type="h1" style={styles.text}>
         {count}
       </ThemedText>
-      <TouchableOpacity activeOpacity={0.5} style={[styles.actions, { right: isActive ? 14 : -WIDTH_DIFF }]}>
-        <Icon name="actions"></Icon>
-      </TouchableOpacity>
+
+      <ActionButton
+        style={[styles.actions, { right: isActive ? 8 : -WIDTH_DIFF }]}
+        size={36}
+        actions={[{ label: 'Поделиться', onPress: () => console.log('Поделиться') }]}
+        pressOpacity={pressOpacity}
+      ></ActionButton>
     </TouchableOpacity>
   );
 }
@@ -50,13 +55,15 @@ const styles = StyleSheet.create({
   container: {
     padding: 14,
     borderRadius: 20,
+    overflow: 'hidden',
   },
   text: {
     color: Colors.white,
   },
   actions: {
+    backgroundColor: 'transparent',
     position: 'absolute',
-    top: 15,
+    top: 10,
   },
 });
 

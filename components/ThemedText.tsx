@@ -1,7 +1,7 @@
 import { useTheme } from '@/hooks/useTheme';
 import { Text, type TextProps, StyleSheet } from 'react-native';
 
-export type ThemedTextProps = TextProps & {
+type Props = TextProps & {
   type?:
     | 'h1'
     | 'h2'
@@ -17,7 +17,7 @@ export type ThemedTextProps = TextProps & {
     | 'labelSmall';
 };
 
-export function ThemedText({ style, type = 'bodyBase', ...rest }: ThemedTextProps) {
+export function ThemedText({ style, type = 'bodyBase', ...rest }: Props) {
   const { theme } = useTheme();
 
   return (
