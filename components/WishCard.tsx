@@ -3,8 +3,6 @@ import React, { useEffect, useState } from 'react';
 import { View, Image, StyleSheet } from 'react-native';
 import { SvgXml } from 'react-native-svg';
 import { ThemedView } from '@/components/ThemedView';
-import { ThemedText } from '@/components/ThemedText';
-import { useTheme } from '@/hooks/useTheme';
 import { ActionButton } from './ActionsButton';
 
 const mask = `
@@ -21,14 +19,10 @@ export type Props = {
     width?: number;
     height?: number;
   };
-  name?: string;
-  price?: number;
-  currency?: string;
 };
 
-export function WishCard({ image, name, price, currency }: Props) {
+export function WishCard({ image }: Props) {
   const [aspectRatio, setAspectRatio] = useState<number | null>(null);
-  const { theme } = useTheme();
 
   useEffect(() => {
     calcImageAspectRatio();
@@ -43,10 +37,6 @@ export function WishCard({ image, name, price, currency }: Props) {
     } else {
       setAspectRatio(image.width / image.height);
     }
-  };
-
-  const handleActions = () => {
-    console.log('Actions нажата!');
   };
 
   if (!aspectRatio) return null;
@@ -66,15 +56,6 @@ export function WishCard({ image, name, price, currency }: Props) {
       <View style={styles.actionButton}>
         <ActionButton actions={[{ label: 'Поделиться', onPress: () => console.log('Поделиться') }]} />
       </View>
-
-      {name && (
-        <View style={styles.info}>
-          <ThemedText type="h3">{name}</ThemedText>
-          <ThemedText type="bodyLarge" style={{ color: theme.subtext }}>
-            {price} {currency}
-          </ThemedText>
-        </View>
-      )}
     </View>
   );
 }

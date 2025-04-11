@@ -1,6 +1,6 @@
+import { Icons } from '@/constants/icons';
 import React from 'react';
 import { StyleProp } from 'react-native';
-import { Icons } from '@/constants/Icons';
 import { NumberProp, SvgXml } from 'react-native-svg';
 
 type Props = {

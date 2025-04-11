@@ -1,6 +1,6 @@
 import type { PropsWithChildren, ReactElement } from 'react';
 import { NativeScrollEvent, NativeSyntheticEvent, Platform, ViewStyle } from 'react-native';
-import Animated, { interpolate, useAnimatedRef, useAnimatedStyle, useScrollViewOffset } from 'react-native-reanimated';
+import Reanimated, { interpolate, useAnimatedRef, useAnimatedStyle, useScrollViewOffset } from 'react-native-reanimated';
 import { ThemedView } from '@/components/ThemedView';
 import { useBottomTabOverflow } from '@/components/TabBarBackground';
 import { useBottomTabOverflow as useBottomTabOverflowIOS } from '@/components/TabBarBackground.ios';
@@ -23,7 +23,7 @@ export function ParallaxScrollView({
   style,
   onScroll,
 }: Props) {
-  const scrollRef = useAnimatedRef<Animated.ScrollView>();
+  const scrollRef = useAnimatedRef<Reanimated.ScrollView>();
   const scrollOffset = useScrollViewOffset(scrollRef);
   const bottom = Platform.OS === 'ios' ? useBottomTabOverflowIOS() : useBottomTabOverflow();
 
@@ -41,17 +41,17 @@ export function ParallaxScrollView({
   });
 
   return (
-    <ThemedView style={style}>
-      <Animated.ScrollView
+    <ThemedView style={[{ flex: 1, width: '100%' }, style]}>
+      <Reanimated.ScrollView
         ref={scrollRef}
         scrollEventThrottle={16}
         onScroll={onScroll}
         scrollIndicatorInsets={{ bottom }}
         contentContainerStyle={{ paddingBottom: bottom }}
       >
-        <Animated.View style={[{ height: headerHeight }, headerAnimatedStyle]}>{header}</Animated.View>
+        <Reanimated.View style={[{ height: headerHeight }, headerAnimatedStyle]}>{header}</Reanimated.View>
         <ThemedView>{children}</ThemedView>
-      </Animated.ScrollView>
+      </Reanimated.ScrollView>
     </ThemedView>
   );
 }

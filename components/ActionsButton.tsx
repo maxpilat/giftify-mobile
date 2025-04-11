@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleProp, StyleSheet, TouchableOpacity, ViewStyle } from 'react-native';
 import { useActionSheet } from '@expo/react-native-action-sheet';
-import { Colors } from '@/constants/Themes';
+import { Colors } from '@/constants/themes';
 import { Icon } from '@/components/Icon';
 
 type Action = {

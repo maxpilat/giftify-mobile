@@ -2,49 +2,70 @@ import React, { useRef } from 'react';
 import { ScrollView, Image, StyleSheet, View } from 'react-native';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
-import { type Props as TWish } from '@/components/WishCard';
 import { ActionButton } from '@/components/ActionsButton';
 import { ExternalLink } from '@/components/ExternalLink';
 import { useTheme } from '@/hooks/useTheme';
 import { Icon } from '@/components/Icon';
 import { PlatformButton } from '@/components/PlatformButton';
-import { Colors } from '@/constants/Themes';
+import { Colors } from '@/constants/themes';
 import { useLocalSearchParams } from 'expo-router';
+import { Wish } from '@/models';
+import { API } from '@/constants/api';
 
 const IMAGE_HEIGHT = 450;
 
-const wishes: (TWish & { id: number; categoryId: number })[] = [
+const wishes: Wish[] = [
   {
-    id: 0,
-    image: {
-      uri: 'https://vector.thedroidyouarelookingfor.info/wp-content/uploads/2020/09/EmoDesktopPet.jpg',
-    },
-    name: 'Робот Emo',
-    price: 1800,
-    currency: 'BYN',
-    categoryId: 1,
+    wishId: 0,
+    wishType: 'WISH',
+    name: 'Беспроводные наушники',
+    description: 'Sony WH-1000XM5 с шумоподавлением',
+    price: 950,
+    deposit: 250,
+    currency: { currencyId: 1, symbol: 'BYN', transcription: 'бел. руб.' },
+    link: 'https://example.com/sony-headphones',
   },
   {
-    id: 1,
-    image: {
-      uri: 'https://images.pexels.com/photos/258196/pexels-photo-258196.jpeg?cs=srgb&dl=pexels-pixabay-258196.jpg&fm=jpg',
-    },
-    name: 'Робот Emo',
-    price: 1800,
-    currency: 'BYN',
-    categoryId: 1,
+    wishId: 1,
+    wishType: 'PIGGY_BANK',
+    name: 'Поездка в Париж',
+    description: 'Хочу на неделю в Париж весной',
+    price: 3000,
+    deposit: 800,
+    currency: { currencyId: 1, symbol: 'BYN', transcription: 'бел. руб.' },
+    link: '',
   },
   {
-    id: 2,
-    image: {
-      uri: 'https://images.pexels.com/photos/1156684/pexels-photo-1156684.jpeg?cs=srgb&dl=pexels-arunbabuthomas-1156684.jpg&fm=jpg',
-    },
-    name: 'Робот Emo',
-    price: 1800,
-    currency: 'BYN',
-    categoryId: 2,
+    wishId: 2,
+    wishType: 'WISH',
+    name: 'Новая клавиатура',
+    description: 'Механическая клавиатура Keychron K6',
+    price: 350,
+    deposit: 100,
+    currency: { currencyId: 1, symbol: 'BYN', transcription: 'бел. руб.' },
+    link: 'https://example.com/keychron-k6',
   },
-] as const;
+  {
+    wishId: 3,
+    wishType: 'WISH',
+    name: 'Умная колонка',
+    description: 'Яндекс Станция Макс',
+    price: 500,
+    deposit: 50,
+    currency: { currencyId: 1, symbol: 'BYN', transcription: 'бел. руб.' },
+    link: 'https://example.com/yandex-station',
+  },
+  {
+    wishId: 4,
+    wishType: 'PIGGY_BANK',
+    name: 'Курс по дизайну',
+    description: 'Онлайн-курс UX/UI на Coursera',
+    price: 1200,
+    deposit: 300,
+    currency: { currencyId: 1, symbol: 'BYN', transcription: 'бел. руб.' },
+    link: 'https://coursera.org/design-course',
+  }
+];
 
 export default function WishesScreen() {
   const { theme } = useTheme();
@@ -62,13 +83,13 @@ export default function WishesScreen() {
       <ScrollView ref={scrollViewRef} contentContainerStyle={styles.scrollViewContainer}>
         {wishes.map((wish) => (
           <View
-            key={wish.id}
+            key={wish.wishId}
             style={styles.wishContainer}
-            onLayout={(event) => handleItemLayout(wish.id, event.nativeEvent.layout.y)}
+            onLayout={(event) => handleItemLayout(wish.wishId, event.nativeEvent.layout.y)}
           >
             <Image
-              source={{ uri: wish.image.uri }}
-              style={[styles.image, { height: wish.image.height || IMAGE_HEIGHT }]}
+              source={{ uri: API.getWishImage(wish.wishId) }}
+              style={[styles.image, { height: IMAGE_HEIGHT }]}
             />
             <View style={styles.infoContainer}>
               <View style={styles.textContainer}>

@@ -1,68 +1,72 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Animated, View, StyleSheet, Pressable, ScrollView, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, Pressable, ScrollView, TouchableOpacity, FlatList } from 'react-native';
 import { ParallaxScrollView } from '@/components/ParallaxScrollView';
 import { ProfileHeader, HEADER_HEIGHT } from '@/components/ProfileHeader';
 import MasonryList from '@react-native-seoul/masonry-list';
-import { WishCard, type Props as TWish } from '@/components/WishCard';
+import { WishCard } from '@/components/WishCard';
 import { Category } from '@/components/Category';
 import { Icon } from '@/components/Icon';
-import { Colors } from '@/constants/Themes';
 import { ThemedView } from '@/components/ThemedView';
 import { Link } from 'expo-router';
 import { useTheme } from '@/hooks/useTheme';
+import { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
+import { ThemedText } from '@/components/ThemedText';
+import { Wish } from '@/models';
+import { API } from '@/constants/api';
+import { Colors } from '@/constants/themes';
 
-const wishes: (TWish & { id: number; categoryId: number })[] = [
+const wishes: Wish[] = [
   {
-    id: 0,
-    image: {
-      uri: 'https://vector.thedroidyouarelookingfor.info/wp-content/uploads/2020/09/EmoDesktopPet.jpg',
-    },
-    name: 'Робот Emo',
-    price: 1800,
-    currency: 'BYN',
-    categoryId: 1,
+    wishId: 0,
+    wishType: 'WISH',
+    name: 'Беспроводные наушники',
+    description: 'Sony WH-1000XM5 с шумоподавлением',
+    price: 950,
+    deposit: 250,
+    currency: { currencyId: 1, symbol: 'BYN', transcription: 'бел. руб.' },
+    link: 'https://example.com/sony-headphones',
   },
   {
-    id: 1,
-    image: {
-      uri: 'https://images.pexels.com/photos/258196/pexels-photo-258196.jpeg?cs=srgb&dl=pexels-pixabay-258196.jpg&fm=jpg',
-    },
-    name: 'Робот Emo',
-    price: 1800,
-    currency: 'BYN',
-    categoryId: 1,
+    wishId: 1,
+    wishType: 'PIGGY_BANK',
+    name: 'Поездка в Париж',
+    description: 'Хочу на неделю в Париж весной',
+    price: 3000,
+    deposit: 800,
+    currency: { currencyId: 1, symbol: 'BYN', transcription: 'бел. руб.' },
+    link: '',
   },
   {
-    id: 2,
-    image: {
-      uri: 'https://images.pexels.com/photos/1156684/pexels-photo-1156684.jpeg?cs=srgb&dl=pexels-arunbabuthomas-1156684.jpg&fm=jpg',
-    },
-    name: 'Робот Emo',
-    price: 1800,
-    currency: 'BYN',
-    categoryId: 2,
+    wishId: 2,
+    wishType: 'WISH',
+    name: 'Новая клавиатура',
+    description: 'Механическая клавиатура Keychron K6',
+    price: 350,
+    deposit: 100,
+    currency: { currencyId: 1, symbol: 'BYN', transcription: 'бел. руб.' },
+    link: 'https://example.com/keychron-k6',
   },
   {
-    id: 3,
-    image: {
-      uri: 'https://images.pexels.com/photos/1156684/pexels-photo-1156684.jpeg?cs=srgb&dl=pexels-arunbabuthomas-1156684.jpg&fm=jpg',
-    },
-    name: 'Робот Emo',
-    price: 1800,
-    currency: 'BYN',
-    categoryId: 2,
+    wishId: 3,
+    wishType: 'WISH',
+    name: 'Умная колонка',
+    description: 'Яндекс Станция Макс',
+    price: 500,
+    deposit: 50,
+    currency: { currencyId: 1, symbol: 'BYN', transcription: 'бел. руб.' },
+    link: 'https://example.com/yandex-station',
   },
   {
-    id: 4,
-    image: {
-      uri: 'https://images.pexels.com/photos/1156684/pexels-photo-1156684.jpeg?cs=srgb&dl=pexels-arunbabuthomas-1156684.jpg&fm=jpg',
-    },
-    name: 'Робот Emo',
-    price: 1800,
-    currency: 'BYN',
-    categoryId: 2,
+    wishId: 4,
+    wishType: 'PIGGY_BANK',
+    name: 'Курс по дизайну',
+    description: 'Онлайн-курс UX/UI на Coursera',
+    price: 1200,
+    deposit: 300,
+    currency: { currencyId: 1, symbol: 'BYN', transcription: 'бел. руб.' },
+    link: 'https://coursera.org/design-course',
   },
-] as const;
+];
 
 type TCategory = {
   id: number;
@@ -91,11 +95,23 @@ const categories: TCategory[] = [
 export default function ProfileScreen() {
   const { theme } = useTheme();
   const [currentTab, setCurrentTab] = useState(0);
+  const currentTabRef = useRef(currentTab);
   const [currentCategory, setCurrentCategory] = useState<number | null>(null);
 
-  const scrollY = useRef(new Animated.Value(0)).current;
+  const contentFade = useSharedValue(1);
 
-  const handleScroll = Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], { useNativeDriver: false });
+  const fadeStyle = useAnimatedStyle(() => ({
+    opacity: contentFade.value,
+  }));
+
+  useEffect(() => {
+    contentFade.value = withTiming(0, { duration: 1000 }, (finished) => {
+      if (finished) {
+        currentTabRef.current = currentTab;
+        contentFade.value = withTiming(1, { duration: 1000 });
+      }
+    });
+  }, [currentTab]);
 
   useEffect(() => {
     setCurrentCategory(categories[0].id);
@@ -116,62 +132,74 @@ export default function ProfileScreen() {
             friendsCount={20}
             tabs={['Желания', 'Копилки', 'Я дарю']}
             onTabChange={setCurrentTab}
-            scrollY={scrollY}
           />
         }
         headerHeight={HEADER_HEIGHT}
         translateY={[-HEADER_HEIGHT / 1.5, 0, 0]}
         scale={[1, 1, 1]}
-        onScroll={handleScroll}
-        style={{ flex: 1 }}
       >
-        <View style={styles.container}>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.categoriesContainer}
-          >
-            {categories.map((category, index) => (
-              <React.Fragment key={category.id}>
-                <View style={styles.categoryContainer}>
-                  <Category
-                    name={category.name}
-                    count={category.count}
-                    isActive={currentCategory === category.id}
-                    onPress={() => setCurrentCategory(category.id)}
-                  />
-                </View>
-                {index === 0 && (
-                  <TouchableOpacity activeOpacity={0.9} style={[styles.categoryContainer, styles.addCategoryButton]}>
-                    <Icon name="plus"></Icon>
-                  </TouchableOpacity>
-                )}
-              </React.Fragment>
-            ))}
-          </ScrollView>
+        <ThemedView style={[styles.content, fadeStyle]}>
+          {currentTabRef.current === 0 && (
+            <>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categories}>
+                {categories.map((category, index) => (
+                  <React.Fragment key={category.id}>
+                    <View style={styles.category}>
+                      <Category
+                        name={category.name}
+                        count={category.count}
+                        isActive={currentCategory === category.id}
+                        onPress={() => setCurrentCategory(category.id)}
+                      />
+                    </View>
+                    {index === 0 && (
+                      <TouchableOpacity activeOpacity={0.9} style={[styles.category, styles.addCategoryButton]}>
+                        <Icon name="plus"></Icon>
+                      </TouchableOpacity>
+                    )}
+                  </React.Fragment>
+                ))}
+              </ScrollView>
 
-          <ThemedView style={styles.list}>
-            <MasonryList
-              data={wishes}
-              keyExtractor={(_, index) => index.toString()}
-              numColumns={2}
-              renderItem={({ item, i }) => (
-                <Link asChild href={{ pathname: './wishes', params: { wishId: (item as TWish & { id: number }).id } }}>
-                  <Pressable
-                    style={{
-                      flex: 1,
-                      marginRight: i % 2 === 0 ? 8 : 0,
-                      marginLeft: i % 2 !== 0 ? 8 : 0,
-                      marginBottom: 16,
-                    }}
-                  >
-                    <WishCard {...(item as TWish)} />
-                  </Pressable>
-                </Link>
-              )}
-            />
-          </ThemedView>
-        </View>
+              <MasonryList
+                data={wishes}
+                keyExtractor={(wish: Wish) => wish.wishId.toString()}
+                numColumns={2}
+                contentContainerStyle={styles.list}
+                renderItem={({ item, i }) => {
+                  const wish = item as Wish;
+                  return (
+                    <Link
+                      asChild
+                      href={{ pathname: './wishes', params: { wishId: wish.wishId.toString() } }}
+                      style={[styles.wish, { marginRight: i % 2 === 0 ? 8 : 0, marginLeft: i % 2 !== 0 ? 8 : 0 }]}
+                    >
+                      <Pressable>
+                        <WishCard image={{ uri: API.getWishImage(wish.wishId) }} />
+                        <View style={styles.wishInfo}>
+                          <ThemedText type="h3">{wish.name}</ThemedText>
+                          <ThemedText type="bodyLarge" style={{ color: theme.subtext }}>
+                            {wish.price} {wish.currency?.transcription}
+                          </ThemedText>
+                        </View>
+                      </Pressable>
+                    </Link>
+                  );
+                }}
+              />
+            </>
+          )}
+
+          {currentTabRef.current === 1 && (
+            <View style={styles.list}>
+              {[1, 2, 3].map((item) => (
+                <View key={item}>
+                  <ThemedText>item</ThemedText>
+                </View>
+              ))}
+            </View>
+          )}
+        </ThemedView>
       </ParallaxScrollView>
       <Pressable style={[styles.addItemButton, { backgroundColor: theme.primary }]}>
         <Icon name="plus"></Icon>
@@ -185,15 +213,15 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
   },
-  container: {
+  content: {
     marginTop: 16,
     gap: 16,
   },
-  categoriesContainer: {
+  categories: {
     paddingLeft: 16,
     paddingRight: 10,
   },
-  categoryContainer: {
+  category: {
     marginRight: 6,
   },
   addCategoryButton: {
@@ -214,5 +242,11 @@ const styles = StyleSheet.create({
   list: {
     marginHorizontal: 16,
     paddingBottom: 70,
+  },
+  wish: {
+    marginBottom: 24,
+  },
+  wishInfo: {
+    marginTop: 10,
   },
 });

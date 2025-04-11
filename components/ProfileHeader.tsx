@@ -1,12 +1,12 @@
-import React, { useEffect, useState } from 'react';
-import { StyleSheet, ImageBackground, StatusBar, View, TouchableOpacity, Image, Animated } from 'react-native';
+import React, { useState } from 'react';
+import { StyleSheet, ImageBackground, StatusBar, View, TouchableOpacity, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
 import MaskedView from '@react-native-masked-view/masked-view';
 import { SvgXml } from 'react-native-svg';
 import { useTheme } from '@/hooks/useTheme';
-import Reanimated, { Easing, interpolate, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
+import Reanimated, { Easing, useAnimatedStyle, withTiming } from 'react-native-reanimated';
 
 const mask = `
   <svg width="280" height="130" viewBox="100 -0.5 280 161" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -24,7 +24,6 @@ type Props = {
   friendsCount: number;
   tabs: string[];
   onTabChange: (index: number) => void;
-  scrollY: Animated.Value;
 };
 
 export function ProfileHeader({
@@ -35,12 +34,10 @@ export function ProfileHeader({
   friendsAvatars,
   tabs,
   onTabChange,
-  scrollY,
 }: Props) {
   const { theme } = useTheme();
 
   const [currentTab, setCurrentTab] = useState(0);
-  const scrollOffset = useSharedValue(0);
 
   const getTabAnimatedStyle = (index: number) =>
     useAnimatedStyle(() => ({
@@ -57,28 +54,6 @@ export function ProfileHeader({
         easing: Easing.inOut(Easing.ease),
       }),
     }));
-
-  const infoAnimatedStyle = useAnimatedStyle(() => {
-    return {
-      // transform: [
-      //   {
-      //     translateY:
-      //       scrollOffset.value < 130
-      //         ? 0
-      //         : interpolate(scrollOffset.value, [130, 130 + scrollOffset.value], [0, scrollOffset.value]),
-      //   },
-      // ],
-    };
-  });
-
-  useEffect(() => {
-    const listenerId = scrollY.addListener(({ value }) => {
-      onTabChange(value);
-      scrollOffset.set(value);
-    });
-
-    return () => scrollY.removeListener(listenerId);
-  }, [scrollY]);
 
   return (
     <ImageBackground
@@ -101,7 +76,7 @@ export function ProfileHeader({
               <Image source={avatar ? { uri: avatar } : require('@/assets/images/avatar.png')} style={styles.avatar} />
             </ThemedView>
           </MaskedView>
-          <ThemedView style={[styles.info, infoAnimatedStyle, { borderColor: theme.background }]}>
+          <ThemedView style={[styles.info, { borderColor: theme.background }]}>
             <ThemedText type="h2" style={styles.fullname} numberOfLines={1}>
               {fullname}
             </ThemedText>
@@ -158,9 +133,9 @@ const styles = StyleSheet.create({
     marginTop: -300,
   },
   headerWrapper: {
-    width: '100%',
     paddingHorizontal: 16,
     flex: 1,
+    width: '100%'
   },
   maskedView: {
     zIndex: 1,
@@ -183,7 +158,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 20,
     borderRadius: 40,
-    width: '100%',
     borderWidth: 1,
   },
   fullname: {
