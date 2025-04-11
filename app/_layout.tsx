@@ -3,7 +3,6 @@ import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
-import 'react-native-reanimated';
 import { ThemeProvider } from '@/hooks/useTheme';
 import { ActionSheetProvider } from '@expo/react-native-action-sheet';
 

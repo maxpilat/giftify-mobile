@@ -6,12 +6,12 @@ import { ThemedText } from '@/components/ThemedText';
 import MaskedView from '@react-native-masked-view/masked-view';
 import { SvgXml } from 'react-native-svg';
 import { useTheme } from '@/hooks/useTheme';
-import Reanimated, { interpolate, useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
+import Reanimated, { Easing, interpolate, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 
 const mask = `
-<svg width="280" height="130" viewBox="100 -0.5 280 161" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <path fill-rule="evenodd" clip-rule="evenodd" d="M264 0C219.817 0 184 35.8172 184 80V92C184 119.614 161.614 142 134 142H50C22.3858 142 0 164.386 0 192V248C0 275.614 22.3858 298 50 298H478C505.614 298 528 275.614 528 248V192C528 164.386 505.614 142 478 142H394C366.386 142 344 119.614 344 92V80C344 35.8172 308.183 0 264 0Z" fill="black"/>
-</svg>
+  <svg width="280" height="130" viewBox="100 -0.5 280 161" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path fill-rule="evenodd" clip-rule="evenodd" d="M264 0C219.817 0 184 35.8172 184 80V92C184 119.614 161.614 142 134 142H50C22.3858 142 0 164.386 0 192V248C0 275.614 22.3858 298 50 298H478C505.614 298 528 275.614 528 248V192C528 164.386 505.614 142 478 142H394C366.386 142 344 119.614 344 92V80C344 35.8172 308.183 0 264 0Z" fill="black"/>
+  </svg>
 `;
 
 export const HEADER_HEIGHT = 360;
@@ -37,10 +37,26 @@ export function ProfileHeader({
   onTabChange,
   scrollY,
 }: Props) {
+  const { theme } = useTheme();
+
   const [currentTab, setCurrentTab] = useState(0);
   const scrollOffset = useSharedValue(0);
 
-  const { theme } = useTheme();
+  const getTabAnimatedStyle = (index: number) =>
+    useAnimatedStyle(() => ({
+      backgroundColor: withTiming(currentTab === index ? theme.secondary : theme.background, {
+        duration: 300,
+        easing: Easing.inOut(Easing.ease),
+      }),
+    }));
+
+  const getTabTextAnimatedStyle = (index: number) =>
+    useAnimatedStyle(() => ({
+      color: withTiming(currentTab === index ? theme.background : theme.text, {
+        duration: 300,
+        easing: Easing.inOut(Easing.ease),
+      }),
+    }));
 
   const infoAnimatedStyle = useAnimatedStyle(() => {
     return {
@@ -85,51 +101,42 @@ export function ProfileHeader({
               <Image source={avatar ? { uri: avatar } : require('@/assets/images/avatar.png')} style={styles.avatar} />
             </ThemedView>
           </MaskedView>
-          <Reanimated.View style={infoAnimatedStyle}>
-            <ThemedView style={[styles.info, { borderColor: theme.background }]}>
-              <ThemedText type="h2" style={styles.fullname} numberOfLines={1}>
-                {fullname}
-              </ThemedText>
-              <View style={styles.details}>
-                <ThemedText type="bodyLargeMedium">{username}</ThemedText>
-                <View style={styles.friends}>
-                  <View style={styles.friendsAvatars}>
-                    {friendsAvatars?.map((friendAvatar, index) => (
-                      <Image
-                        key={index}
-                        source={{ uri: friendAvatar }}
-                        style={[
-                          styles.friendAvatar,
-                          index > 0 && { marginLeft: -13 },
-                          { borderColor: theme.background },
-                        ]}
-                      />
-                    ))}
-                  </View>
-                  <ThemedText>{friendsCount} друзей</ThemedText>
+          <ThemedView style={[styles.info, infoAnimatedStyle, { borderColor: theme.background }]}>
+            <ThemedText type="h2" style={styles.fullname} numberOfLines={1}>
+              {fullname}
+            </ThemedText>
+            <View style={styles.details}>
+              <ThemedText type="bodyLargeMedium">{username}</ThemedText>
+              <View style={styles.friends}>
+                <View style={styles.friendsAvatars}>
+                  {friendsAvatars?.map((friendAvatar, index) => (
+                    <Image
+                      key={index}
+                      source={{ uri: friendAvatar }}
+                      style={[styles.friendAvatar, index > 0 && { marginLeft: -13 }, { borderColor: theme.background }]}
+                    />
+                  ))}
                 </View>
+                <ThemedText>{friendsCount} друзей</ThemedText>
               </View>
-            </ThemedView>
-          </Reanimated.View>
+            </View>
+          </ThemedView>
 
-          <ThemedView style={styles.tabs}>
+          <ThemedView style={[styles.tabs]}>
             {tabs.map((tab, index) => (
-              <TouchableOpacity
-                activeOpacity={0.9}
-                key={index}
-                style={[styles.tab, currentTab === index && { backgroundColor: theme.secondary }]}
-                onPress={() => {
-                  setCurrentTab(index);
-                  onTabChange(index);
-                }}
-              >
-                <ThemedText
-                  type="bodyLargeMedium"
-                  style={{ color: currentTab === index ? theme.background : theme.text }}
+              <Reanimated.View key={index} style={[styles.tab, getTabAnimatedStyle(index)]}>
+                <TouchableOpacity
+                  activeOpacity={0.9}
+                  onPress={() => {
+                    setCurrentTab(index);
+                    onTabChange(index);
+                  }}
                 >
-                  {tab}
-                </ThemedText>
-              </TouchableOpacity>
+                  <ThemedText type="bodyLargeMedium" style={[getTabTextAnimatedStyle(index)]}>
+                    {tab}
+                  </ThemedText>
+                </TouchableOpacity>
+              </Reanimated.View>
             ))}
           </ThemedView>
         </View>

@@ -1,6 +1,7 @@
+import React, { useRef } from 'react';
+import { ScrollView, Image, StyleSheet, View } from 'react-native';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
-import { ScrollView, Image, StyleSheet, View } from 'react-native';
 import { type Props as TWish } from '@/components/WishCard';
 import { ActionButton } from '@/components/ActionsButton';
 import { ExternalLink } from '@/components/ExternalLink';
@@ -8,6 +9,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { Icon } from '@/components/Icon';
 import { PlatformButton } from '@/components/PlatformButton';
 import { Colors } from '@/constants/Themes';
+import { useLocalSearchParams } from 'expo-router';
 
 const IMAGE_HEIGHT = 450;
 
@@ -46,16 +48,24 @@ const wishes: (TWish & { id: number; categoryId: number })[] = [
 
 export default function WishesScreen() {
   const { theme } = useTheme();
+  const { wishId = 0 } = useLocalSearchParams();
+  const scrollViewRef = useRef<ScrollView>(null);
 
-  const updateWish = () => {
-    console.log('Исполнено');
+  const handleItemLayout = (id: number, pageY: number) => {
+    if (+wishId === id && scrollViewRef.current) {
+      scrollViewRef.current.scrollTo({ y: pageY, animated: false });
+    }
   };
 
   return (
     <ThemedView>
-      <ScrollView contentContainerStyle={styles.scrollViewContainer}>
+      <ScrollView ref={scrollViewRef} contentContainerStyle={styles.scrollViewContainer}>
         {wishes.map((wish) => (
-          <View key={wish.id} style={styles.wishContainer}>
+          <View
+            key={wish.id}
+            style={styles.wishContainer}
+            onLayout={(event) => handleItemLayout(wish.id, event.nativeEvent.layout.y)}
+          >
             <Image
               source={{ uri: wish.image.uri }}
               style={[styles.image, { height: wish.image.height || IMAGE_HEIGHT }]}
@@ -78,14 +88,9 @@ export default function WishesScreen() {
 
               <View style={styles.actionContainer}>
                 <View style={styles.hapticButtonContainer}>
-                  {/*
-                    если это наше желание - исполнено
-                    если желание друга - забронировать или отменить бронь
-                    если желание пользователя - не рисуем этот и кнопку actions переносим в нижний левый угол изображения
-                  */}
                   <PlatformButton
                     style={{ backgroundColor: theme.primary }}
-                    onPress={updateWish}
+                    onPress={() => console.log('Исполнено')}
                     hapticFeedback="Heavy"
                   >
                     <ThemedText type="bodyLargeMedium" style={{ color: Colors.white }}>

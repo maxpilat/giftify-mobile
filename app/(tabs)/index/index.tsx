@@ -8,7 +8,8 @@ import { Category } from '@/components/Category';
 import { Icon } from '@/components/Icon';
 import { Colors } from '@/constants/Themes';
 import { ThemedView } from '@/components/ThemedView';
-import { router } from 'expo-router';
+import { Link } from 'expo-router';
+import { useTheme } from '@/hooks/useTheme';
 
 const wishes: (TWish & { id: number; categoryId: number })[] = [
   {
@@ -88,6 +89,7 @@ const categories: TCategory[] = [
 ] as const;
 
 export default function ProfileScreen() {
+  const { theme } = useTheme();
   const [currentTab, setCurrentTab] = useState(0);
   const [currentCategory, setCurrentCategory] = useState<number | null>(null);
 
@@ -100,79 +102,89 @@ export default function ProfileScreen() {
   }, []);
 
   return (
-    <ParallaxScrollView
-      header={
-        <ProfileHeader
-          fullname={'Екатерина Костевич'}
-          username={'washermb'}
-          friendsAvatars={[
-            'https://img.freepik.com/free-psd/3d-illustration-human-avatar-profile_23-2150671122.jpg',
-            'https://img.freepik.com/psd-gratuit/illustration-3d-avatar-profil-humain_23-2150671161.jpg',
-            'https://img.freepik.com/free-psd/3d-illustration-human-avatar-profile_23-2150671149.jpg?semt=ais_hybrid',
-          ]}
-          friendsCount={20}
-          tabs={['Желания', 'Копилки', 'Я дарю']}
-          onTabChange={setCurrentTab}
-          scrollY={scrollY}
-        />
-      }
-      headerHeight={HEADER_HEIGHT}
-      translateY={[-HEADER_HEIGHT / 1.5, 0, 0]}
-      scale={[1, 1, 1]}
-      onScroll={handleScroll}
-      style={{ flex: 1 }}
-    >
-      <View style={styles.container}>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.categoriesContainer}
-        >
-          {categories.map((category, index) => (
-            <React.Fragment key={category.id}>
-              <View style={styles.categoryContainer}>
-                <Category
-                  name={category.name}
-                  count={category.count}
-                  isActive={currentCategory === category.id}
-                  onPress={() => setCurrentCategory(category.id)}
-                />
-              </View>
-              {index === 0 && (
-                <TouchableOpacity activeOpacity={0.9} style={[styles.categoryContainer, styles.addCategoryButton]}>
-                  <Icon name="plus"></Icon>
-                </TouchableOpacity>
-              )}
-            </React.Fragment>
-          ))}
-        </ScrollView>
-
-        <ThemedView style={styles.list}>
-          <MasonryList
-            data={wishes}
-            keyExtractor={(_, index) => index.toString()}
-            numColumns={2}
-            renderItem={({ item, i }) => (
-              <Pressable
-                style={{
-                  flex: 1,
-                  marginRight: i % 2 === 0 ? 8 : 0,
-                  marginLeft: i % 2 !== 0 ? 8 : 0,
-                  marginBottom: 16,
-                }}
-                onPress={() => router.push('./wishes')}
-              >
-                <WishCard {...(item as TWish)} />
-              </Pressable>
-            )}
+    <View style={styles.wrapper}>
+      <ParallaxScrollView
+        header={
+          <ProfileHeader
+            fullname={'Екатерина Костевич'}
+            username={'washermb'}
+            friendsAvatars={[
+              'https://img.freepik.com/free-psd/3d-illustration-human-avatar-profile_23-2150671122.jpg',
+              'https://img.freepik.com/psd-gratuit/illustration-3d-avatar-profil-humain_23-2150671161.jpg',
+              'https://img.freepik.com/free-psd/3d-illustration-human-avatar-profile_23-2150671149.jpg?semt=ais_hybrid',
+            ]}
+            friendsCount={20}
+            tabs={['Желания', 'Копилки', 'Я дарю']}
+            onTabChange={setCurrentTab}
+            scrollY={scrollY}
           />
-        </ThemedView>
-      </View>
-    </ParallaxScrollView>
+        }
+        headerHeight={HEADER_HEIGHT}
+        translateY={[-HEADER_HEIGHT / 1.5, 0, 0]}
+        scale={[1, 1, 1]}
+        onScroll={handleScroll}
+        style={{ flex: 1 }}
+      >
+        <View style={styles.container}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.categoriesContainer}
+          >
+            {categories.map((category, index) => (
+              <React.Fragment key={category.id}>
+                <View style={styles.categoryContainer}>
+                  <Category
+                    name={category.name}
+                    count={category.count}
+                    isActive={currentCategory === category.id}
+                    onPress={() => setCurrentCategory(category.id)}
+                  />
+                </View>
+                {index === 0 && (
+                  <TouchableOpacity activeOpacity={0.9} style={[styles.categoryContainer, styles.addCategoryButton]}>
+                    <Icon name="plus"></Icon>
+                  </TouchableOpacity>
+                )}
+              </React.Fragment>
+            ))}
+          </ScrollView>
+
+          <ThemedView style={styles.list}>
+            <MasonryList
+              data={wishes}
+              keyExtractor={(_, index) => index.toString()}
+              numColumns={2}
+              renderItem={({ item, i }) => (
+                <Link asChild href={{ pathname: './wishes', params: { wishId: (item as TWish & { id: number }).id } }}>
+                  <Pressable
+                    style={{
+                      flex: 1,
+                      marginRight: i % 2 === 0 ? 8 : 0,
+                      marginLeft: i % 2 !== 0 ? 8 : 0,
+                      marginBottom: 16,
+                    }}
+                  >
+                    <WishCard {...(item as TWish)} />
+                  </Pressable>
+                </Link>
+              )}
+            />
+          </ThemedView>
+        </View>
+      </ParallaxScrollView>
+      <Pressable style={[styles.addItemButton, { backgroundColor: theme.primary }]}>
+        <Icon name="plus"></Icon>
+      </Pressable>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  wrapper: {
+    flex: 1,
+    alignItems: 'center',
+  },
   container: {
     marginTop: 16,
     gap: 16,
@@ -190,9 +202,17 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.black,
     justifyContent: 'center',
   },
-  addItemButton: {},
+  addItemButton: {
+    position: 'absolute',
+    bottom: 95,
+    borderRadius: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 60,
+    width: 120,
+  },
   list: {
     marginHorizontal: 16,
-    paddingBottom: 80,
+    paddingBottom: 70,
   },
 });

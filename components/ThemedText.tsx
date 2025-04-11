@@ -1,5 +1,6 @@
 import { useTheme } from '@/hooks/useTheme';
-import { Text, type TextProps, StyleSheet } from 'react-native';
+import { TextProps, StyleProp, TextStyle, StyleSheet } from 'react-native';
+import Reanimated, { AnimatedStyle } from 'react-native-reanimated';
 
 type Props = TextProps & {
   type?:
@@ -15,13 +16,14 @@ type Props = TextProps & {
     | 'labelLarge'
     | 'labelBase'
     | 'labelSmall';
+  style?: StyleProp<TextStyle> | StyleProp<AnimatedStyle<StyleProp<TextStyle>>>;
 };
 
 export function ThemedText({ style, type = 'bodyBase', ...rest }: Props) {
   const { theme } = useTheme();
 
   return (
-    <Text
+    <Reanimated.Text
       style={[
         { color: theme.text },
         type === 'bodyBase' ? styles.bodyBase : undefined,

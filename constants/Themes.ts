@@ -1,16 +1,3 @@
-export interface Theme {
-    text: string;
-    subtext: string,
-    background: string;
-    tabIconDefault: string;
-    tabIconSelected: string;
-    tabBarBorder: string;
-    primary: string;
-    secondary: string;
-}
-
-export type ThemeType = 'light' | 'dark';
-
 export const Colors = {
     primary: '#0F53FF',
     secondary: '#FF740F',
@@ -21,7 +8,20 @@ export const Colors = {
     light: '#D6D6D6',
     grey: '#88898B',
     dark: '#474747',
-};
+} as const;
+
+export type ThemeType = 'light' | 'dark';
+
+export interface Theme {
+    text: string;
+    subtext: string,
+    background: string;
+    tabIconDefault: string;
+    tabIconSelected: string;
+    tabBarBorder: string;
+    primary: string;
+    secondary: string;
+}
 
 export const Themes: { light: Theme; dark: Theme } = {
     light: {
