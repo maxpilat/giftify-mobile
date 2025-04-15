@@ -93,7 +93,7 @@ export default function WishesScreen() {
                 <ThemedText type="h2">{wish.name}</ThemedText>
                 <View style={styles.price}>
                   <ThemedText>{`${wish.price} ${wish.currency?.symbol}`}</ThemedText>
-                  <ExternalLink style={styles.externalLink} href="https://www.google.com/">
+                  <ExternalLink style={styles.externalLink} href={wish.link}>
                     <View style={styles.externalLinkContainer}>
                       <ThemedText type="bodyLargeMedium" style={[styles.externalLinkText, { color: theme.primary }]}>
                         Где купить

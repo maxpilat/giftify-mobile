@@ -8,7 +8,7 @@ type Props = {
   onPress?: () => void;
   hapticFeedback?: keyof typeof ImpactFeedbackStyle | 'none';
   pressOpacity?: number;
-  children: React.ReactNode;
+  children?: React.ReactNode;
   style?: Animated.WithAnimatedValue<StyleProp<ViewStyle>>;
 };
 

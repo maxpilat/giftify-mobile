@@ -8,6 +8,7 @@ import { ThemedText } from './ThemedText';
 
 type Props<T> = {
   icon?: keyof typeof Icons;
+  valid?: boolean;
   options?: T[];
   getDisplayedValue?: (item: T) => string;
   getOptionLabel?: (item: T) => string;
@@ -16,6 +17,7 @@ type Props<T> = {
 
 export function TextInput<T>({
   icon,
+  valid = true,
   options,
   getDisplayedValue,
   getOptionLabel,
@@ -43,8 +45,22 @@ export function TextInput<T>({
   };
 
   return (
-    <View style={[styles.container, { borderColor: Colors.grey }, inputConfig.multiline && { alignItems: 'flex-start' }]}>
-      {icon && <Icon name={icon} color={Colors.grey} size={16} style={inputConfig.multiline && { marginTop: 6 }} />}
+    <View
+      style={[
+        styles.container,
+        { borderColor: Colors.grey },
+        inputConfig.multiline && { alignItems: 'flex-start' },
+        !valid && { borderColor: Colors.red },
+      ]}
+    >
+      {icon && (
+        <Icon
+          name={icon}
+          color={valid ? Colors.grey : Colors.red}
+          size={16}
+          style={inputConfig.multiline && { marginTop: 6 }}
+        />
+      )}
       <Input
         style={[styles.input, inputConfig.multiline && { height: 96 }]}
         placeholderTextColor={Colors.grey}
@@ -78,9 +94,9 @@ const styles = StyleSheet.create({
     color: Colors.grey,
   },
   optionButton: {
-    paddingHorizontal: 8
+    paddingHorizontal: 8,
   },
   optionText: {
-    color: Colors.grey
+    color: Colors.grey,
   },
 });

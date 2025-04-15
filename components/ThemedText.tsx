@@ -4,18 +4,18 @@ import Animated, { AnimatedStyle } from 'react-native-reanimated';
 
 type Props = TextProps & {
   type?:
-  | 'h1'
-  | 'h2'
-  | 'h3'
-  | 'h4'
-  | 'h5'
-  | 'bodyLargeMedium'
-  | 'bodyLarge'
-  | 'bodyBase'
-  | 'bodySmall'
-  | 'labelLarge'
-  | 'labelBase'
-  | 'labelSmall';
+    | 'h1'
+    | 'h2'
+    | 'h3'
+    | 'h4'
+    | 'h5'
+    | 'bodyLargeMedium'
+    | 'bodyLarge'
+    | 'bodyBase'
+    | 'bodySmall'
+    | 'labelLarge'
+    | 'labelBase'
+    | 'labelSmall';
   style?: StyleProp<TextStyle> | StyleProp<AnimatedStyle<StyleProp<TextStyle>>>;
 };
 
@@ -71,7 +71,7 @@ const styles = StyleSheet.create({
     fontFamily: 'stolzl-medium',
   },
   h5: {
-    fontSize: 20,
+    fontSize: 18,
     lineHeight: 24,
     fontWeight: 500,
     fontFamily: 'stolzl-medium',
