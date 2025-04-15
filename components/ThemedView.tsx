@@ -1,5 +1,5 @@
 import { useTheme } from '@/hooks/useTheme';
-import Reanimated, { AnimatedStyle } from 'react-native-reanimated';
+import Animated, { AnimatedStyle } from 'react-native-reanimated';
 import { ViewProps, StyleProp, ViewStyle } from 'react-native';
 
 type Props = ViewProps & {
@@ -11,5 +11,5 @@ type Props = ViewProps & {
 export function ThemedView({ style, lightColor, darkColor, ...otherProps }: Props) {
   const { theme } = useTheme();
 
-  return <Reanimated.View style={[{ backgroundColor: theme.background }, style]} {...otherProps} />;
+  return <Animated.View style={[{ backgroundColor: theme.background }, style]} {...otherProps} />;
 }

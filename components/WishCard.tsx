@@ -4,7 +4,7 @@ import MaskedView from '@react-native-masked-view/masked-view';
 import { SvgXml } from 'react-native-svg';
 import { ThemedView } from '@/components/ThemedView';
 import { ActionButton } from './ActionsButton';
-import Reanimated, { useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
+import Animated, { useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
 import { ThemedText } from '@/components/ThemedText';
 import { useTheme } from '@/hooks/useTheme';
 import { Currency } from '@/models';
@@ -58,7 +58,7 @@ export function WishCard({ image, name, price, currency }: Props) {
 
   return (
     <View style={styles.container}>
-      <Reanimated.Image
+      <Animated.Image
         source={{ uri: image.uri }}
         style={[
           styles.image,

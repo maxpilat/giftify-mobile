@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet, TouchableOpacity } from 'react-native';
-import Reanimated, { useSharedValue, useAnimatedStyle, withTiming, Easing } from 'react-native-reanimated';
+import Animated, { useSharedValue, useAnimatedStyle, withTiming, Easing } from 'react-native-reanimated';
 import { Colors } from '@/constants/themes';
 import { ThemedText } from '@/components/ThemedText';
 import { useTheme } from '@/hooks/useTheme';
@@ -15,7 +15,7 @@ type Props = {
   duration?: number;
 };
 
-export function Category({ name, count, isActive, onPress, pressOpacity = 0.7, duration = 300 }: Props) {
+export function WishListTab({ name, count, isActive, onPress, pressOpacity = 0.7, duration = 300 }: Props) {
   const { theme } = useTheme();
 
   const backgroundColorValue = isActive ? theme.secondary : Colors.black;
@@ -42,7 +42,7 @@ export function Category({ name, count, isActive, onPress, pressOpacity = 0.7, d
   }, [isActive]);
 
   return (
-    <Reanimated.View style={[styles.container, animatedContainerStyle]}>
+    <Animated.View style={[styles.container, animatedContainerStyle]}>
       <TouchableOpacity activeOpacity={pressOpacity} onPress={onPress}>
         <ThemedText type="bodyLarge" style={styles.text}>
           {name}
@@ -51,16 +51,16 @@ export function Category({ name, count, isActive, onPress, pressOpacity = 0.7, d
           {count}
         </ThemedText>
 
-        <Reanimated.View style={[styles.actionButtonContainer, animatedActionButtonStyle]}>
+        <Animated.View style={[styles.actionButtonContainer, animatedActionButtonStyle]}>
           <ActionButton
             style={[styles.actionButton]}
             size={36}
             actions={[{ label: 'Поделиться', onPress: () => console.log('Поделиться') }]}
             pressOpacity={pressOpacity}
           />
-        </Reanimated.View>
+        </Animated.View>
       </TouchableOpacity>
-    </Reanimated.View>
+    </Animated.View>
   );
 }
 

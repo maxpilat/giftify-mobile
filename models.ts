@@ -15,4 +15,10 @@ export interface Currency {
   transcription: string;
 }
 
+export interface WishList {
+  wishListId: number,
+  name: string,
+  wishes: Wish[]
+}
+
 export type WishType = 'WISH' | 'PIGGY_BANK';

@@ -1,21 +1,21 @@
 import { useTheme } from '@/hooks/useTheme';
 import { TextProps, StyleProp, TextStyle, StyleSheet } from 'react-native';
-import Reanimated, { AnimatedStyle } from 'react-native-reanimated';
+import Animated, { AnimatedStyle } from 'react-native-reanimated';
 
 type Props = TextProps & {
   type?:
-    | 'h1'
-    | 'h2'
-    | 'h3'
-    | 'h4'
-    | 'h5'
-    | 'bodyLargeMedium'
-    | 'bodyLarge'
-    | 'bodyBase'
-    | 'bodySmall'
-    | 'labelLarge'
-    | 'labelBase'
-    | 'labelSmall';
+  | 'h1'
+  | 'h2'
+  | 'h3'
+  | 'h4'
+  | 'h5'
+  | 'bodyLargeMedium'
+  | 'bodyLarge'
+  | 'bodyBase'
+  | 'bodySmall'
+  | 'labelLarge'
+  | 'labelBase'
+  | 'labelSmall';
   style?: StyleProp<TextStyle> | StyleProp<AnimatedStyle<StyleProp<TextStyle>>>;
 };
 
@@ -23,7 +23,7 @@ export function ThemedText({ style, type = 'bodyBase', ...rest }: Props) {
   const { theme } = useTheme();
 
   return (
-    <Reanimated.Text
+    <Animated.Text
       style={[
         { color: theme.text },
         type === 'bodyBase' ? styles.bodyBase : undefined,

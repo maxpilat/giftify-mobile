@@ -10,6 +10,7 @@ export default function IndexLayout() {
   const getModalOptions = (title: string): NativeStackNavigationOptions => ({
     presentation: 'modal',
     headerShadowVisible: false,
+    sheetCornerRadius: 100,
     headerStyle: {
       backgroundColor: theme.background,
     },

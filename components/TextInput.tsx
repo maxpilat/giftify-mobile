@@ -1,27 +1,62 @@
-import React from 'react';
-import { StyleSheet, TextInput as NativeTextInput, View } from 'react-native';
+import React, { useState } from 'react';
+import { StyleSheet, TouchableOpacity, View, TextInput as Input, TextInputProps } from 'react-native';
+import { useActionSheet } from '@expo/react-native-action-sheet';
 import { Icon } from '@/components/Icon';
 import { Colors } from '@/constants/themes';
 import { Icons } from '@/constants/icons';
+import { ThemedText } from './ThemedText';
 
-type Props = {
-  placeholder?: string;
-  value?: string;
-  onChangeValue?: (text: string) => void;
+type Props<T> = {
   icon?: keyof typeof Icons;
-};
+  options?: T[];
+  getDisplayedValue?: (item: T) => string;
+  getOptionLabel?: (item: T) => string;
+  onSelectOption?: (item: T) => void;
+} & TextInputProps;
 
-export function TextInput({ icon, placeholder, value, onChangeValue }: Props) {
+export function TextInput<T>({
+  icon,
+  options,
+  getDisplayedValue,
+  getOptionLabel,
+  onSelectOption,
+  ...inputConfig
+}: Props<T>) {
+  const { showActionSheetWithOptions } = useActionSheet();
+  const [selectedOption, setSelectedOption] = useState<T | null>(options?.[0] ?? null);
+
+  const openSheet = () => {
+    if (!options || !getOptionLabel) return;
+    showActionSheetWithOptions(
+      {
+        options: [...options.map(getOptionLabel), 'Отмена'],
+        cancelButtonIndex: options.length,
+      },
+      (index) => {
+        if (index !== undefined && index < options.length) {
+          const selected = options[index];
+          setSelectedOption(selected);
+          onSelectOption?.(selected);
+        }
+      }
+    );
+  };
+
   return (
-    <View style={[styles.container, { borderColor: Colors.grey }]}>
-      {icon && <Icon name={icon} color={Colors.grey} size={16} />}
-      <NativeTextInput
-        style={styles.input}
-        placeholder={placeholder}
+    <View style={[styles.container, { borderColor: Colors.grey }, inputConfig.multiline && { alignItems: 'flex-start' }]}>
+      {icon && <Icon name={icon} color={Colors.grey} size={16} style={inputConfig.multiline && { marginTop: 6 }} />}
+      <Input
+        style={[styles.input, inputConfig.multiline && { height: 96 }]}
         placeholderTextColor={Colors.grey}
-        value={value}
-        onChangeText={onChangeValue}
+        {...inputConfig}
       />
+      {options && (
+        <TouchableOpacity style={styles.optionButton} onPress={openSheet}>
+          <ThemedText style={styles.optionText}>
+            {selectedOption && getDisplayedValue ? getDisplayedValue(selectedOption) : 'Выбрать'}
+          </ThemedText>
+        </TouchableOpacity>
+      )}
     </View>
   );
 }
@@ -41,5 +76,11 @@ const styles = StyleSheet.create({
     fontWeight: '400',
     fontFamily: 'stolzl-regular',
     color: Colors.grey,
+  },
+  optionButton: {
+    paddingHorizontal: 8
+  },
+  optionText: {
+    color: Colors.grey
   },
 });

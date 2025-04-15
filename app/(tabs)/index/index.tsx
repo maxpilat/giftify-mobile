@@ -4,14 +4,14 @@ import { ParallaxScrollView } from '@/components/ParallaxScrollView';
 import { ProfileHeader, HEADER_HEIGHT } from '@/components/ProfileHeader';
 import MasonryList from '@react-native-seoul/masonry-list';
 import { WishCard } from '@/components/WishCard';
-import { Category } from '@/components/Category';
+import { WishListTab } from '@/components/WishListTab';
 import { Icon } from '@/components/Icon';
 import { ThemedView } from '@/components/ThemedView';
 import { Link, router } from 'expo-router';
 import { useTheme } from '@/hooks/useTheme';
-import Reanimated, { runOnJS, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
+import Animated, { runOnJS, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { ThemedText } from '@/components/ThemedText';
-import { Wish } from '@/models';
+import { Wish, WishList } from '@/models';
 import { API } from '@/constants/api';
 import { Colors } from '@/constants/themes';
 import { ProgressBar } from '@/components/ProgressBar';
@@ -122,34 +122,28 @@ const piggyBanks: Wish[] = [
   },
 ];
 
-type TCategory = {
-  id: number;
-  name: string;
-  count: number;
-};
-
-const categories: TCategory[] = [
+const wishLists: WishList[] = [
   {
-    id: 0,
+    wishListId: 0,
     name: 'Мои желания',
-    count: 3,
+    wishes: [],
   },
   {
-    id: 1,
+    wishListId: 1,
     name: 'Новоселье',
-    count: 2,
+    wishes: [],
   },
   {
-    id: 2,
+    wishListId: 2,
     name: 'День рождения',
-    count: 1,
+    wishes: [],
   },
 ] as const;
 
 export default function ProfileScreen() {
   const { theme } = useTheme();
 
-  const [currentCategoryId, setCurrentCategoryId] = useState<number | null>(null);
+  const [currentWishListId, setCurrentWishListId] = useState<number | null>(null);
   const [currentTabIndex, setCurrentTabIndex] = useState(0);
   const [currentVisibleTabIndex, setCurrentVisibleTabIndex] = useState(0);
 
@@ -165,7 +159,7 @@ export default function ProfileScreen() {
   }));
 
   useEffect(() => {
-    setCurrentCategoryId(categories[0].id);
+    setCurrentWishListId(wishLists[0].wishListId);
   }, []);
 
   useEffect(() => {
@@ -214,20 +208,20 @@ export default function ProfileScreen() {
           {currentVisibleTabIndex === 0 && (
             <>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categories}>
-                {categories.map((category, index) => (
-                  <React.Fragment key={category.id}>
-                    <View style={styles.category}>
-                      <Category
-                        name={category.name}
-                        count={category.count}
-                        isActive={currentCategoryId === category.id}
-                        onPress={() => setCurrentCategoryId(category.id)}
+                {wishLists.map((wishList, index) => (
+                  <React.Fragment key={wishList.wishListId}>
+                    <View style={styles.wishList}>
+                      <WishListTab
+                        name={wishList.name}
+                        count={wishList.wishes.length}
+                        isActive={currentWishListId === wishList.wishListId}
+                        onPress={() => setCurrentWishListId(wishList.wishListId)}
                       />
                     </View>
                     {index === 0 && (
-                      <View style={[styles.category, styles.addCategoryButton]}>
+                      <View style={[styles.wishList, styles.addWishListButton]}>
                         <Link asChild href={'./wishListModal'}>
-                          <TouchableOpacity activeOpacity={0.7} style={styles.addCategoryButtonTouchable}>
+                          <TouchableOpacity activeOpacity={0.7} style={styles.addWishListButtonTouchable}>
                             <Icon name="plus" />
                           </TouchableOpacity>
                         </Link>
@@ -342,11 +336,11 @@ export default function ProfileScreen() {
         </ThemedView>
       </ParallaxScrollView>
 
-      <Reanimated.View style={[styles.addItemButton, { backgroundColor: theme.primary }, addItemButtonAnimatedStyle]}>
+      <Animated.View style={[styles.addItemButton, { backgroundColor: theme.primary }, addItemButtonAnimatedStyle]}>
         <Pressable onPress={addItem} style={styles.addItemButtonPressable}>
           <Icon name="plus" />
         </Pressable>
-      </Reanimated.View>
+      </Animated.View>
     </View>
   );
 }
@@ -364,15 +358,15 @@ const styles = StyleSheet.create({
     paddingLeft: 16,
     paddingRight: 10,
   },
-  category: {
+  wishList: {
     marginRight: 6,
   },
-  addCategoryButton: {
+  addWishListButton: {
     borderRadius: 20,
     overflow: 'hidden',
     backgroundColor: Colors.black,
   },
-  addCategoryButtonTouchable: {
+  addWishListButtonTouchable: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',

@@ -3,7 +3,7 @@ import { StyleSheet, View } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { useTheme } from '@/hooks/useTheme';
 import { Currency } from '@/models';
-import Reanimated, { useSharedValue, useAnimatedStyle, withTiming, Easing } from 'react-native-reanimated';
+import Animated, { useSharedValue, useAnimatedStyle, withTiming, Easing } from 'react-native-reanimated';
 
 type Props = {
   currentAmount: number;
@@ -51,17 +51,17 @@ export function ProgressBar({ currentAmount, targetAmount, currency }: Props) {
   return (
     <View>
       <View style={styles.progressBar} onLayout={(event) => setBarWidth(event.nativeEvent.layout.width)}>
-        <Reanimated.View style={[styles.progressFill, barStyle, { backgroundColor: theme.secondary }]} />
+        <Animated.View style={[styles.progressFill, barStyle, { backgroundColor: theme.secondary }]} />
       </View>
 
       {currency && (
         <View style={styles.textContainer}>
-          <Reanimated.Text
+          <Animated.Text
             style={[labelStyle, { color: theme.secondary }]}
             onLayout={(event) => setLabelWidth(event.nativeEvent.layout.width)}
           >
             {currentAmount} {currency.symbol}
-          </Reanimated.Text>
+          </Animated.Text>
           <ThemedText type="labelLarge">
             {targetAmount} {currency.symbol}
           </ThemedText>
