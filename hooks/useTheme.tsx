@@ -15,8 +15,8 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     Appearance.getColorScheme() || 'light'
   );
   const [currentCustomColors, setCurrentCustomColors] = useState<{ primary: string; secondary: string }>({
-    primary: Colors.primary,
-    secondary: Colors.secondary,
+    primary: Colors.blue,
+    secondary: Colors.orange,
   });
 
   const currentTheme: Theme = useMemo(

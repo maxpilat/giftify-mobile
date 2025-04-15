@@ -9,7 +9,7 @@ export default function NotFoundScreen() {
       <Stack.Screen options={{ title: 'Oops!' }} />
       <ThemedView style={styles.container}>
         <ThemedText type="h1">This screen doesn't exist.</ThemedText>
-        <Link href="/" style={styles.link}>
+        <Link href="./" style={styles.link}>
           <ThemedText type="h3">Go to home screen!</ThemedText>
         </Link>
       </ThemedView>

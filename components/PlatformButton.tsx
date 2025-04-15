@@ -5,7 +5,7 @@ import { impactAsync, ImpactFeedbackStyle } from 'expo-haptics';
 import { Colors } from '@/constants/themes';
 
 type Props = {
-  onPress: () => void;
+  onPress?: () => void;
   hapticFeedback?: keyof typeof ImpactFeedbackStyle | 'none';
   pressOpacity?: number;
   children: React.ReactNode;
@@ -15,7 +15,7 @@ type Props = {
 export function PlatformButton({ onPress, hapticFeedback = 'Medium', pressOpacity = 0.9, children, style }: Props) {
   const handlePress = () => {
     hapticFeedback !== 'none' && impactAsync(ImpactFeedbackStyle[hapticFeedback]);
-    onPress();
+    onPress && onPress();
   };
 
   return (

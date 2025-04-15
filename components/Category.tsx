@@ -6,7 +6,7 @@ import { ThemedText } from '@/components/ThemedText';
 import { useTheme } from '@/hooks/useTheme';
 import { ActionButton } from '@/components/ActionsButton';
 
-export type Props = {
+type Props = {
   name: string;
   count: number;
   isActive?: boolean;
@@ -15,7 +15,7 @@ export type Props = {
   duration?: number;
 };
 
-export function Category({ name, count, isActive, onPress, pressOpacity = 0.9, duration = 300 }: Props) {
+export function Category({ name, count, isActive, onPress, pressOpacity = 0.7, duration = 300 }: Props) {
   const { theme } = useTheme();
 
   const backgroundColorValue = isActive ? theme.secondary : Colors.black;

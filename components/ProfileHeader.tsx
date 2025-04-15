@@ -6,7 +6,7 @@ import { ThemedText } from '@/components/ThemedText';
 import MaskedView from '@react-native-masked-view/masked-view';
 import { SvgXml } from 'react-native-svg';
 import { useTheme } from '@/hooks/useTheme';
-import Reanimated, { Easing, useAnimatedStyle, withTiming } from 'react-native-reanimated';
+import { Easing, useAnimatedStyle, withTiming } from 'react-native-reanimated';
 
 const mask = `
   <svg width="280" height="130" viewBox="100 -0.5 280 161" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -26,30 +26,14 @@ type Props = {
   onTabChange: (index: number) => void;
 };
 
-export function ProfileHeader({
-  fullname,
-  username,
-  avatar,
-  friendsCount,
-  friendsAvatars,
-  tabs,
-  onTabChange,
-}: Props) {
+export function ProfileHeader({ fullname, username, avatar, friendsCount, friendsAvatars, tabs, onTabChange }: Props) {
   const { theme } = useTheme();
 
-  const [currentTab, setCurrentTab] = useState(0);
-
-  const getTabAnimatedStyle = (index: number) =>
-    useAnimatedStyle(() => ({
-      backgroundColor: withTiming(currentTab === index ? theme.secondary : theme.background, {
-        duration: 300,
-        easing: Easing.inOut(Easing.ease),
-      }),
-    }));
+  const [currentTabIndex, setCurrentTabIndex] = useState(0);
 
   const getTabTextAnimatedStyle = (index: number) =>
     useAnimatedStyle(() => ({
-      color: withTiming(currentTab === index ? theme.background : theme.text, {
+      color: withTiming(currentTabIndex === index ? theme.background : theme.text, {
         duration: 300,
         easing: Easing.inOut(Easing.ease),
       }),
@@ -59,7 +43,7 @@ export function ProfileHeader({
     <ImageBackground
       source={require('@/assets/images/bg-01.jpeg')}
       style={styles.background}
-      imageStyle={styles.backgroundImage}
+      imageStyle={[styles.backgroundImage, { backgroundColor: theme.tabBarBorder }]}
     >
       <StatusBar hidden />
       <SafeAreaView>
@@ -72,8 +56,11 @@ export function ProfileHeader({
               </View>
             }
           >
-            <ThemedView style={styles.avatarWrapper}>
-              <Image source={avatar ? { uri: avatar } : require('@/assets/images/avatar.png')} style={styles.avatar} />
+            <ThemedView style={[styles.avatarWrapper]}>
+              <Image
+                source={avatar ? { uri: avatar } : require('@/assets/images/avatar.png')}
+                style={[styles.avatar, { backgroundColor: theme.tabBarBorder }]}
+              />
             </ThemedView>
           </MaskedView>
           <ThemedView style={[styles.info, { borderColor: theme.background }]}>
@@ -99,19 +86,19 @@ export function ProfileHeader({
 
           <ThemedView style={[styles.tabs]}>
             {tabs.map((tab, index) => (
-              <Reanimated.View key={index} style={[styles.tab, getTabAnimatedStyle(index)]}>
-                <TouchableOpacity
-                  activeOpacity={0.9}
-                  onPress={() => {
-                    setCurrentTab(index);
-                    onTabChange(index);
-                  }}
-                >
-                  <ThemedText type="bodyLargeMedium" style={[getTabTextAnimatedStyle(index)]}>
-                    {tab}
-                  </ThemedText>
-                </TouchableOpacity>
-              </Reanimated.View>
+              <TouchableOpacity
+                key={index}
+                style={[styles.tab, currentTabIndex === index && { backgroundColor: theme.secondary }]}
+                activeOpacity={0.7}
+                onPress={() => {
+                  setCurrentTabIndex(index);
+                  onTabChange(index);
+                }}
+              >
+                <ThemedText type="bodyLargeMedium" style={[getTabTextAnimatedStyle(index)]}>
+                  {tab}
+                </ThemedText>
+              </TouchableOpacity>
             ))}
           </ThemedView>
         </View>
@@ -131,11 +118,12 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 40,
     resizeMode: 'cover',
     marginTop: -300,
+    marginHorizontal: -1,
   },
   headerWrapper: {
     paddingHorizontal: 16,
     flex: 1,
-    width: '100%'
+    width: '100%',
   },
   maskedView: {
     zIndex: 1,

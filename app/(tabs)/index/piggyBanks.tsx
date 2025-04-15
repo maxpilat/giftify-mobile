@@ -3,14 +3,13 @@ import { ScrollView, Image, StyleSheet, View } from 'react-native';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
 import { ActionButton } from '@/components/ActionsButton';
-import { ExternalLink } from '@/components/ExternalLink';
 import { useTheme } from '@/hooks/useTheme';
-import { Icon } from '@/components/Icon';
 import { PlatformButton } from '@/components/PlatformButton';
 import { Colors } from '@/constants/themes';
 import { useLocalSearchParams } from 'expo-router';
 import { Wish } from '@/models';
 import { API } from '@/constants/api';
+import { ProgressBar } from '@/components/ProgressBar';
 
 const IMAGE_HEIGHT = 450;
 
@@ -21,7 +20,7 @@ const wishes: Wish[] = [
     name: 'Беспроводные наушники',
     description: 'Sony WH-1000XM5 с шумоподавлением',
     price: 950,
-    deposit: 250,
+    deposit: 750,
     currency: { currencyId: 1, symbol: 'BYN', transcription: 'бел. руб.' },
     link: 'https://example.com/sony-headphones',
   },
@@ -90,19 +89,18 @@ export default function WishesScreen() {
             <Image source={{ uri: API.getWishImage(wish.wishId) }} style={[styles.image, { height: IMAGE_HEIGHT }]} />
             <View style={styles.infoContainer}>
               <View style={styles.textContainer}>
-                <ThemedText type="h2">{wish.name}</ThemedText>
+                <ThemedText type="h1">{wish.name}</ThemedText>
                 <View style={styles.price}>
-                  <ThemedText>{`${wish.price} ${wish.currency?.symbol}`}</ThemedText>
-                  <ExternalLink style={styles.externalLink} href="https://www.google.com/">
-                    <View style={styles.externalLinkContainer}>
-                      <ThemedText type="bodyLargeMedium" style={[styles.externalLinkText, { color: theme.primary }]}>
-                        Где купить
-                      </ThemedText>
-                      <Icon name="bag" size={20} style={styles.externalLinkIcon} color={theme.primary} />
-                    </View>
-                  </ExternalLink>
+                  <ThemedText type="bodyLarge" style={styles.priceLabel}>
+                    Стоимость:
+                  </ThemedText>
+                  <ThemedText type="h5">
+                    {wish.price} {wish.currency?.symbol}
+                  </ThemedText>
                 </View>
               </View>
+
+              <ProgressBar currentAmount={wish.deposit || 0} targetAmount={wish.price || 0} currency={wish.currency} />
 
               <View style={styles.actionContainer}>
                 <View style={styles.hapticButtonContainer}>
@@ -112,7 +110,7 @@ export default function WishesScreen() {
                     hapticFeedback="Heavy"
                   >
                     <ThemedText type="bodyLargeMedium" style={{ color: Colors.white }}>
-                      Исполнено
+                      Пополнить
                     </ThemedText>
                   </PlatformButton>
                 </View>
@@ -156,7 +154,12 @@ const styles = StyleSheet.create({
   },
   price: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+  },
+  priceLabel: {
+    color: Colors.grey,
+    paddingRight: 10,
   },
   externalLink: {
     color: 'red',
