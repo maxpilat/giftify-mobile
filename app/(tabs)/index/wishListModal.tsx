@@ -1,41 +1,72 @@
-import React, { useEffect } from 'react';
-import { ScrollView, StyleSheet } from 'react-native';
-import { router } from 'expo-router';
-import { useLocalSearchParams } from 'expo-router';
-import { ThemedText } from '@/components/ThemedText';
+import React, { useEffect, useState } from 'react';
+import { ScrollView, StyleSheet, View } from 'react-native';
+import { router, useLocalSearchParams } from 'expo-router';
+import { TextInput } from '@/components/TextInput';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+
+type SearchParams = {
+  submit?: 'true' | 'false';
+  wishListId?: string;
+};
 
 export default function WishListModalScreen() {
-  const params = useLocalSearchParams();
+  const params = useLocalSearchParams<SearchParams>();
+
+  const [name, setName] = useState<string>('');
+  const [errors, setErrors] = useState<Record<'name', boolean>>({ name: false });
 
   useEffect(() => {
-    if (Boolean(params?.submit)) {
-      handleFormSubmit();
-      router.setParams({ submit: 'false' });
-      // if valid
+    if (params?.submit !== 'true') return;
+
+    if (isValid()) {
+      submit();
       router.back();
     }
+
+    router.setParams({ submit: 'false' });
   }, [params]);
 
-  const handleFormSubmit = () => {
-    console.log('submit');
+  const submit = () => { };
+
+  const isValid = () => {
+    const errors = {
+      name: name.trim() === '',
+    };
+    setErrors(errors);
+    return !errors.name;
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <ThemedText>Wish List Modal</ThemedText>
-    </ScrollView>
+    <KeyboardAwareScrollView
+      extraScrollHeight={80}
+      keyboardOpeningTime={0}
+      enableOnAndroid
+      contentContainerStyle={{ paddingBottom: 80 }}
+    >
+      <ScrollView contentContainerStyle={styles.container}>
+        <View style={styles.fields}>
+          <TextInput
+            icon="star"
+            placeholder="Название"
+            value={name}
+            valid={!errors.name}
+            onChangeText={(value) => {
+              setName(value);
+              setErrors((prev) => ({ ...prev, name: false }));
+            }}
+          />
+        </View>
+      </ScrollView>
+    </KeyboardAwareScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     padding: 16,
+    gap: 32,
   },
-  input: {
-    width: '100%',
-    padding: 10,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    marginBottom: 10,
+  fields: {
+    gap: 20,
   },
 });

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
-import { router, useLocalSearchParams } from 'expo-router';
+import { Link, router, useLocalSearchParams } from 'expo-router';
 import { ImagePicker } from '@/components/ImagePicker';
 import { TextInput } from '@/components/TextInput';
 import { Currency, WishList } from '@/models';
@@ -43,12 +43,13 @@ type SwitchState = {
 export default function WishModalScreen() {
   const params = useLocalSearchParams<SearchParams>();
 
-  const [image, setImage] = useState<string | null>(null);
+  const [imageUri, setImageUri] = useState<string | null>(null);
   const [name, setName] = useState<string>('');
   const [price, setPrice] = useState<string>('');
   const [currency, setCurrency] = useState<Currency>(currencies[0]);
   const [link, setLink] = useState<string>('');
   const [description, setDescription] = useState<string>('');
+  const [errors, setErrors] = useState<Record<'name' | 'link' | 'imageUri', boolean>>({ name: false, link: false, imageUri: false });
   const [switchStates, setSwitchStates] = useState<SwitchState[]>(
     wishLists.map((wishList) => ({
       id: wishList.wishListId,
@@ -56,27 +57,28 @@ export default function WishModalScreen() {
     }))
   );
 
-  const [errors, setErrors] = useState<Record<'name' | 'link', boolean>>({ name: false, link: false });
-
   useEffect(() => {
-    if (params?.submit === 'true') {
-      if (isValid()) {
-        submit();
-        router.back();
-      }
-      router.setParams({ submit: 'false' });
+    if (params?.submit !== 'true') return;
+
+    if (isValid()) {
+      submit();
+      router.back();
     }
+
+    router.setParams({ submit: 'false' });
   }, [params]);
 
-  const submit = () => {};
+
+  const submit = () => { };
 
   const isValid = () => {
     const errors = {
-      name: name.trim() === '',
-      link: link.trim() === '',
+      name: !name.trim(),
+      link: !link.trim(),
+      imageUri: !imageUri?.trim()
     };
     setErrors(errors);
-    return !errors.name && !errors.link;
+    return !errors.name && !errors.link && !errors.imageUri;
   };
 
   const toggleSwitch = (id: number) => {
@@ -95,7 +97,13 @@ export default function WishModalScreen() {
       contentContainerStyle={{ paddingBottom: 80 }}
     >
       <ScrollView contentContainerStyle={styles.container}>
-        <ImagePicker onImagePicked={setImage} />
+        <ImagePicker
+          valid={!errors.imageUri}
+          onImagePicked={(imageUri) => {
+            setImageUri(imageUri);
+            setErrors((prev) => ({ ...prev, name: false }))
+          }}
+        />
         <View style={styles.fields}>
           <TextInput
             icon="star"
@@ -140,12 +148,16 @@ export default function WishModalScreen() {
             multiline={true}
           />
         </View>
-        <PlatformButton style={styles.addWishListButton}>
-          <ThemedText type="bodyLargeMedium" style={styles.addWishListButtonText}>
-            Новый список
-          </ThemedText>
-          <Icon name="plus" />
-        </PlatformButton>
+
+        <Link asChild href={'./wishListModal'}>
+          <PlatformButton style={styles.addWishListButton} hapticFeedback='none'>
+            <ThemedText type="bodyLargeMedium" style={styles.addWishListButtonText}>
+              Новый список
+            </ThemedText>
+            <Icon name="plus" />
+          </PlatformButton>
+        </Link>
+
         <View style={styles.wishListsContainer}>
           {wishLists.map((wishList) => {
             const switchState = switchStates.find((s) => s.id === wishList.wishListId);

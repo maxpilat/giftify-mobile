@@ -7,6 +7,7 @@ export interface Wish {
   deposit?: number;
   currency?: Currency;
   link: string;
+  image?: ArrayBuffer;
 }
 
 export interface Currency {

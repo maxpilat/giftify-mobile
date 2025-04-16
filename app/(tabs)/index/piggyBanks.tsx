@@ -66,7 +66,7 @@ const wishes: Wish[] = [
   },
 ];
 
-export default function WishesScreen() {
+export default function PiggyBanksScreen() {
   const { theme } = useTheme();
   const { wishId = 0 } = useLocalSearchParams();
   const scrollViewRef = useRef<ScrollView>(null);

@@ -4,12 +4,14 @@ import { launchImageLibraryAsync } from 'expo-image-picker';
 import { useTheme } from '@/hooks/useTheme';
 import { Icon } from '@/components/Icon';
 import { ThemedText } from '@/components/ThemedText';
+import { Colors } from '@/constants/themes';
 
 type Props = {
   onImagePicked: (uri: string) => void;
+  valid?: boolean
 };
 
-export function ImagePicker({ onImagePicked }: Props) {
+export function ImagePicker({ onImagePicked, valid }: Props) {
   const { theme } = useTheme();
 
   const [imageUri, setImageUri] = useState<string | null>(null);
@@ -33,13 +35,13 @@ export function ImagePicker({ onImagePicked }: Props) {
       <View style={styles.imageContainer}>
         <Image source={{ uri: imageUri }} style={styles.imagePreview} />
         <View style={styles.overlay}>
-          <Icon name="upload" color="#FFFFFF" size={40} />
+          <Icon name="upload" color={Colors.white} size={40} />
         </View>
       </View>
     </Pressable>
   ) : (
-    <Pressable style={[styles.uploadBox, { borderColor: theme.primary }]} onPress={pickImage}>
-      <Icon name="upload" color={theme.primary} size={40} />
+    <Pressable style={[styles.uploadBox, { borderColor: valid ? theme.primary : Colors.red }]} onPress={pickImage}>
+      <Icon name="upload" color={valid ? theme.primary : Colors.red} size={40} />
       <ThemedText type="bodySmall" style={styles.label}>
         <ThemedText type="labelLarge">Нажмите, чтобы загрузить </ThemedText>фотографию
       </ThemedText>
