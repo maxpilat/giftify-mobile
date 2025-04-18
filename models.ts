@@ -7,8 +7,13 @@ export interface Wish {
   deposit?: number;
   currency?: Currency;
   link: string;
-  image?: ArrayBuffer;
+  image?: string;
+  created?: string;
+  isActive?: boolean;
+  activeBookingId?: number | null;
 }
+
+export type WishType = 'TYPE_WISH' | 'TYPE_PIGGY_BANK';
 
 export interface Currency {
   currencyId: number;
@@ -17,9 +22,15 @@ export interface Currency {
 }
 
 export interface WishList {
-  wishListId: number,
-  name: string,
-  wishes: Wish[]
+  wishListId: number;
+  name: string;
+  wishes: Wish[];
 }
 
-export type WishType = 'WISH' | 'PIGGY_BANK';
+export interface Booking {
+  bookingId: number;
+  wishId: number;
+  bookerId: number;
+  booked: string;
+  isActive: boolean;
+}

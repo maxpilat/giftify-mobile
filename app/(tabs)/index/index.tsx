@@ -15,6 +15,7 @@ import { Wish, WishList } from '@/models';
 import { API } from '@/constants/api';
 import { Colors } from '@/constants/themes';
 import { ProgressBar } from '@/components/ProgressBar';
+import { useWishesStore } from '@/store/useWishesStore';
 
 const wishes: Wish[] = [
   {
@@ -143,6 +144,8 @@ const wishLists: WishList[] = [
 export default function ProfileScreen() {
   const { theme } = useTheme();
 
+  const { wishes, fetchWishes } = useWishesStore();
+
   const [currentWishListId, setCurrentWishListId] = useState<number | null>(null);
   const [currentTabIndex, setCurrentTabIndex] = useState(0);
   const [currentVisibleTabIndex, setCurrentVisibleTabIndex] = useState(0);
@@ -163,12 +166,18 @@ export default function ProfileScreen() {
   }, []);
 
   useEffect(() => {
+    fetchWishes();
+
     contentOpacity.value = withTiming(0, { duration: 50 }, (finished) => {
       if (finished) {
         runOnJS(setCurrentVisibleTabIndex)(currentTabIndex);
       }
     });
   }, [currentTabIndex]);
+
+  useEffect(() => {
+    console.log(wishes);
+  }, [wishes]);
 
   useEffect(() => {
     contentOpacity.value = withTiming(1, { duration: 300 });
