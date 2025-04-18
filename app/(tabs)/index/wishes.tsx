@@ -17,7 +17,7 @@ const IMAGE_HEIGHT = 450;
 const wishes: Wish[] = [
   {
     wishId: 0,
-    wishType: 'WISH',
+    wishType: 'TYPE_WISH',
     name: 'Беспроводные наушники',
     description: 'Sony WH-1000XM5 с шумоподавлением',
     price: 950,
@@ -27,7 +27,7 @@ const wishes: Wish[] = [
   },
   {
     wishId: 1,
-    wishType: 'PIGGY_BANK',
+    wishType: 'TYPE_WISH',
     name: 'Поездка в Париж',
     description: 'Хочу на неделю в Париж весной',
     price: 3000,
@@ -37,7 +37,7 @@ const wishes: Wish[] = [
   },
   {
     wishId: 2,
-    wishType: 'WISH',
+    wishType: 'TYPE_WISH',
     name: 'Новая клавиатура',
     description: 'Механическая клавиатура Keychron K6',
     price: 350,
@@ -47,7 +47,7 @@ const wishes: Wish[] = [
   },
   {
     wishId: 3,
-    wishType: 'WISH',
+    wishType: 'TYPE_WISH',
     name: 'Умная колонка',
     description: 'Яндекс Станция Макс',
     price: 500,
@@ -57,7 +57,7 @@ const wishes: Wish[] = [
   },
   {
     wishId: 4,
-    wishType: 'PIGGY_BANK',
+    wishType: 'TYPE_WISH',
     name: 'Курс по дизайну',
     description: 'Онлайн-курс UX/UI на Coursera',
     price: 1200,

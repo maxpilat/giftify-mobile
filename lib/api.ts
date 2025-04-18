@@ -2,10 +2,10 @@
 
 import { REMOTE_URL } from '@/constants/api';
 
-export const apiFetch = async (endpoint: string, method = 'GET', body?: object) => {
+export const apiFetch = async (endpoint: string, method: 'GET' | 'POST' | 'PUT' | 'DELETE' = 'GET', body?: object) => {
   // const token = useAuthStore.getState().token;
   const token =
-    'eyJhbGciOiJIUzUxMiJ9.eyJpZCI6MSwiZW1haWwiOiJwaWxhdG1kQG91dGxvb2suY29tIiwic3ViIjoicGlsYXRtZEBvdXRsb29rLmNvbSIsImlhdCI6MTc0NDkwODAxMCwiZXhwIjoxNzQ0OTk0NDEwfQ.3VyzwCO5ckyc4Ie5L9YhSeORcMB4y17XSxJ9BglxPSjR_3CiDjQwyy4jI-OOwyhYd-vQJw6gqdLC0JONTYXAnw';
+    'eyJhbGciOiJIUzUxMiJ9.eyJpZCI6MSwiZW1haWwiOiJwaWxhdG1kQG91dGxvb2suY29tIiwic3ViIjoicGlsYXRtZEBvdXRsb29rLmNvbSIsImlhdCI6MTc0NDk1Nzk0NywiZXhwIjoxNzQ1MDQ0MzQ3fQ.PWe6lRvfNmAhSj5ZOEbU8MnlD5UONAF5Pd-VglnMFJQUZIXW-fI-Onq8AuPP2HGEETJg92UJGOr2ruzIAXFa-w';
   if (!token) throw new Error('Token Error');
 
   const response = await fetch(`${REMOTE_URL}${endpoint}`, {

@@ -1,5 +1,6 @@
 export interface Wish {
   wishId: number;
+  wisherId: number;
   wishType: WishType;
   name: string;
   description?: string;
@@ -33,4 +34,19 @@ export interface Booking {
   bookerId: number;
   booked: string;
   isActive: boolean;
+}
+
+export interface User {
+  userId: number;
+  name: string;
+  surname: string;
+  username: string;
+  friendList: User[];
+}
+
+export interface AuthData {
+  userId?: number;
+  email: string;
+  password: string;
+  friendEmail?: string;
 }

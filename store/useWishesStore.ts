@@ -1,43 +1,44 @@
 import { API } from '@/constants/api';
 import { apiFetch } from '@/lib/api';
-import { Booking, Wish, WishList } from '@/models';
+import { Booking, User, Wish, WishList } from '@/models';
 import { create } from 'zustand';
 
+const AUTH_USER_ID = 1; // temporary
+
 interface WishesStore {
-  myWishes: Wish[];
   wishes: Wish[];
-  myPiggyBanks: Wish[];
   piggyBanks: Wish[];
   bookings: Booking[];
   wishLists: WishList[];
-  isLoading: boolean;
+  _myWishes: Wish[];
+  _myPiggyBanks: Wish[];
+  _myWishLists: WishList[];
 
   createWish: (wish: Wish) => Promise<void>;
   updateWish: (wish: Wish) => Promise<void>;
   replenishPiggyBank: (piggyBankId: number, amount: number) => Promise<void>;
   addWishToList: (wishId: number, wishListId: number) => Promise<void>;
-  // fetchWish: (userId: number) => Promise<Wish>;
   fetchWishes: (userId?: number) => Promise<void>;
   fetchPiggyBanks: (userId?: number) => Promise<void>;
   fetchWishImage: (wishId: number) => Promise<void>;
   fulfillWish: (wishId: number) => Promise<void>;
   bookWish: (wishId: number, bookerId: number) => Promise<void>;
-  // fetchBooking: (bookingId: number) => Promise<Booking>;
   cancelBooking: (bookingId: number) => Promise<void>;
   createWishList: (creatorId: number, name: string) => Promise<void>;
   updateWishList: (wishListId: number, name: string) => Promise<void>;
   deleteWishList: (wishListId: number) => Promise<void>;
   fetchWishLists: (userId?: number) => Promise<void>;
+  fetchBookings: (userId?: number) => Promise<void>;
 }
 
 export const useWishesStore = create<WishesStore>((set) => ({
-  myWishes: [],
   wishes: [],
-  myPiggyBanks: [],
   piggyBanks: [],
   bookings: [],
   wishLists: [],
-  isLoading: false,
+  _myWishes: [],
+  _myPiggyBanks: [],
+  _myWishLists: [],
 
   createWish: async (wish: Wish) => {},
 
@@ -47,21 +48,25 @@ export const useWishesStore = create<WishesStore>((set) => ({
 
   addWishToList: async (wishId: number, wishListId: number) => {},
 
-  getWish: async (userId: number) => {},
-
   fetchWishes: async (userId?: number) => {
-    const authUserId = 1; // temporary
-
-    if (!userId || userId === authUserId) {
-      const wishes = await apiFetch(API.profile.getWishes(authUserId));
-      set((state) => ({ ...state, myWishes: wishes }));
+    if (!userId || userId === AUTH_USER_ID) {
+      const wishes: Wish[] = await apiFetch(API.profile.getWishes(AUTH_USER_ID));
+      set(() => ({ _myWishes: wishes, wishes }));
     } else {
-      const wishes = await apiFetch(API.profile.getWishes(userId));
-      set((state) => ({ ...state, wishes }));
+      const wishes: Wish[] = await apiFetch(API.profile.getWishes(userId));
+      set(() => ({ wishes }));
     }
   },
 
-  fetchPiggyBanks: async (userId?: number) => {},
+  fetchPiggyBanks: async (userId?: number) => {
+    if (!userId || userId === AUTH_USER_ID) {
+      const piggyBanks: Wish[] = await apiFetch(API.profile.getPiggyBanks(AUTH_USER_ID));
+      set(() => ({ _myPiggyBanks: piggyBanks, piggyBanks }));
+    } else {
+      const piggyBanks: Wish[] = await apiFetch(API.profile.getWishes(userId));
+      set(() => ({ piggyBanks }));
+    }
+  },
 
   fetchWishImage: async (wishId: number) => {},
 
@@ -79,5 +84,28 @@ export const useWishesStore = create<WishesStore>((set) => ({
 
   deleteWishList: async (wishListId: number) => {},
 
-  fetchWishLists: async (userId?: number) => {},
+  fetchWishLists: async (userId?: number) => {
+    if (!userId || userId === AUTH_USER_ID) {
+      const wishLists: WishList[] = await apiFetch(API.profile.getWishLists(AUTH_USER_ID));
+      set(() => ({ _myWishLists: wishLists, wishLists }));
+    } else {
+      const wishLists: WishList[] = await apiFetch(API.profile.getWishLists(userId));
+      set(() => ({ wishLists }));
+    }
+  },
+
+  fetchBookings: async (userId?: number) => {
+    const bookings: Booking[] = await apiFetch(API.profile.getBookings(userId || AUTH_USER_ID));
+
+    const wishes = bookings.forEach(async (booking) => {
+      const wish: Wish = await apiFetch(API.wishes.getWish(booking.wishId));
+      const;
+      const wisher: User = await apiFetch(API.profile.getProfile(wish.wisherId));
+      const wisherAvatar: string = await apiFetch(API.profile.getAvatar(wish.wisherId));
+
+      return { wish, wisher, wisherAvatar };
+    });
+
+    set(() => ({ bookings }));
+  },
 }));

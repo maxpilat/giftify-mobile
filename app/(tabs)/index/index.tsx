@@ -7,144 +7,25 @@ import { WishCard } from '@/components/WishCard';
 import { WishListTab } from '@/components/WishListTab';
 import { Icon } from '@/components/Icon';
 import { ThemedView } from '@/components/ThemedView';
-import { Link, router } from 'expo-router';
+import { Link, router, useLocalSearchParams } from 'expo-router';
 import { useTheme } from '@/hooks/useTheme';
 import Animated, { runOnJS, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { ThemedText } from '@/components/ThemedText';
-import { Wish, WishList } from '@/models';
+import { Wish } from '@/models';
 import { API } from '@/constants/api';
 import { Colors } from '@/constants/themes';
 import { ProgressBar } from '@/components/ProgressBar';
 import { useWishesStore } from '@/store/useWishesStore';
 
-const wishes: Wish[] = [
-  {
-    wishId: 0,
-    wishType: 'WISH',
-    name: 'Беспроводные наушники',
-    description: 'Sony WH-1000XM5 с шумоподавлением',
-    price: 950,
-    deposit: 250,
-    currency: { currencyId: 1, symbol: 'BYN', transcription: 'бел. руб.' },
-    link: 'https://example.com/sony-headphones',
-  },
-  {
-    wishId: 1,
-    wishType: 'WISH',
-    name: 'Поездка в Париж',
-    description: 'Хочу на неделю в Париж весной',
-    price: 3000,
-    deposit: 800,
-    currency: { currencyId: 1, symbol: 'BYN', transcription: 'бел. руб.' },
-    link: '',
-  },
-  {
-    wishId: 2,
-    wishType: 'WISH',
-    name: 'Новая клавиатура',
-    description: 'Механическая клавиатура Keychron K6',
-    price: 350,
-    deposit: 100,
-    currency: { currencyId: 1, symbol: 'BYN', transcription: 'бел. руб.' },
-    link: 'https://example.com/keychron-k6',
-  },
-  {
-    wishId: 3,
-    wishType: 'WISH',
-    name: 'Умная колонка',
-    description: 'Яндекс Станция Макс',
-    price: 500,
-    deposit: 50,
-    currency: { currencyId: 1, symbol: 'BYN', transcription: 'бел. руб.' },
-    link: 'https://example.com/yandex-station',
-  },
-  {
-    wishId: 4,
-    wishType: 'WISH',
-    name: 'Курс по дизайну',
-    description: 'Онлайн-курс UX/UI на Coursera',
-    price: 1200,
-    deposit: 300,
-    currency: { currencyId: 1, symbol: 'BYN', transcription: 'бел. руб.' },
-    link: 'https://coursera.org/design-course',
-  },
-];
-
-const piggyBanks: Wish[] = [
-  {
-    wishId: 0,
-    wishType: 'PIGGY_BANK',
-    name: 'Беспроводные наушники',
-    description: 'Sony WH-1000XM5 с шумоподавлением',
-    price: 950,
-    deposit: 750,
-    currency: { currencyId: 1, symbol: 'BYN', transcription: 'бел. руб.' },
-    link: 'https://example.com/sony-headphones',
-  },
-  {
-    wishId: 1,
-    wishType: 'PIGGY_BANK',
-    name: 'Поездка в Париж',
-    description: 'Хочу на неделю в Париж весной',
-    price: 3000,
-    deposit: 800,
-    currency: { currencyId: 1, symbol: 'BYN', transcription: 'бел. руб.' },
-    link: '',
-  },
-  {
-    wishId: 2,
-    wishType: 'PIGGY_BANK',
-    name: 'Новая клавиатура',
-    description: 'Механическая клавиатура Keychron K6',
-    price: 350,
-    deposit: 100,
-    currency: { currencyId: 1, symbol: 'BYN', transcription: 'бел. руб.' },
-    link: 'https://example.com/keychron-k6',
-  },
-  {
-    wishId: 3,
-    wishType: 'PIGGY_BANK',
-    name: 'Умная колонка',
-    description: 'Яндекс Станция Макс',
-    price: 500,
-    deposit: 50,
-    currency: { currencyId: 1, symbol: 'BYN', transcription: 'бел. руб.' },
-    link: 'https://example.com/yandex-station',
-  },
-  {
-    wishId: 4,
-    wishType: 'PIGGY_BANK',
-    name: 'Курс по дизайну',
-    description: 'Онлайн-курс UX/UI на Coursera',
-    price: 1200,
-    deposit: 300,
-    currency: { currencyId: 1, symbol: 'BYN', transcription: 'бел. руб.' },
-    link: 'https://coursera.org/design-course',
-  },
-];
-
-const wishLists: WishList[] = [
-  {
-    wishListId: 0,
-    name: 'Мои желания',
-    wishes: [],
-  },
-  {
-    wishListId: 1,
-    name: 'Новоселье',
-    wishes: [],
-  },
-  {
-    wishListId: 2,
-    name: 'День рождения',
-    wishes: [],
-  },
-] as const;
+const AUTH_USER_ID = 1; // temporary
 
 export default function ProfileScreen() {
   const { theme } = useTheme();
 
-  const { wishes, fetchWishes } = useWishesStore();
+  const { userId = AUTH_USER_ID } = useLocalSearchParams();
+
+  const { wishes, wishLists, piggyBanks, bookings, fetchWishes, fetchWishLists, fetchPiggyBanks, fetchBookings } =
+    useWishesStore();
 
   const [currentWishListId, setCurrentWishListId] = useState<number | null>(null);
   const [currentTabIndex, setCurrentTabIndex] = useState(0);
@@ -162,12 +43,15 @@ export default function ProfileScreen() {
   }));
 
   useEffect(() => {
+    fetchWishes(+userId);
+    fetchWishLists(+userId);
+    fetchPiggyBanks(+userId);
+    fetchBookings(+userId);
+
     setCurrentWishListId(wishLists[0].wishListId);
-  }, []);
+  }, [userId]);
 
   useEffect(() => {
-    fetchWishes();
-
     contentOpacity.value = withTiming(0, { duration: 50 }, (finished) => {
       if (finished) {
         runOnJS(setCurrentVisibleTabIndex)(currentTabIndex);
@@ -219,6 +103,20 @@ export default function ProfileScreen() {
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categories}>
                 {wishLists.map((wishList, index) => (
                   <React.Fragment key={wishList.wishListId}>
+                    {index === 0 && (
+                      <>
+                        <View style={styles.wishList}>
+                          <WishListTab name="Мои желания" count={wishes.length} isActive={false} onPress={() => {}} />
+                        </View>
+                        <View style={[styles.wishList, styles.addWishListButton]}>
+                          <Link asChild href={'./wishListModal'}>
+                            <TouchableOpacity activeOpacity={0.7} style={styles.addWishListButtonTouchable}>
+                              <Icon name="plus" />
+                            </TouchableOpacity>
+                          </Link>
+                        </View>
+                      </>
+                    )}
                     <View style={styles.wishList}>
                       <WishListTab
                         name={wishList.name}
@@ -227,15 +125,6 @@ export default function ProfileScreen() {
                         onPress={() => setCurrentWishListId(wishList.wishListId)}
                       />
                     </View>
-                    {index === 0 && (
-                      <View style={[styles.wishList, styles.addWishListButton]}>
-                        <Link asChild href={'./wishListModal'}>
-                          <TouchableOpacity activeOpacity={0.7} style={styles.addWishListButtonTouchable}>
-                            <Icon name="plus" />
-                          </TouchableOpacity>
-                        </Link>
-                      </View>
-                    )}
                   </React.Fragment>
                 ))}
               </ScrollView>
