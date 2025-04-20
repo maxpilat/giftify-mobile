@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, Image, Pressable } from 'react-native';
 import { launchImageLibraryAsync } from 'expo-image-picker';
 import { useTheme } from '@/hooks/useTheme';
@@ -8,13 +8,20 @@ import { Colors } from '@/constants/themes';
 
 type Props = {
   onImagePicked: (uri: string) => void;
-  valid?: boolean
+  valid?: boolean;
+  value?: string;
 };
 
-export function ImagePicker({ onImagePicked, valid }: Props) {
+export function ImagePicker({ onImagePicked, valid, value }: Props) {
   const { theme } = useTheme();
 
-  const [imageUri, setImageUri] = useState<string | null>(null);
+  const [imageUri, setImageUri] = useState<string | null>(value || null);
+
+  useEffect(() => {
+    if (value) {
+      setImageUri(value);
+    }
+  }, [value]);
 
   const pickImage = async () => {
     const result = await launchImageLibraryAsync({

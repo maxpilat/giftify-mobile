@@ -1,25 +1,39 @@
-// import { useAuthStore } from '@/store/useAuthStore';
+type RequestOptions = {
+  endpoint: string;
+  method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
+  contetType?: 'application/json' | 'application/octet-stream';
+  body?: object;
+  token?: string;
+};
 
-import { REMOTE_URL } from '@/constants/api';
+export const apiFetch = async ({
+  endpoint,
+  method = 'GET',
+  contetType = 'application/json',
+  body,
+  token,
+}: RequestOptions) => {
+  try {
+    if (!token) throw new Error('Token Error');
 
-export const apiFetch = async (endpoint: string, method: 'GET' | 'POST' | 'PUT' | 'DELETE' = 'GET', body?: object) => {
-  // const token = useAuthStore.getState().token;
-  const token =
-    'eyJhbGciOiJIUzUxMiJ9.eyJpZCI6MSwiZW1haWwiOiJwaWxhdG1kQG91dGxvb2suY29tIiwic3ViIjoicGlsYXRtZEBvdXRsb29rLmNvbSIsImlhdCI6MTc0NDk1Nzk0NywiZXhwIjoxNzQ1MDQ0MzQ3fQ.PWe6lRvfNmAhSj5ZOEbU8MnlD5UONAF5Pd-VglnMFJQUZIXW-fI-Onq8AuPP2HGEETJg92UJGOr2ruzIAXFa-w';
-  if (!token) throw new Error('Token Error');
+    const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}${endpoint}`, {
+      method,
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': contetType,
+      },
+      body: body ? JSON.stringify(body) : undefined,
+    });
 
-  const response = await fetch(`${REMOTE_URL}${endpoint}`, {
-    method,
-    headers: {
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    },
-    body: body ? JSON.stringify(body) : undefined,
-  });
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`HTTP Error: ${response.status} - ${errorText}`);
+    }
 
-  if (!response.ok) {
-    throw new Error(await response.text());
+    if (contetType === 'application/json') return await response.json();
+    return response;
+  } catch (error) {
+    console.error('Error in apiFetch:', error);
+    throw error;
   }
-
-  return response.json();
 };

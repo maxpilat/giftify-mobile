@@ -11,25 +11,44 @@ import { Link, router, useLocalSearchParams } from 'expo-router';
 import { useTheme } from '@/hooks/useTheme';
 import Animated, { runOnJS, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { ThemedText } from '@/components/ThemedText';
-import { Wish } from '@/models';
+import { Booking, Friend, Profile, Wish, WishList } from '@/models';
 import { API } from '@/constants/api';
 import { Colors } from '@/constants/themes';
 import { ProgressBar } from '@/components/ProgressBar';
-import { useWishesStore } from '@/store/useWishesStore';
-
-const AUTH_USER_ID = 1; // temporary
+import { apiFetch } from '@/lib/api';
+import { useAuth } from '@/hooks/useAuth';
+import { useProfile } from '@/hooks/useProfile';
+import { arrayBufferToBase64 } from '@/utils/imageConverter';
 
 export default function ProfileScreen() {
   const { theme } = useTheme();
+  const { user: authUser, token } = useAuth();
+  const {
+    avatar: myAvatar,
+    bookings: myBookings,
+    wishes: myWishes,
+    wishLists: myWishLists,
+    piggyBanks: myPiggyBanks,
+    fetchAvatar,
+    fetchBookings,
+    fetchWishes,
+    fetchWishLists,
+    fetchPiggyBanks,
+  } = useProfile();
+  const { userId = authUser.userId } = useLocalSearchParams();
 
-  const { userId = AUTH_USER_ID } = useLocalSearchParams();
-
-  const { wishes, wishLists, piggyBanks, bookings, fetchWishes, fetchWishLists, fetchPiggyBanks, fetchBookings } =
-    useWishesStore();
-
-  const [currentWishListId, setCurrentWishListId] = useState<number | null>(null);
   const [currentTabIndex, setCurrentTabIndex] = useState(0);
   const [currentVisibleTabIndex, setCurrentVisibleTabIndex] = useState(0);
+  const [currentWishListId, setCurrentWishListId] = useState<number | null>(null);
+
+  const [wishes, setWishes] = useState<Wish[]>([]);
+  const [wishLists, setWishLists] = useState<WishList[]>([]);
+  const [piggyBanks, setPiggyBanks] = useState<Wish[]>([]);
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [avatar, setAvatar] = useState<string | null>(null);
+  const [background, setBackground] = useState<string | null>(null);
+  const [friends, setFriends] = useState<Friend[]>([]);
 
   const contentOpacity = useSharedValue(1);
   const contentAnimatedStyle = useAnimatedStyle(() => ({
@@ -42,13 +61,48 @@ export default function ProfileScreen() {
     transform: [{ scale: addItemButtonOpacity.value }],
   }));
 
-  useEffect(() => {
-    fetchWishes(+userId);
-    fetchWishLists(+userId);
-    fetchPiggyBanks(+userId);
-    fetchBookings(+userId);
+  const fetchData = async () => {
+    if (+userId === authUser.userId) {
+      if (myAvatar) {
+        setAvatar(myAvatar);
+        setBookings(myBookings);
+        setWishes(myWishes);
+        setWishLists(myWishLists);
+        setPiggyBanks(myPiggyBanks);
+      } else {
+        fetchAvatar().then(() => setAvatar(myAvatar));
+        fetchBookings().then(() => setBookings(myBookings));
+        fetchWishes().then(() => setWishes(myWishes));
+        fetchWishLists().then(() => setWishLists(myWishLists));
+        fetchPiggyBanks().then(() => setPiggyBanks(myPiggyBanks));
+      }
+    } else {
+      apiFetch({ endpoint: API.profile.getAvatar(+userId), contetType: 'application/octet-stream', token })
+        .then((response: Response) => response.arrayBuffer())
+        .then(arrayBufferToBase64)
+        .then(setAvatar);
+      apiFetch({ endpoint: API.profile.getBookings(+userId), token }).then((bookings: Booking[]) =>
+        setBookings(bookings)
+      );
+      apiFetch({ endpoint: API.profile.getWishes(+userId), token }).then((wishes: Wish[]) => setWishes(wishes));
+      apiFetch({ endpoint: API.profile.getWishLists(+userId), token }).then((wishLists: WishList[]) =>
+        setWishLists(wishLists)
+      );
+      apiFetch({ endpoint: API.profile.getPiggyBanks(+userId), token }).then((piggyBanks: Wish[]) =>
+        setPiggyBanks(piggyBanks)
+      );
+    }
 
-    setCurrentWishListId(wishLists[0].wishListId);
+    apiFetch({ endpoint: API.profile.getProfile(+userId), token }).then((profile: Profile) => setProfile(profile));
+    apiFetch({ endpoint: API.profile.getBackground(+userId), contetType: 'application/octet-stream', token })
+      .then((response: Response) => response.arrayBuffer())
+      .then(arrayBufferToBase64)
+      .then(setBackground);
+    apiFetch({ endpoint: API.friends.getFriends(+userId), token }).then((friends: Friend[]) => setFriends(friends));
+  };
+
+  useEffect(() => {
+    fetchData();
   }, [userId]);
 
   useEffect(() => {
@@ -60,10 +114,6 @@ export default function ProfileScreen() {
   }, [currentTabIndex]);
 
   useEffect(() => {
-    console.log(wishes);
-  }, [wishes]);
-
-  useEffect(() => {
     contentOpacity.value = withTiming(1, { duration: 300 });
     const opacity = currentVisibleTabIndex === 2 ? 0 : 1;
     addItemButtonOpacity.value = withTiming(opacity, { duration: 300 });
@@ -73,22 +123,29 @@ export default function ProfileScreen() {
     if (currentTabIndex === 0) {
       router.push('./wishModal');
     } else if (currentTabIndex === 1) {
+      router.push('./piggyBankModal');
     }
   };
+
+  const wishListData = currentWishListId
+    ? wishLists.find((wishList) => wishList.wishListId === currentWishListId)!.wishes
+    : wishes;
 
   return (
     <View style={styles.wrapper}>
       <ParallaxScrollView
         header={
           <ProfileHeader
-            fullname={'Екатерина Костевич'}
-            username={'washermb'}
+            avatar={avatar || undefined}
+            background={background || undefined}
+            fullname={`${profile?.name} ${profile?.surname}`}
+            username={`${profile?.username}`}
             friendsAvatars={[
               'https://img.freepik.com/free-psd/3d-illustration-human-avatar-profile_23-2150671122.jpg',
               'https://img.freepik.com/psd-gratuit/illustration-3d-avatar-profil-humain_23-2150671161.jpg',
               'https://img.freepik.com/free-psd/3d-illustration-human-avatar-profile_23-2150671149.jpg?semt=ais_hybrid',
             ]}
-            friendsCount={20}
+            friendsCount={friends.length}
             tabs={['Желания', 'Копилки', 'Я дарю']}
             onTabChange={setCurrentTabIndex}
           />
@@ -106,7 +163,12 @@ export default function ProfileScreen() {
                     {index === 0 && (
                       <>
                         <View style={styles.wishList}>
-                          <WishListTab name="Мои желания" count={wishes.length} isActive={false} onPress={() => {}} />
+                          <WishListTab
+                            name="Мои желания"
+                            count={wishes.length}
+                            isActive={!currentWishListId}
+                            onPress={() => setCurrentWishListId(null)}
+                          />
                         </View>
                         <View style={[styles.wishList, styles.addWishListButton]}>
                           <Link asChild href={'./wishListModal'}>
@@ -129,80 +191,103 @@ export default function ProfileScreen() {
                 ))}
               </ScrollView>
 
-              <MasonryList
-                data={wishes}
-                keyExtractor={(wish: Wish) => wish.wishId.toString()}
-                numColumns={2}
-                contentContainerStyle={styles.list}
-                renderItem={({ item, i }) => {
-                  const wish = item as Wish;
-                  return (
-                    <Link
-                      asChild
-                      href={{ pathname: './wishes', params: { wishId: wish.wishId.toString() } }}
-                      style={[
-                        styles.masonryItem,
-                        { marginRight: i % 2 === 0 ? 8 : 0, marginLeft: i % 2 !== 0 ? 8 : 0 },
-                      ]}
-                    >
-                      <Pressable>
-                        <WishCard
-                          image={{ uri: API.getWishImage(wish.wishId) }}
-                          name={wish.name}
-                          price={wish.price}
-                          currency={wish.currency}
-                        />
-                      </Pressable>
-                    </Link>
-                  );
-                }}
-              />
+              {wishListData.length ? (
+                <MasonryList
+                  data={wishListData}
+                  keyExtractor={(wish: Wish) => wish.wishId.toString()}
+                  numColumns={2}
+                  contentContainerStyle={styles.list}
+                  renderItem={({ item, i }) => {
+                    const wish = item as Wish;
+                    return (
+                      <Link
+                        asChild
+                        href={{ pathname: './wishes', params: { wishId: wish.wishId.toString() } }}
+                        style={[
+                          styles.masonryItem,
+                          { marginRight: i % 2 === 0 ? 8 : 0, marginLeft: i % 2 !== 0 ? 8 : 0 },
+                        ]}
+                      >
+                        <Pressable>
+                          <WishCard
+                            image={{ uri: `data:image/jpeg;base64,${API.wishes.getImage(wish.wishId)}` }}
+                            name={wish.name}
+                            price={wish.price}
+                            currency={wish.currency}
+                          />
+                        </Pressable>
+                      </Link>
+                    );
+                  }}
+                />
+              ) : userId === authUser.userId ? (
+                <View style={styles.noWishesContainer}>
+                  <ThemedText type="bodyLarge">Пока пусто...</ThemedText>
+                  <ThemedText type="bodyLarge">Может, это знае, что пора мечтать смелее?</ThemedText>
+                </View>
+              ) : (
+                <View style={styles.noWishesContainer}>
+                  <ThemedText type="bodyLarge">Eщё в раздумьях, что загадать</ThemedText>
+                </View>
+              )}
             </>
           )}
 
           {currentVisibleTabIndex === 1 && (
             <View style={[styles.list, styles.piggyBankList]}>
-              {piggyBanks.map((wish) => (
-                <Link
-                  asChild
-                  key={wish.wishId}
-                  style={styles.piggyBank}
-                  href={{ pathname: './piggyBanks', params: { wishId: wish.wishId.toString() } }}
-                >
-                  <Pressable>
-                    <View style={styles.piggyBankBody}>
-                      <View style={styles.piggyBankInfo}>
-                        <ThemedText type="h3">{wish.name}</ThemedText>
-                        <View style={styles.piggyBankPrice}>
-                          <ThemedText type="bodyBase" style={styles.piggyBankPriceLabel}>
-                            Стоимость:
-                          </ThemedText>
-                          <ThemedText type="bodyLargeMedium">
-                            {wish.price} {wish.currency?.symbol}
-                          </ThemedText>
+              {piggyBanks.length ? (
+                piggyBanks.map((wish) => (
+                  <Link
+                    asChild
+                    key={wish.wishId}
+                    style={styles.piggyBank}
+                    href={{ pathname: './piggyBanks', params: { wishId: wish.wishId.toString() } }}
+                  >
+                    <Pressable>
+                      <View style={styles.piggyBankBody}>
+                        <View style={styles.piggyBankInfo}>
+                          <ThemedText type="h3">{wish.name}</ThemedText>
+                          <View style={styles.piggyBankPrice}>
+                            <ThemedText type="bodyBase" style={styles.piggyBankPriceLabel}>
+                              Стоимость:
+                            </ThemedText>
+                            <ThemedText type="bodyLargeMedium">
+                              {wish.price} {wish.currency?.symbol}
+                            </ThemedText>
+                          </View>
+                        </View>
+                        <View style={styles.piggyBankCard}>
+                          <WishCard
+                            image={{
+                              uri: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTL_BgTANZFIIIVFGv1FjjDYvDzygFMkufN1A&s',
+                              width: 2,
+                              height: 1,
+                            }}
+                          />
                         </View>
                       </View>
-                      <View style={styles.piggyBankCard}>
-                        <WishCard
-                          image={{
-                            uri: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTL_BgTANZFIIIVFGv1FjjDYvDzygFMkufN1A&s',
-                            width: 2,
-                            height: 1,
-                          }}
-                        />
-                      </View>
-                    </View>
-                    <ProgressBar currentAmount={wish.deposit!} targetAmount={wish.price!} currency={wish.currency} />
-                  </Pressable>
-                </Link>
-              ))}
+                      <ProgressBar currentAmount={wish.deposit!} targetAmount={wish.price!} currency={wish.currency} />
+                    </Pressable>
+                  </Link>
+                ))
+              ) : userId === authUser.userId ? (
+                <View style={styles.noWishesContainer}>
+                  <ThemedText type="bodyLarge">Здесь пока только эхо...</ThemedText>
+                  <ThemedText type="bodyLarge">Может стоит сделать первый шаг к большим целям?</ThemedText>
+                </View>
+              ) : (
+                <View style={styles.noWishesContainer}>
+                  <ThemedText type="bodyLarge">Пока копит не деньги, а терпение</ThemedText>
+                </View>
+              )}
             </View>
           )}
 
-          {currentVisibleTabIndex === 2 && (
-            <>
+          {userId === authUser.userId &&
+            currentVisibleTabIndex === 2 &&
+            (bookings.length ? (
               <MasonryList
-                data={wishes}
+                data={bookings}
                 keyExtractor={(wish: Wish) => wish.wishId.toString()}
                 numColumns={2}
                 contentContainerStyle={styles.list}
@@ -219,7 +304,7 @@ export default function ProfileScreen() {
                     >
                       <Pressable>
                         <WishCard
-                          image={{ uri: API.getWishImage(wish.wishId) }}
+                          image={{ uri: `data:image/jpeg;base64,${API.wishes.getImage(wish.wishId)}` }}
                           name={wish.name}
                           price={wish.price}
                           currency={wish.currency}
@@ -229,8 +314,11 @@ export default function ProfileScreen() {
                   );
                 }}
               />
-            </>
-          )}
+            ) : (
+              <View style={styles.noWishesContainer}>
+                <ThemedText type="bodyLarge">Забронируйте желание друга и оно появится здесь</ThemedText>
+              </View>
+            ))}
         </ThemedView>
       </ParallaxScrollView>
 
@@ -317,4 +405,5 @@ const styles = StyleSheet.create({
   piggyBankCard: {
     flex: 7,
   },
+  noWishesContainer: {},
 });

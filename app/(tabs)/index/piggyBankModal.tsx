@@ -1,15 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
-import { Link, router, useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { ImagePicker } from '@/components/ImagePicker';
 import { TextInput } from '@/components/TextInput';
 import { Currency } from '@/models';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import { PlatformButton } from '@/components/PlatformButton';
-import { ThemedText } from '@/components/ThemedText';
-import { Colors } from '@/constants/themes';
-import { Icon } from '@/components/Icon';
-import { Switch } from '@/components/Switch';
 import { apiFetch } from '@/lib/api';
 import { API } from '@/constants/api';
 import { useAuth } from '@/hooks/useAuth';
@@ -21,33 +16,23 @@ type SearchParams = {
   wishId?: string;
 };
 
-type SwitchState = {
-  id: number;
-  enabled: boolean;
-};
-
 export default function WishModalScreen() {
-  const { user, token } = useAuth();
+  const { token } = useAuth();
   const { submit, wishId } = useLocalSearchParams<SearchParams>();
-  const { wishes, wishLists, fetchWishes } = useProfile();
+  const { user } = useAuth();
+  const { piggyBanks, fetchPiggyBanks } = useProfile();
 
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [name, setName] = useState<string>('');
+  const [deposit, setDeposit] = useState<string>('');
   const [price, setPrice] = useState<string>('');
   const [currency, setCurrency] = useState<Currency | null>(null);
-  const [link, setLink] = useState<string>('');
   const [description, setDescription] = useState<string>('');
-  const [errors, setErrors] = useState<Record<'name' | 'link' | 'imageUri', boolean>>({
+  const [errors, setErrors] = useState<Record<'name' | 'imageUri', boolean>>({
     name: false,
-    link: false,
     imageUri: false,
   });
-  const [switchStates, setSwitchStates] = useState<SwitchState[]>(
-    wishLists.map((wishList) => ({
-      id: wishList.wishListId,
-      enabled: false,
-    }))
-  );
+
   const [currencies, setCurrencies] = useState<Currency[]>([]);
 
   useEffect(() => {
@@ -59,13 +44,13 @@ export default function WishModalScreen() {
 
   useEffect(() => {
     if (wishId) {
-      const wish = wishes.find((wish) => wish.wishId === +wishId)!;
-      setImageUri(wish.imageUri!);
-      setName(wish.name);
-      setPrice(wish.price ? wish.price.toString() : '0');
-      wish.currency && setCurrency(wish.currency);
-      setLink(wish.link || '');
-      setDescription(wish.description || '');
+      const piggyBank = piggyBanks.find((piggyBank) => piggyBank.wishId === +wishId)!;
+      setImageUri(piggyBank.imageUri!);
+      setName(piggyBank.name);
+      setDeposit(piggyBank.deposit ? piggyBank.deposit.toString() : '0');
+      setPrice(piggyBank.price ? piggyBank.price.toString() : '0');
+      piggyBank.currency && setCurrency(piggyBank.currency);
+      setDescription(piggyBank.description || '');
     }
   }, [wishId]);
 
@@ -78,12 +63,12 @@ export default function WishModalScreen() {
 
     if (isValid()) {
       const payload = {
-        wishType: 'TYPE_WISH',
+        wishType: 'TYPE_PIGGY_BANK',
         name,
         description,
+        deposit: +deposit,
         price: +price,
         currency,
-        link,
       };
 
       const image = await uriToBinaryArray(imageUri!);
@@ -96,7 +81,7 @@ export default function WishModalScreen() {
         await apiFetch({ endpoint: API.wishes.create, method: 'POST', token, body: { ...payload, image } });
       }
 
-      await fetchWishes();
+      await fetchPiggyBanks();
       router.back();
     }
 
@@ -106,19 +91,10 @@ export default function WishModalScreen() {
   const isValid = () => {
     const errors = {
       name: !name.trim(),
-      link: !link.trim(),
       imageUri: !imageUri?.trim(),
     };
     setErrors(errors);
-    return !errors.name && !errors.link && !errors.imageUri;
-  };
-
-  const toggleSwitch = (id: number) => {
-    setSwitchStates((prevState) =>
-      prevState.map((switchState) =>
-        switchState.id === id ? { ...switchState, enabled: !switchState.enabled } : switchState
-      )
-    );
+    return !errors.name && !errors.imageUri;
   };
 
   return (
@@ -149,8 +125,27 @@ export default function WishModalScreen() {
             }}
           />
           <TextInput
+            icon="edit"
+            placeholder="Почему вы копите на это?"
+            value={description}
+            onChangeText={setDescription}
+            multiline={true}
+          />
+          <TextInput
             icon="ticketStart"
-            placeholder="Цена"
+            placeholder="Сумма, которая есть сейчас"
+            keyboardType="numeric"
+            inputMode="decimal"
+            value={deposit}
+            onChangeText={setDeposit}
+            options={currencies}
+            getDisplayedValue={(currency) => currency.symbol}
+            getOptionLabel={(currency) => `${currency.symbol} - ${currency.transcription}`}
+            onSelectOption={setCurrency}
+          />
+          <TextInput
+            icon="ticketStart"
+            placeholder="Полная стоимость"
             keyboardType="numeric"
             inputMode="decimal"
             value={price}
@@ -160,47 +155,6 @@ export default function WishModalScreen() {
             getOptionLabel={(currency) => `${currency.symbol} - ${currency.transcription}`}
             onSelectOption={setCurrency}
           />
-          <TextInput
-            icon="out"
-            placeholder="Ссылка"
-            value={link}
-            valid={!errors.link}
-            onChangeText={(value) => {
-              setLink(value);
-              setErrors((prev) => ({ ...prev, link: false }));
-            }}
-            keyboardType="url"
-            inputMode="url"
-            autoCapitalize="none"
-          />
-          <TextInput
-            icon="edit"
-            placeholder="Почему вы хотите это?"
-            value={description}
-            onChangeText={setDescription}
-            multiline={true}
-          />
-        </View>
-
-        <Link asChild href={'./wishListModal'}>
-          <PlatformButton style={styles.addWishListButton} hapticFeedback="none">
-            <ThemedText type="bodyLargeMedium" style={styles.addWishListButtonText}>
-              Новый список
-            </ThemedText>
-            <Icon name="plus" />
-          </PlatformButton>
-        </Link>
-
-        <View style={styles.wishListsContainer}>
-          {wishLists.map((wishList) => {
-            const switchState = switchStates.find((s) => s.id === wishList.wishListId);
-            return (
-              <View key={wishList.wishListId} style={styles.wishList}>
-                <ThemedText type="h5">{wishList.name}</ThemedText>
-                <Switch value={switchState?.enabled || false} onValueChange={() => toggleSwitch(wishList.wishListId)} />
-              </View>
-            );
-          })}
         </View>
       </ScrollView>
     </KeyboardAwareScrollView>
@@ -214,19 +168,5 @@ const styles = StyleSheet.create({
   },
   fields: {
     gap: 20,
-  },
-  addWishListButton: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  addWishListButtonText: {
-    color: Colors.white,
-  },
-  wishListsContainer: {
-    gap: 20,
-  },
-  wishList: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
   },
 });

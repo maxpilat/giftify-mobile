@@ -3,6 +3,10 @@ import { ScrollView, StyleSheet, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { TextInput } from '@/components/TextInput';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { useProfile } from '@/hooks/useProfile';
+import { apiFetch } from '@/lib/api';
+import { API } from '@/constants/api';
+import { useAuth } from '@/hooks/useAuth';
 
 type SearchParams = {
   submit?: 'true' | 'false';
@@ -10,23 +14,51 @@ type SearchParams = {
 };
 
 export default function WishListModalScreen() {
-  const params = useLocalSearchParams<SearchParams>();
+  const { token } = useAuth();
+  const { submit, wishListId } = useLocalSearchParams<SearchParams>();
+  const { user } = useAuth();
+  const { wishLists, fetchWishLists } = useProfile();
 
   const [name, setName] = useState<string>('');
   const [errors, setErrors] = useState<Record<'name', boolean>>({ name: false });
 
   useEffect(() => {
-    if (params?.submit !== 'true') return;
+    if (wishListId) {
+      const wishList = wishLists.find((wishList) => wishList.wishListId === +wishList)!;
+      setName(wishList.name);
+    }
+  }, [wishListId]);
+
+  useEffect(() => {
+    handleSubmit();
+  }, [submit]);
+
+  const handleSubmit = async () => {
+    if (submit !== 'true') return;
 
     if (isValid()) {
-      submit();
+      if (wishListId) {
+        await apiFetch({
+          endpoint: API.wishLists.update,
+          method: 'PUT',
+          token,
+          body: { wishListId: +wishListId, name },
+        });
+      } else {
+        await apiFetch({
+          endpoint: API.wishLists.create,
+          method: 'POST',
+          token,
+          body: { creatorId: user.userId, name },
+        });
+      }
+
+      await fetchWishLists();
       router.back();
     }
 
     router.setParams({ submit: 'false' });
-  }, [params]);
-
-  const submit = () => { };
+  };
 
   const isValid = () => {
     const errors = {

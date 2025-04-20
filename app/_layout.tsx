@@ -5,6 +5,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { ThemeProvider } from '@/hooks/useTheme';
 import { ActionSheetProvider } from '@expo/react-native-action-sheet';
+import { AuthProvider } from '@/hooks/useAuth';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -26,13 +27,15 @@ export default function RootLayout() {
 
   return (
     <ActionSheetProvider>
-      <ThemeProvider>
-        <Stack>
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="+not-found" />
-        </Stack>
-        <StatusBar style="auto" />
-      </ThemeProvider>
+      <AuthProvider>
+        <ThemeProvider>
+          <Stack>
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen name="+not-found" />
+          </Stack>
+          <StatusBar style="auto" />
+        </ThemeProvider>
+      </AuthProvider>
     </ActionSheetProvider>
   );
 }

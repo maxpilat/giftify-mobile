@@ -7,8 +7,8 @@ export interface Wish {
   price?: number;
   deposit?: number;
   currency?: Currency;
-  link: string;
-  image?: string;
+  link?: string;
+  imageUri?: string;
   created?: string;
   isActive?: boolean;
   activeBookingId?: number | null;
@@ -30,22 +30,38 @@ export interface WishList {
 
 export interface Booking {
   bookingId: number;
-  wishId: number;
+  wish: object;
   bookerId: number;
   booked: string;
   isActive: boolean;
 }
 
-export interface User {
+export interface Profile {
   userId: number;
   name: string;
   surname: string;
   username: string;
-  friendList: User[];
+}
+
+export interface Friend {
+  friendId: number;
+  name: string;
+  surname: string;
+  username: string;
+  birthDate: string;
+  newWishesCount: number;
+  avatar?: string;
+}
+
+export interface FriendRequest {
+  userOneId: number;
+  isUserOneAccept: boolean;
+  userTwoId: number;
+  isUserTwoAccept: boolean;
 }
 
 export interface AuthData {
-  userId?: number;
+  userId: number;
   email: string;
   password: string;
   friendEmail?: string;

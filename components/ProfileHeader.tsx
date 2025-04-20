@@ -18,6 +18,7 @@ export const HEADER_HEIGHT = 360;
 
 type Props = {
   avatar?: string;
+  background?: string;
   fullname: string;
   username: string;
   friendsAvatars?: string[];
@@ -26,7 +27,16 @@ type Props = {
   onTabChange: (index: number) => void;
 };
 
-export function ProfileHeader({ fullname, username, avatar, friendsCount, friendsAvatars, tabs, onTabChange }: Props) {
+export function ProfileHeader({
+  fullname,
+  username,
+  avatar,
+  background,
+  friendsCount,
+  friendsAvatars,
+  tabs,
+  onTabChange,
+}: Props) {
   const { theme } = useTheme();
 
   const [currentTabIndex, setCurrentTabIndex] = useState(0);
@@ -41,7 +51,7 @@ export function ProfileHeader({ fullname, username, avatar, friendsCount, friend
 
   return (
     <ImageBackground
-      source={require('@/assets/images/bg-01.jpeg')}
+      source={background ? { uri: background } : require('@/assets/images/bg-01.jpeg')}
       style={styles.background}
       imageStyle={[styles.backgroundImage, { backgroundColor: theme.tabBarBorder }]}
     >
