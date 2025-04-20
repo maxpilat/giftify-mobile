@@ -1,7 +1,7 @@
 import React from 'react';
 import { Tabs } from 'expo-router';
 import { Platform } from 'react-native';
-import { HapticTab } from '@/components/HapticTab';
+import { Tab } from '@/components/Tab';
 import TabBarBackground from '@/components/TabBarBackground';
 import TabBarBackgroundIOS from '@/components/TabBarBackground.ios';
 import { useTheme } from '@/hooks/useTheme';
@@ -16,7 +16,7 @@ export default function TabLayout() {
         tabBarInactiveTintColor: theme.tabIconDefault,
         tabBarActiveTintColor: theme.tabIconSelected,
         headerShown: false,
-        tabBarButton: HapticTab,
+        tabBarButton: Tab,
         tabBarBackground: Platform.OS === 'ios' ? TabBarBackgroundIOS : TabBarBackground,
         tabBarStyle: {
           borderTopWidth: 0.5,

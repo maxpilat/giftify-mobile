@@ -8,7 +8,7 @@ export interface Wish {
   deposit?: number;
   currency?: Currency;
   link?: string;
-  imageUri?: string;
+  image?: string;
   created?: string;
   isActive?: boolean;
   activeBookingId?: number | null;

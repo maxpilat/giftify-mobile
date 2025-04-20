@@ -19,7 +19,7 @@ const MAX_ASPECT_RATIO = 1;
 
 type Props = {
   image: {
-    uri: string;
+    uri?: string;
     width?: number;
     height?: number;
   };
@@ -35,12 +35,12 @@ export function WishCard({ image, name, price, currency }: Props) {
   const { theme } = useTheme();
 
   useEffect(() => {
-    calcImageAspectRatio();
+    if (image.uri) calcImageAspectRatio(image.uri);
   }, [image]);
 
-  const calcImageAspectRatio = () => {
+  const calcImageAspectRatio = (imageUri: string) => {
     if (!image.width || !image.height) {
-      Image.getSize(image.uri, (width, height) => {
+      Image.getSize(imageUri, (width, height) => {
         setAspectRatio(width / height);
         opacity.value = withTiming(1, { duration: 500 });
       });

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { StyleSheet, TouchableOpacity, View, TextInput as Input, TextInputProps } from 'react-native';
 import { useActionSheet } from '@expo/react-native-action-sheet';
 import { Icon } from '@/components/Icon';
@@ -44,6 +44,10 @@ export function TextInput<T>({
     );
   };
 
+  useEffect(() => {
+    if (options) setSelectedOption(options[0]);
+  }, [options]);
+
   return (
     <View
       style={[
@@ -66,10 +70,10 @@ export function TextInput<T>({
         placeholderTextColor={Colors.grey}
         {...inputConfig}
       />
-      {options && (
+      {!!options?.length && getDisplayedValue && (
         <TouchableOpacity style={styles.optionButton} onPress={openSheet}>
           <ThemedText style={styles.optionText}>
-            {selectedOption && getDisplayedValue ? getDisplayedValue(selectedOption) : 'Выбрать'}
+            {selectedOption ? getDisplayedValue(selectedOption) : getDisplayedValue(options[0])}
           </ThemedText>
         </TouchableOpacity>
       )}

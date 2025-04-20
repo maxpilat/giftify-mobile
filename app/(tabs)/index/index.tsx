@@ -29,11 +29,13 @@ export default function ProfileScreen() {
     wishes: myWishes,
     wishLists: myWishLists,
     piggyBanks: myPiggyBanks,
-    fetchAvatar,
-    fetchBookings,
-    fetchWishes,
-    fetchWishLists,
-    fetchPiggyBanks,
+    isLoaded: isProfileLoaded,
+    fetchAvatar: fetchMyAvatar,
+    fetchBookings: fetchMyBookings,
+    fetchWishes: fetchMyWishes,
+    fetchWishLists: fetchMyWishLists,
+    fetchPiggyBanks: fetchMyPiggyBanks,
+    setIsLoaded: setIsProfileLoaded,
   } = useProfile();
   const { userId = authUser.userId } = useLocalSearchParams();
 
@@ -61,20 +63,32 @@ export default function ProfileScreen() {
     transform: [{ scale: addItemButtonOpacity.value }],
   }));
 
-  const fetchData = async () => {
+  const fetchData = () => {
     if (+userId === authUser.userId) {
-      if (myAvatar) {
+      if (isProfileLoaded) {
         setAvatar(myAvatar);
         setBookings(myBookings);
         setWishes(myWishes);
         setWishLists(myWishLists);
         setPiggyBanks(myPiggyBanks);
       } else {
-        fetchAvatar().then(() => setAvatar(myAvatar));
-        fetchBookings().then(() => setBookings(myBookings));
-        fetchWishes().then(() => setWishes(myWishes));
-        fetchWishLists().then(() => setWishLists(myWishLists));
-        fetchPiggyBanks().then(() => setPiggyBanks(myPiggyBanks));
+        setIsProfileLoaded(true);
+        fetchMyAvatar().then(() => setAvatar(myAvatar));
+        fetchMyBookings().then(() => setBookings(myBookings));
+        fetchMyWishes()
+          .then(() => setWishes(myWishes))
+          .then(() =>
+            myWishes.forEach(async (wish) => {
+              const response: Response = await apiFetch({ endpoint: API.wishes.getImage(wish.wishId) });
+              const buffer = await response.arrayBuffer();
+              const image = arrayBufferToBase64(buffer);
+              setWishes((prev) =>
+                prev.map((prevWish) => (prevWish.wishId === wish.wishId ? { ...prevWish, image } : prevWish))
+              );
+            })
+          );
+        fetchMyWishLists().then(() => setWishLists(myWishLists));
+        fetchMyPiggyBanks().then(() => setPiggyBanks(myPiggyBanks));
       }
     } else {
       apiFetch({ endpoint: API.profile.getAvatar(+userId), contetType: 'application/octet-stream', token })
@@ -138,8 +152,8 @@ export default function ProfileScreen() {
           <ProfileHeader
             avatar={avatar || undefined}
             background={background || undefined}
-            fullname={`${profile?.name} ${profile?.surname}`}
-            username={`${profile?.username}`}
+            fullname={`${profile?.name || ''} ${profile?.surname || ''}`}
+            username={`${profile?.username || ''}`}
             friendsAvatars={[
               'https://img.freepik.com/free-psd/3d-illustration-human-avatar-profile_23-2150671122.jpg',
               'https://img.freepik.com/psd-gratuit/illustration-3d-avatar-profil-humain_23-2150671161.jpg',
@@ -158,36 +172,30 @@ export default function ProfileScreen() {
           {currentVisibleTabIndex === 0 && (
             <>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categories}>
-                {wishLists.map((wishList, index) => (
-                  <React.Fragment key={wishList.wishListId}>
-                    {index === 0 && (
-                      <>
-                        <View style={styles.wishList}>
-                          <WishListTab
-                            name="Мои желания"
-                            count={wishes.length}
-                            isActive={!currentWishListId}
-                            onPress={() => setCurrentWishListId(null)}
-                          />
-                        </View>
-                        <View style={[styles.wishList, styles.addWishListButton]}>
-                          <Link asChild href={'./wishListModal'}>
-                            <TouchableOpacity activeOpacity={0.7} style={styles.addWishListButtonTouchable}>
-                              <Icon name="plus" />
-                            </TouchableOpacity>
-                          </Link>
-                        </View>
-                      </>
-                    )}
-                    <View style={styles.wishList}>
-                      <WishListTab
-                        name={wishList.name}
-                        count={wishList.wishes.length}
-                        isActive={currentWishListId === wishList.wishListId}
-                        onPress={() => setCurrentWishListId(wishList.wishListId)}
-                      />
-                    </View>
-                  </React.Fragment>
+                <View style={styles.wishList}>
+                  <WishListTab
+                    name="Мои желания"
+                    count={wishes.length}
+                    isActive={!currentWishListId}
+                    onPress={() => setCurrentWishListId(null)}
+                  />
+                </View>
+                <View style={[styles.wishList, styles.addWishListButton]}>
+                  <Link asChild href={'./wishListModal'}>
+                    <TouchableOpacity activeOpacity={0.7} style={styles.addWishListButtonTouchable}>
+                      <Icon name="plus" />
+                    </TouchableOpacity>
+                  </Link>
+                </View>
+                {wishLists.map((wishList) => (
+                  <View key={wishList.wishListId} style={styles.wishList}>
+                    <WishListTab
+                      name={wishList.name}
+                      count={wishList.wishes.length}
+                      isActive={currentWishListId === wishList.wishListId}
+                      onPress={() => setCurrentWishListId(wishList.wishListId)}
+                    />
+                  </View>
                 ))}
               </ScrollView>
 
@@ -210,7 +218,7 @@ export default function ProfileScreen() {
                       >
                         <Pressable>
                           <WishCard
-                            image={{ uri: `data:image/jpeg;base64,${API.wishes.getImage(wish.wishId)}` }}
+                            image={{ uri: wish.image }}
                             name={wish.name}
                             price={wish.price}
                             currency={wish.currency}
@@ -222,12 +230,18 @@ export default function ProfileScreen() {
                 />
               ) : userId === authUser.userId ? (
                 <View style={styles.noWishesContainer}>
-                  <ThemedText type="bodyLarge">Пока пусто...</ThemedText>
-                  <ThemedText type="bodyLarge">Может, это знае, что пора мечтать смелее?</ThemedText>
+                  <ThemedText style={styles.noWishesMessage} type="bodyLarge">
+                    Пока пусто...
+                  </ThemedText>
+                  <ThemedText style={styles.noWishesMessage} type="bodyLarge">
+                    Может, это значит, что пора мечтать смелее?
+                  </ThemedText>
                 </View>
               ) : (
                 <View style={styles.noWishesContainer}>
-                  <ThemedText type="bodyLarge">Eщё в раздумьях, что загадать</ThemedText>
+                  <ThemedText style={styles.noWishesMessage} type="bodyLarge">
+                    Eщё в раздумьях, что загадать
+                  </ThemedText>
                 </View>
               )}
             </>
@@ -272,12 +286,18 @@ export default function ProfileScreen() {
                 ))
               ) : userId === authUser.userId ? (
                 <View style={styles.noWishesContainer}>
-                  <ThemedText type="bodyLarge">Здесь пока только эхо...</ThemedText>
-                  <ThemedText type="bodyLarge">Может стоит сделать первый шаг к большим целям?</ThemedText>
+                  <ThemedText style={styles.noWishesMessage} type="bodyLarge">
+                    Здесь пока только эхо...
+                  </ThemedText>
+                  <ThemedText style={styles.noWishesMessage} type="bodyLarge">
+                    Может стоит сделать первый шаг к большим целям?
+                  </ThemedText>
                 </View>
               ) : (
                 <View style={styles.noWishesContainer}>
-                  <ThemedText type="bodyLarge">Пока копит не деньги, а терпение</ThemedText>
+                  <ThemedText style={styles.noWishesMessage} type="bodyLarge">
+                    Пока копит не деньги, а терпение
+                  </ThemedText>
                 </View>
               )}
             </View>
@@ -316,7 +336,9 @@ export default function ProfileScreen() {
               />
             ) : (
               <View style={styles.noWishesContainer}>
-                <ThemedText type="bodyLarge">Забронируйте желание друга и оно появится здесь</ThemedText>
+                <ThemedText style={styles.noWishesMessage} type="bodyLarge">
+                  Забронируйте желание друга и оно появится здесь
+                </ThemedText>
               </View>
             ))}
         </ThemedView>
@@ -405,5 +427,11 @@ const styles = StyleSheet.create({
   piggyBankCard: {
     flex: 7,
   },
-  noWishesContainer: {},
+  noWishesContainer: {
+    paddingHorizontal: 16,
+  },
+  noWishesMessage: {
+    textAlign: 'center',
+    color: Colors.grey,
+  },
 });

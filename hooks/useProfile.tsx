@@ -1,4 +1,4 @@
-import React, { createContext, useContext, ReactNode, useState } from 'react';
+import React, { createContext, useContext, ReactNode, useState, Dispatch, SetStateAction } from 'react';
 import { API } from '@/constants/api';
 import { apiFetch } from '@/lib/api';
 import { Booking, FriendRequest, Wish, WishList } from '@/models';
@@ -12,12 +12,14 @@ const ProfileContext = createContext<{
   wishes: Wish[];
   wishLists: WishList[];
   piggyBanks: Wish[];
+  isLoaded: boolean;
   fetchAvatar: () => Promise<void>;
   fetchBookings: () => Promise<void>;
   fetchFriendRequests: () => Promise<void>;
   fetchWishes: () => Promise<void>;
   fetchWishLists: () => Promise<void>;
   fetchPiggyBanks: () => Promise<void>;
+  setIsLoaded: Dispatch<SetStateAction<boolean>>;
 } | null>(null);
 
 export const ProfileProvider = ({ children }: { children: ReactNode }) => {
@@ -28,6 +30,7 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
   const [wishes, setWishes] = useState<Wish[]>([]);
   const [wishLists, setWishLists] = useState<WishList[]>([]);
   const [piggyBanks, setPiggyBanks] = useState<Wish[]>([]);
+  const [isLoaded, setIsLoaded] = useState<boolean>(false);
 
   const fetchAvatar = async () => {
     const response: Response = await apiFetch({
@@ -74,12 +77,14 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
         wishes,
         wishLists,
         piggyBanks,
+        isLoaded,
         fetchAvatar,
         fetchBookings,
         fetchFriendRequests,
         fetchWishes,
         fetchWishLists,
         fetchPiggyBanks,
+        setIsLoaded,
       }}
     >
       {children}

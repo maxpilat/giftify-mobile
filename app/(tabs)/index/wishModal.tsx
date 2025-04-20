@@ -14,7 +14,7 @@ import { apiFetch } from '@/lib/api';
 import { API } from '@/constants/api';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
-import { uriToBinaryArray } from '@/utils/imageConverter';
+import { base64ToArrayBuffer } from '@/utils/imageConverter';
 
 type SearchParams = {
   submit?: 'true' | 'false';
@@ -31,16 +31,16 @@ export default function WishModalScreen() {
   const { submit, wishId } = useLocalSearchParams<SearchParams>();
   const { wishes, wishLists, fetchWishes } = useProfile();
 
-  const [imageUri, setImageUri] = useState<string | null>(null);
+  const [image, setImage] = useState<string | null>(null);
   const [name, setName] = useState<string>('');
   const [price, setPrice] = useState<string>('');
   const [currency, setCurrency] = useState<Currency | null>(null);
   const [link, setLink] = useState<string>('');
   const [description, setDescription] = useState<string>('');
-  const [errors, setErrors] = useState<Record<'name' | 'link' | 'imageUri', boolean>>({
+  const [errors, setErrors] = useState<Record<'name' | 'link' | 'image', boolean>>({
     name: false,
     link: false,
-    imageUri: false,
+    image: false,
   });
   const [switchStates, setSwitchStates] = useState<SwitchState[]>(
     wishLists.map((wishList) => ({
@@ -60,7 +60,7 @@ export default function WishModalScreen() {
   useEffect(() => {
     if (wishId) {
       const wish = wishes.find((wish) => wish.wishId === +wishId)!;
-      setImageUri(wish.imageUri!);
+      setImage(wish.image!);
       setName(wish.name);
       setPrice(wish.price ? wish.price.toString() : '0');
       wish.currency && setCurrency(wish.currency);
@@ -86,14 +86,14 @@ export default function WishModalScreen() {
         link,
       };
 
-      const image = await uriToBinaryArray(imageUri!);
+      const buffer = base64ToArrayBuffer(image!);
 
       if (wishId) {
         (payload as any).wishId = +wishId;
-        await apiFetch({ endpoint: API.wishes.update, method: 'PUT', token, body: { ...payload, image } });
+        await apiFetch({ endpoint: API.wishes.update, method: 'PUT', token, body: { ...payload, image: buffer } });
       } else {
         (payload as any).wisherId = user.userId;
-        await apiFetch({ endpoint: API.wishes.create, method: 'POST', token, body: { ...payload, image } });
+        await apiFetch({ endpoint: API.wishes.create, method: 'POST', token, body: { ...payload, image: buffer } });
       }
 
       await fetchWishes();
@@ -107,10 +107,10 @@ export default function WishModalScreen() {
     const errors = {
       name: !name.trim(),
       link: !link.trim(),
-      imageUri: !imageUri?.trim(),
+      image: !image?.trim(),
     };
     setErrors(errors);
-    return !errors.name && !errors.link && !errors.imageUri;
+    return !errors.name && !errors.link && !errors.image;
   };
 
   const toggleSwitch = (id: number) => {
@@ -130,10 +130,10 @@ export default function WishModalScreen() {
     >
       <ScrollView contentContainerStyle={styles.container}>
         <ImagePicker
-          valid={!errors.imageUri}
-          value={imageUri || undefined}
+          valid={!errors.image}
+          value={image || undefined}
           onImagePicked={(imageUri) => {
-            setImageUri(imageUri);
+            setImage(imageUri);
             setErrors((prev) => ({ ...prev, name: false }));
           }}
         />

@@ -78,7 +78,7 @@ export function ProfileHeader({
               {fullname}
             </ThemedText>
             <View style={styles.details}>
-              <ThemedText type="bodyLargeMedium">{username}</ThemedText>
+              {username && <ThemedText type="bodyLargeMedium">{username}</ThemedText>}
               <View style={styles.friends}>
                 <View style={styles.friendsAvatars}>
                   {friendsAvatars?.map((friendAvatar, index) => (

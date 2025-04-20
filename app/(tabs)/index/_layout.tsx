@@ -49,6 +49,12 @@ export default function IndexLayout() {
             getModalOptions((route.params as { wishListId?: string })?.wishListId ? 'Редактирование' : 'Новый список')
           }
         />
+        <Stack.Screen
+          name="piggyBankModal"
+          options={({ route }) =>
+            getModalOptions((route.params as { wishListId?: string })?.wishListId ? 'Редактирование' : 'Новая копилка')
+          }
+        />
       </Stack>
     </ProfileProvider>
   );

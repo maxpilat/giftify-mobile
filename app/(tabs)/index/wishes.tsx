@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { ScrollView, Image, StyleSheet, View } from 'react-native';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
@@ -9,67 +9,20 @@ import { Icon } from '@/components/Icon';
 import { PlatformButton } from '@/components/PlatformButton';
 import { Colors } from '@/constants/themes';
 import { useLocalSearchParams } from 'expo-router';
-import { Wish } from '@/models';
 import { API } from '@/constants/api';
+import { useProfile } from '@/hooks/useProfile';
+import { useAuth } from '@/hooks/useAuth';
+import { Wish } from '@/models';
+import { apiFetch } from '@/lib/api';
+import { arrayBufferToBase64 } from '@/utils/imageConverter';
 
 const IMAGE_HEIGHT = 450;
 
-const wishes: Wish[] = [
-  {
-    wishId: 0,
-    wishType: 'TYPE_WISH',
-    name: 'Беспроводные наушники',
-    description: 'Sony WH-1000XM5 с шумоподавлением',
-    price: 950,
-    deposit: 250,
-    currency: { currencyId: 1, symbol: 'BYN', transcription: 'бел. руб.' },
-    link: 'https://example.com/sony-headphones',
-  },
-  {
-    wishId: 1,
-    wishType: 'TYPE_WISH',
-    name: 'Поездка в Париж',
-    description: 'Хочу на неделю в Париж весной',
-    price: 3000,
-    deposit: 800,
-    currency: { currencyId: 1, symbol: 'BYN', transcription: 'бел. руб.' },
-    link: '',
-  },
-  {
-    wishId: 2,
-    wishType: 'TYPE_WISH',
-    name: 'Новая клавиатура',
-    description: 'Механическая клавиатура Keychron K6',
-    price: 350,
-    deposit: 100,
-    currency: { currencyId: 1, symbol: 'BYN', transcription: 'бел. руб.' },
-    link: 'https://example.com/keychron-k6',
-  },
-  {
-    wishId: 3,
-    wishType: 'TYPE_WISH',
-    name: 'Умная колонка',
-    description: 'Яндекс Станция Макс',
-    price: 500,
-    deposit: 50,
-    currency: { currencyId: 1, symbol: 'BYN', transcription: 'бел. руб.' },
-    link: 'https://example.com/yandex-station',
-  },
-  {
-    wishId: 4,
-    wishType: 'TYPE_WISH',
-    name: 'Курс по дизайну',
-    description: 'Онлайн-курс UX/UI на Coursera',
-    price: 1200,
-    deposit: 300,
-    currency: { currencyId: 1, symbol: 'BYN', transcription: 'бел. руб.' },
-    link: 'https://coursera.org/design-course',
-  },
-];
-
 export default function WishesScreen() {
   const { theme } = useTheme();
-  const { wishId = 0 } = useLocalSearchParams();
+  const { user: authUser, token } = useAuth();
+  const { isLoaded, wishes: myWishes, fetchWishes: fetchMyWishes } = useProfile();
+  const { userId = authUser.userId, wishId = 0 } = useLocalSearchParams();
   const scrollViewRef = useRef<ScrollView>(null);
 
   const handleItemLayout = (id: number, pageY: number) => {
@@ -77,6 +30,40 @@ export default function WishesScreen() {
       scrollViewRef.current.scrollTo({ y: pageY, animated: false });
     }
   };
+
+  const [wishes, setWishes] = useState<Wish[]>([]);
+
+  const fetchData = async () => {
+    const loadImages = async (wishes: Wish[]) => {
+      for (const wish of wishes) {
+        const response: Response = await apiFetch({ endpoint: API.wishes.getImage(wish.wishId) });
+        const buffer = await response.arrayBuffer();
+        const image = arrayBufferToBase64(buffer);
+        setWishes((prev) =>
+          prev.map((prevWish) => (prevWish.wishId === wish.wishId ? { ...prevWish, image } : prevWish))
+        );
+      }
+    };
+
+    if (+userId === authUser.userId) {
+      if (isLoaded) {
+        setWishes(myWishes);
+        await loadImages(myWishes);
+      } else {
+        await fetchMyWishes();
+        setWishes(myWishes);
+        await loadImages(myWishes);
+      }
+    } else {
+      const fetchedWishes = await apiFetch({ endpoint: API.profile.getWishes(+userId), token });
+      setWishes(fetchedWishes);
+      await loadImages(fetchedWishes);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, [userId]);
 
   return (
     <ThemedView>
@@ -87,20 +74,22 @@ export default function WishesScreen() {
             style={styles.wishContainer}
             onLayout={(event) => handleItemLayout(wish.wishId, event.nativeEvent.layout.y)}
           >
-            <Image source={{ uri: API.getWishImage(wish.wishId) }} style={[styles.image, { height: IMAGE_HEIGHT }]} />
+            <Image source={{ uri: wish.image }} style={[styles.image, { height: IMAGE_HEIGHT }]} />
             <View style={styles.infoContainer}>
               <View style={styles.textContainer}>
                 <ThemedText type="h2">{wish.name}</ThemedText>
                 <View style={styles.price}>
                   <ThemedText>{`${wish.price} ${wish.currency?.symbol}`}</ThemedText>
-                  <ExternalLink style={styles.externalLink} href={wish.link}>
-                    <View style={styles.externalLinkContainer}>
-                      <ThemedText type="bodyLargeMedium" style={[styles.externalLinkText, { color: theme.primary }]}>
-                        Где купить
-                      </ThemedText>
-                      <Icon name="bag" size={20} style={styles.externalLinkIcon} color={theme.primary} />
-                    </View>
-                  </ExternalLink>
+                  {wish.link && (
+                    <ExternalLink style={styles.externalLink} href={wish.link}>
+                      <View style={styles.externalLinkContainer}>
+                        <ThemedText type="bodyLargeMedium" style={[styles.externalLinkText, { color: theme.primary }]}>
+                          Где купить
+                        </ThemedText>
+                        <Icon name="bag" size={20} style={styles.externalLinkIcon} color={theme.primary} />
+                      </View>
+                    </ExternalLink>
+                  )}
                 </View>
               </View>
 
