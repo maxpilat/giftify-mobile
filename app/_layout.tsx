@@ -8,6 +8,10 @@ import { AuthProvider } from '@/hooks/useAuth';
 
 SplashScreen.preventAutoHideAsync();
 
+export const unstable_settings = {
+  initialRouteName: '+not-found',
+};
+
 export default function RootLayout() {
   const [loaded] = useFonts({
     'stolzl-regular': require('../assets/fonts/stolzl_regular.otf'),
@@ -26,9 +30,10 @@ export default function RootLayout() {
     <ActionSheetProvider>
       <AuthProvider>
         <ThemeProvider>
-          <Stack initialRouteName="(tabs)">
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack>
+            <Stack.Screen name="index" options={{ headerShown: false }} />
             <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             <Stack.Screen name="+not-found" />
           </Stack>
         </ThemeProvider>

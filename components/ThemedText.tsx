@@ -49,73 +49,61 @@ const styles = StyleSheet.create({
   h1: {
     fontSize: 26,
     lineHeight: 38,
-    fontWeight: 500,
     fontFamily: 'stolzl-medium',
   },
   h2: {
     fontSize: 24,
     lineHeight: 32,
-    fontWeight: 500,
     fontFamily: 'stolzl-medium',
   },
   h3: {
     fontSize: 22,
     lineHeight: 28,
-    fontWeight: 500,
     fontFamily: 'stolzl-medium',
   },
   h4: {
     fontSize: 22,
     lineHeight: 26,
-    fontWeight: 500,
     fontFamily: 'stolzl-medium',
   },
   h5: {
     fontSize: 18,
     lineHeight: 24,
-    fontWeight: 500,
     fontFamily: 'stolzl-medium',
   },
   bodyLargeMedium: {
     fontSize: 16,
     lineHeight: 26,
-    fontWeight: 500,
     fontFamily: 'stolzl-medium',
   },
   bodyLarge: {
     fontSize: 16,
     lineHeight: 26,
-    fontWeight: 400,
     fontFamily: 'stolzl-regular',
   },
   bodyBase: {
     fontSize: 16,
     lineHeight: 24,
-    fontWeight: 400,
     fontFamily: 'stolzl-regular',
   },
   bodySmall: {
     fontSize: 14,
     lineHeight: 20,
-    fontWeight: 400,
     fontFamily: 'stolzl-regular',
   },
   labelLarge: {
     fontSize: 14,
     lineHeight: 20,
-    fontWeight: 500,
     fontFamily: 'stolzl-medium',
   },
   labelBase: {
     fontSize: 12,
     lineHeight: 16,
-    fontWeight: 500,
     fontFamily: 'stolzl-medium',
   },
   labelSmall: {
     fontSize: 10,
     lineHeight: 15,
-    fontWeight: 500,
     fontFamily: 'stolzl-medium',
   },
 });

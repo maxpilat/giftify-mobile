@@ -1,3 +1,4 @@
+import { Icon } from '@/components/Icon';
 import { ThemedText } from '@/components/ThemedText';
 import { useTheme } from '@/hooks/useTheme';
 import { router, Stack } from 'expo-router';
@@ -8,8 +9,9 @@ export default function AuthLayout() {
 
   return (
     <Stack>
+      <Stack.Screen name="index" options={{ headerShown: false }} />
       <Stack.Screen
-        name="index"
+        name="signUp"
         options={{
           headerShadowVisible: false,
           headerStyle: {
@@ -20,7 +22,11 @@ export default function AuthLayout() {
           },
           headerTitle: '',
           headerLeft: () => (
-            <TouchableOpacity onPress={() => router.back()}>
+            <TouchableOpacity
+              onPress={() => router.back()}
+              style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}
+            >
+              <Icon name="left" size={18} color={theme.primary} />
               <ThemedText style={{ color: theme.primary }}>Назад</ThemedText>
             </TouchableOpacity>
           ),
