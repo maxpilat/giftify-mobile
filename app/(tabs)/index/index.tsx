@@ -18,7 +18,6 @@ import { ProgressBar } from '@/components/ProgressBar';
 import { apiFetch } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
-import { arrayBufferToBase64 } from '@/utils/imageConverter';
 
 export default function ProfileScreen() {
   const { theme } = useTheme();
@@ -79,9 +78,11 @@ export default function ProfileScreen() {
           .then(() => setWishes(myWishes))
           .then(() =>
             myWishes.forEach(async (wish) => {
-              const response: Response = await apiFetch({ endpoint: API.wishes.getImage(wish.wishId) });
-              const buffer = await response.arrayBuffer();
-              const image = arrayBufferToBase64(buffer);
+              const image = await apiFetch({
+                endpoint: API.wishes.getImage(wish.wishId),
+                contetType: 'application/octet-stream',
+                token,
+              });
               setWishes((prev) =>
                 prev.map((prevWish) => (prevWish.wishId === wish.wishId ? { ...prevWish, image } : prevWish))
               );
@@ -91,10 +92,9 @@ export default function ProfileScreen() {
         fetchMyPiggyBanks().then(() => setPiggyBanks(myPiggyBanks));
       }
     } else {
-      apiFetch({ endpoint: API.profile.getAvatar(+userId), contetType: 'application/octet-stream', token })
-        .then((response: Response) => response.arrayBuffer())
-        .then(arrayBufferToBase64)
-        .then(setAvatar);
+      apiFetch({ endpoint: API.profile.getAvatar(+userId), contetType: 'application/octet-stream', token }).then(
+        setAvatar
+      );
       apiFetch({ endpoint: API.profile.getBookings(+userId), token }).then((bookings: Booking[]) =>
         setBookings(bookings)
       );
@@ -108,10 +108,9 @@ export default function ProfileScreen() {
     }
 
     apiFetch({ endpoint: API.profile.getProfile(+userId), token }).then((profile: Profile) => setProfile(profile));
-    apiFetch({ endpoint: API.profile.getBackground(+userId), contetType: 'application/octet-stream', token })
-      .then((response: Response) => response.arrayBuffer())
-      .then(arrayBufferToBase64)
-      .then(setBackground);
+    apiFetch({ endpoint: API.profile.getBackground(+userId), contetType: 'application/octet-stream', token }).then(
+      setBackground
+    );
     apiFetch({ endpoint: API.friends.getFriends(+userId), token }).then((friends: Friend[]) => setFriends(friends));
   };
 

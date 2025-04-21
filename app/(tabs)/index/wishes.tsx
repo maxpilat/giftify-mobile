@@ -14,7 +14,6 @@ import { useProfile } from '@/hooks/useProfile';
 import { useAuth } from '@/hooks/useAuth';
 import { Wish } from '@/models';
 import { apiFetch } from '@/lib/api';
-import { arrayBufferToBase64 } from '@/utils/imageConverter';
 
 const IMAGE_HEIGHT = 450;
 
@@ -36,9 +35,7 @@ export default function WishesScreen() {
   const fetchData = async () => {
     const loadImages = async (wishes: Wish[]) => {
       for (const wish of wishes) {
-        const response: Response = await apiFetch({ endpoint: API.wishes.getImage(wish.wishId) });
-        const buffer = await response.arrayBuffer();
-        const image = arrayBufferToBase64(buffer);
+        const image = await apiFetch({ endpoint: API.wishes.getImage(wish.wishId) });
         setWishes((prev) =>
           prev.map((prevWish) => (prevWish.wishId === wish.wishId ? { ...prevWish, image } : prevWish))
         );

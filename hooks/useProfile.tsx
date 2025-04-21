@@ -3,7 +3,6 @@ import { API } from '@/constants/api';
 import { apiFetch } from '@/lib/api';
 import { Booking, FriendRequest, Wish, WishList } from '@/models';
 import { useAuth } from '../hooks/useAuth';
-import { arrayBufferToBase64 } from '@/utils/imageConverter';
 
 const ProfileContext = createContext<{
   avatar: string | null;
@@ -33,14 +32,12 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
   const [isLoaded, setIsLoaded] = useState<boolean>(false);
 
   const fetchAvatar = async () => {
-    const response: Response = await apiFetch({
+    const image = await apiFetch({
       endpoint: API.profile.getAvatar(user.userId),
       contetType: 'application/octet-stream',
       token,
     });
-    const buffer = await response.arrayBuffer();
-    const base64 = arrayBufferToBase64(buffer);
-    setAvatar(base64);
+    setAvatar(image);
   };
 
   const fetchBookings = async () => {

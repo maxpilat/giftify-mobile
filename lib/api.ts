@@ -1,3 +1,5 @@
+import { arrayBufferToBase64 } from '@/utils/imageConverter';
+
 type RequestOptions = {
   endpoint: string;
   method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
@@ -31,7 +33,7 @@ export const apiFetch = async ({
     }
 
     if (contetType === 'application/json') return await response.json();
-    return response;
+    return arrayBufferToBase64(await response.arrayBuffer());
   } catch (error) {
     console.error('Error in apiFetch:', error);
     throw error;

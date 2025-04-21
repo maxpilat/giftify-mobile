@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StyleSheet, ImageBackground, StatusBar, View, TouchableOpacity, Image } from 'react-native';
+import { StyleSheet, ImageBackground, View, TouchableOpacity, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
@@ -55,7 +55,6 @@ export function ProfileHeader({
       style={styles.background}
       imageStyle={[styles.backgroundImage, { backgroundColor: theme.tabBarBorder }]}
     >
-      <StatusBar hidden />
       <SafeAreaView>
         <View style={styles.headerWrapper}>
           <MaskedView

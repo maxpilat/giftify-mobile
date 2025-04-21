@@ -14,9 +14,8 @@ type SearchParams = {
 };
 
 export default function WishListModalScreen() {
-  const { token } = useAuth();
+  const { user, token } = useAuth();
   const { submit, wishListId } = useLocalSearchParams<SearchParams>();
-  const { user } = useAuth();
   const { wishLists, fetchWishLists } = useProfile();
 
   const [name, setName] = useState<string>('');

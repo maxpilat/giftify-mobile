@@ -1,7 +1,6 @@
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { ThemeProvider } from '@/hooks/useTheme';
 import { ActionSheetProvider } from '@expo/react-native-action-sheet';
@@ -16,9 +15,7 @@ export default function RootLayout() {
   });
 
   useEffect(() => {
-    if (loaded) {
-      SplashScreen.hideAsync();
-    }
+    if (loaded) SplashScreen.hideAsync();
   }, [loaded]);
 
   if (!loaded) {
@@ -29,11 +26,11 @@ export default function RootLayout() {
     <ActionSheetProvider>
       <AuthProvider>
         <ThemeProvider>
-          <Stack>
+          <Stack initialRouteName="(tabs)">
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen name="(auth)" options={{ headerShown: false }} />
             <Stack.Screen name="+not-found" />
           </Stack>
-          <StatusBar style="auto" />
         </ThemeProvider>
       </AuthProvider>
     </ActionSheetProvider>

@@ -15,6 +15,7 @@ import { API } from '@/constants/api';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import { base64ToArrayBuffer } from '@/utils/imageConverter';
+import { EncodingType, readAsStringAsync } from 'expo-file-system';
 
 type SearchParams = {
   submit?: 'true' | 'false';
@@ -86,14 +87,26 @@ export default function WishModalScreen() {
         link,
       };
 
-      const buffer = base64ToArrayBuffer(image!);
+      const base64 = await readAsStringAsync(image!, { encoding: EncodingType.Base64 });
+      const buffer = new Uint8Array(base64ToArrayBuffer(base64));
+      console.log(buffer);
 
       if (wishId) {
         (payload as any).wishId = +wishId;
-        await apiFetch({ endpoint: API.wishes.update, method: 'PUT', token, body: { ...payload, image: buffer } });
+        await apiFetch({
+          endpoint: API.wishes.update,
+          method: 'PUT',
+          token,
+          body: { ...payload, image: buffer },
+        });
       } else {
         (payload as any).wisherId = user.userId;
-        await apiFetch({ endpoint: API.wishes.create, method: 'POST', token, body: { ...payload, image: buffer } });
+        await apiFetch({
+          endpoint: API.wishes.create,
+          method: 'POST',
+          token,
+          body: { ...payload, image: buffer },
+        });
       }
 
       await fetchWishes();

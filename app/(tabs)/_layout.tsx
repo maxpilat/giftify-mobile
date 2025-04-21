@@ -1,4 +1,3 @@
-import React from 'react';
 import { Tabs } from 'expo-router';
 import { Platform } from 'react-native';
 import { Tab } from '@/components/Tab';

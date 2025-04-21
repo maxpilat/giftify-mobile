@@ -7,64 +7,10 @@ import { useTheme } from '@/hooks/useTheme';
 import { PlatformButton } from '@/components/PlatformButton';
 import { Colors } from '@/constants/themes';
 import { useLocalSearchParams } from 'expo-router';
-import { Wish } from '@/models';
 import { API } from '@/constants/api';
 import { ProgressBar } from '@/components/ProgressBar';
 
 const IMAGE_HEIGHT = 450;
-
-const wishes: Wish[] = [
-  {
-    wishId: 0,
-    wishType: 'TYPE_PIGGY_BANK',
-    name: 'Беспроводные наушники',
-    description: 'Sony WH-1000XM5 с шумоподавлением',
-    price: 950,
-    deposit: 750,
-    currency: { currencyId: 1, symbol: 'BYN', transcription: 'бел. руб.' },
-    link: 'https://example.com/sony-headphones',
-  },
-  {
-    wishId: 1,
-    wishType: 'TYPE_PIGGY_BANK',
-    name: 'Поездка в Париж',
-    description: 'Хочу на неделю в Париж весной',
-    price: 3000,
-    deposit: 800,
-    currency: { currencyId: 1, symbol: 'BYN', transcription: 'бел. руб.' },
-    link: '',
-  },
-  {
-    wishId: 2,
-    wishType: 'TYPE_PIGGY_BANK',
-    name: 'Новая клавиатура',
-    description: 'Механическая клавиатура Keychron K6',
-    price: 350,
-    deposit: 100,
-    currency: { currencyId: 1, symbol: 'BYN', transcription: 'бел. руб.' },
-    link: 'https://example.com/keychron-k6',
-  },
-  {
-    wishId: 3,
-    wishType: 'TYPE_PIGGY_BANK',
-    name: 'Умная колонка',
-    description: 'Яндекс Станция Макс',
-    price: 500,
-    deposit: 50,
-    currency: { currencyId: 1, symbol: 'BYN', transcription: 'бел. руб.' },
-    link: 'https://example.com/yandex-station',
-  },
-  {
-    wishId: 4,
-    wishType: 'TYPE_PIGGY_BANK',
-    name: 'Курс по дизайну',
-    description: 'Онлайн-курс UX/UI на Coursera',
-    price: 1200,
-    deposit: 300,
-    currency: { currencyId: 1, symbol: 'BYN', transcription: 'бел. руб.' },
-    link: 'https://coursera.org/design-course',
-  },
-];
 
 export default function PiggyBanksScreen() {
   const { theme } = useTheme();
@@ -79,7 +25,7 @@ export default function PiggyBanksScreen() {
 
   return (
     <ThemedView>
-      <ScrollView ref={scrollViewRef} contentContainerStyle={styles.scrollViewContainer}>
+      {/* <ScrollView ref={scrollViewRef} contentContainerStyle={styles.scrollViewContainer}>
         {wishes.map((wish) => (
           <View
             key={wish.wishId}
@@ -129,7 +75,7 @@ export default function PiggyBanksScreen() {
             </View>
           </View>
         ))}
-      </ScrollView>
+      </ScrollView> */}
     </ThemedView>
   );
 }

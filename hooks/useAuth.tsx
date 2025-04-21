@@ -13,14 +13,8 @@ const AuthContext = createContext<{
 } | null>(null);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<AuthData>({
-    userId: 7,
-    email: 'pilatmd@outlook.com',
-    password: 'maxpil14012004',
-  });
-  const [token, setToken] = useState<string>(
-    'eyJhbGciOiJIUzUxMiJ9.eyJpZCI6NywiZW1haWwiOiJwaWxhdG1kQG91dGxvb2suY29tIiwic3ViIjoicGlsYXRtZEBvdXRsb29rLmNvbSIsImlhdCI6MTc0NTE2MjYyOCwiZXhwIjoxNzQ1MjQ5MDI4fQ.zZf2u3CKHfJ9-vY_keCi4_v8NSzNwXdyfAfpCGer_v5MyP0jhrwe8epip74y0YLBuWqKFKDvdu8qrvFQD88a0Q'
-  );
+  const [user, setUser] = useState<AuthData>();
+  const [token, setToken] = useState<string>();
 
   const signIn = async (email: string, password: string) => {
     const response: Response = await apiFetch({
@@ -51,7 +45,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const isAuth = () => Boolean(user && token);
 
   return (
-    <AuthContext.Provider value={{ user, token, signIn, signUp, signOut, isAuth }}>{children}</AuthContext.Provider>
+    <AuthContext.Provider value={{ user: user!, token: token!, signIn, signUp, signOut, isAuth }}>
+      {children}
+    </AuthContext.Provider>
   );
 };
 
