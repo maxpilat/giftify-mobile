@@ -195,14 +195,16 @@ export default function WishModalScreen() {
           />
         </View>
 
-        <Link asChild href={'./wishListModal'}>
-          <PlatformButton style={styles.addWishListButton} hapticFeedback="none">
-            <ThemedText type="bodyLargeMedium" style={styles.addWishListButtonText}>
-              Новый список
-            </ThemedText>
-            <Icon name="plus" />
-          </PlatformButton>
-        </Link>
+        <PlatformButton
+          style={styles.addWishListButton}
+          hapticFeedback="none"
+          onPress={() => router.push('./wishListModal')}
+        >
+          <ThemedText type="bodyLargeMedium" style={styles.addWishListButtonText}>
+            Новый список
+          </ThemedText>
+          <Icon name="plus" />
+        </PlatformButton>
 
         <View style={styles.wishListsContainer}>
           {wishLists.map((wishList) => {
