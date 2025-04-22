@@ -123,7 +123,7 @@ export default function WishModalScreen() {
       image: !image?.trim(),
     };
     setErrors(errors);
-    return !errors.name && !errors.link && !errors.image;
+    return !Object.values(errors).some((error) => error);
   };
 
   const toggleSwitch = (id: number) => {

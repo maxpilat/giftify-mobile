@@ -43,7 +43,7 @@ export default function SignUpScreen() {
       password: password.trim().length < 6 ? 'Не менее 8 символов' : undefined,
     };
     setErrors(errors);
-    return !errors.name;
+    return !Object.values(errors).some((error) => error);
   };
 
   const handleEmailChange = (value: string) => {

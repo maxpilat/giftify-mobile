@@ -64,7 +64,7 @@ export default function WishListModalScreen() {
       name: name.trim() === '',
     };
     setErrors(errors);
-    return !errors.name;
+    return !Object.values(errors).some((error) => error);
   };
 
   return (
