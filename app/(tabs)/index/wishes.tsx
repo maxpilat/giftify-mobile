@@ -35,7 +35,11 @@ export default function WishesScreen() {
   const fetchData = async () => {
     const loadImages = async (wishes: Wish[]) => {
       for (const wish of wishes) {
-        const image = await apiFetch({ endpoint: API.wishes.getImage(wish.wishId) });
+        const image: string = await apiFetch({
+          endpoint: API.wishes.getImage(wish.wishId),
+          contentType: 'application/octet-stream',
+          token,
+        });
         setWishes((prev) =>
           prev.map((prevWish) => (prevWish.wishId === wish.wishId ? { ...prevWish, image } : prevWish))
         );
@@ -52,7 +56,7 @@ export default function WishesScreen() {
         await loadImages(myWishes);
       }
     } else {
-      const fetchedWishes = await apiFetch({ endpoint: API.profile.getWishes(+userId), token });
+      const fetchedWishes: Wish[] = await apiFetch({ endpoint: API.profile.getWishes(+userId), token });
       setWishes(fetchedWishes);
       await loadImages(fetchedWishes);
     }

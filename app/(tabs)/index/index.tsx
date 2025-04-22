@@ -72,15 +72,15 @@ export default function ProfileScreen() {
         setPiggyBanks(myPiggyBanks);
       } else {
         setIsProfileLoaded(true);
-        fetchMyAvatar().then(() => setAvatar(myAvatar));
-        fetchMyBookings().then(() => setBookings(myBookings));
+        fetchMyAvatar().then(setAvatar);
+        fetchMyBookings().then(setBookings);
         fetchMyWishes()
-          .then(() => setWishes(myWishes))
+          .then(setWishes)
           .then(() =>
             myWishes.forEach(async (wish) => {
-              const image = await apiFetch({
+              const image: string = await apiFetch({
                 endpoint: API.wishes.getImage(wish.wishId),
-                contetType: 'application/octet-stream',
+                contentType: 'application/octet-stream',
                 token,
               });
               setWishes((prev) =>
@@ -88,30 +88,26 @@ export default function ProfileScreen() {
               );
             })
           );
-        fetchMyWishLists().then(() => setWishLists(myWishLists));
-        fetchMyPiggyBanks().then(() => setPiggyBanks(myPiggyBanks));
+        fetchMyWishLists().then(setWishLists);
+        fetchMyPiggyBanks().then(setPiggyBanks);
       }
     } else {
-      apiFetch({ endpoint: API.profile.getAvatar(+userId), contetType: 'application/octet-stream', token }).then(
+      apiFetch({ endpoint: API.profile.getAvatar(+userId), contentType: 'application/octet-stream', token }).then(
         setAvatar
       );
-      apiFetch({ endpoint: API.profile.getBookings(+userId), token }).then((bookings: Booking[]) =>
-        setBookings(bookings)
-      );
-      apiFetch({ endpoint: API.profile.getWishes(+userId), token }).then((wishes: Wish[]) => setWishes(wishes));
-      apiFetch({ endpoint: API.profile.getWishLists(+userId), token }).then((wishLists: WishList[]) =>
-        setWishLists(wishLists)
-      );
-      apiFetch({ endpoint: API.profile.getPiggyBanks(+userId), token }).then((piggyBanks: Wish[]) =>
-        setPiggyBanks(piggyBanks)
-      );
+      apiFetch({ endpoint: API.profile.getBookings(+userId), token }).then(setBookings);
+
+      apiFetch({ endpoint: API.profile.getWishes(+userId), token }).then(setWishes);
+      apiFetch({ endpoint: API.profile.getWishLists(+userId), token }).then(setWishLists);
+
+      apiFetch({ endpoint: API.profile.getPiggyBanks(+userId), token }).then(setPiggyBanks);
     }
 
-    apiFetch({ endpoint: API.profile.getProfile(+userId), token }).then((profile: Profile) => setProfile(profile));
-    apiFetch({ endpoint: API.profile.getBackground(+userId), contetType: 'application/octet-stream', token }).then(
+    apiFetch({ endpoint: API.profile.getProfile(+userId), token }).then(setProfile);
+    apiFetch({ endpoint: API.profile.getBackground(+userId), contentType: 'application/octet-stream', token }).then(
       setBackground
     );
-    apiFetch({ endpoint: API.friends.getFriends(+userId), token }).then((friends: Friend[]) => setFriends(friends));
+    apiFetch({ endpoint: API.friends.getFriends(+userId), token }).then(setFriends);
   };
 
   useEffect(() => {
@@ -428,6 +424,7 @@ const styles = StyleSheet.create({
   },
   noWishesContainer: {
     paddingHorizontal: 16,
+    marginTop: 40,
   },
   noWishesMessage: {
     textAlign: 'center',

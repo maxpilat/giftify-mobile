@@ -17,21 +17,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [token, setToken] = useState<string>();
 
   const signIn = async (email: string, password: string) => {
-    const response: Response = await apiFetch({
+    const { id: userId, token: userToken }: { id: number; token: string } = await apiFetch({
       endpoint: API.auth.signIn,
       method: 'POST',
       token,
       body: { email, password },
     });
-    const { id: userId, token: userToken } = (await response.json()) as { id: number; token: string };
 
     setUser({ userId, email, password });
     setToken(userToken);
   };
 
   const signUp = async (userData: Omit<AuthData, 'userId'> & { name: string; surname: string }) => {
-    const response: Response = await apiFetch({ endpoint: API.auth.signUp, method: 'POST', token, body: userData });
-    const { id: userId, token: userToken } = (await response.json()) as { id: number; token: string };
+    const { id: userId, token: userToken }: { id: number; token: string } = await apiFetch({
+      endpoint: API.auth.signUp,
+      method: 'POST',
+      body: userData,
+    });
 
     setUser({ ...userData, userId });
     setToken(userToken);

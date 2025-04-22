@@ -1,10 +1,28 @@
 import { StyleSheet, View } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
-import { TextInput } from '@/components/TextInput';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { OtpInput } from 'react-native-otp-entry';
+import { Colors } from '@/constants/themes';
+import { useTheme } from '@/hooks/useTheme';
+import { router, useLocalSearchParams } from 'expo-router';
+import { useAuth } from '@/hooks/useAuth';
+import { AuthData } from '@/models';
 
 export default function OTPScreen() {
+  const { theme } = useTheme();
+  const { code, ...userData } = useLocalSearchParams<
+    Omit<AuthData, 'userId'> & { name: string; surname: string; code: string }
+  >();
+  const { signUp } = useAuth();
+
+  const submit = async (value: string) => {
+    if (value === code) {
+      await signUp(userData);
+      router.push('../(tabs)');
+    }
+  };
+
   return (
     <KeyboardAwareScrollView extraScrollHeight={60} keyboardOpeningTime={0} enableOnAndroid>
       <ThemedView style={styles.container}>
@@ -15,12 +33,17 @@ export default function OTPScreen() {
           <ThemedText type="bodyLargeMedium" style={styles.subtitle}>
             Код для подтверждения отправлен вам на электронную почту
           </ThemedText>
-          <View style={styles.inputs}>
-            <TextInput style={styles.input} keyboardType="numeric" inputMode="numeric" />
-            <TextInput style={styles.input} keyboardType="numeric" inputMode="numeric" />
-            <TextInput style={styles.input} keyboardType="numeric" inputMode="numeric" />
-            <TextInput style={styles.input} keyboardType="numeric" inputMode="numeric" />
-          </View>
+          <OtpInput
+            numberOfDigits={4}
+            onFilled={submit}
+            hideStick
+            theme={{
+              containerStyle: styles.pinCode,
+              pinCodeContainerStyle: styles.pinCodeContainer,
+              pinCodeTextStyle: { color: theme.text, ...styles.pinCodeText },
+              focusedPinCodeContainerStyle: styles.focusedPinCodeContainer,
+            }}
+          />
         </View>
       </ThemedView>
     </KeyboardAwareScrollView>
@@ -43,17 +66,21 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 60,
   },
-  inputs: {
+  pinCode: {
     marginTop: 40,
-    flexDirection: 'row',
     justifyContent: 'center',
-    gap: 16,
+    gap: 20,
   },
-  input: {
+  pinCodeContainer: {
+    borderColor: Colors.grey,
+    width: 64,
+    height: 64,
+  },
+  pinCodeText: {
     fontSize: 32,
     fontFamily: 'stolzl-regular',
-    width: 32,
-    height: 32,
-    textAlign: 'center',
+  },
+  focusedPinCodeContainer: {
+    borderColor: Colors.blue,
   },
 });

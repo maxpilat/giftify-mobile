@@ -147,7 +147,6 @@ const styles = StyleSheet.create({
     fontWeight: '400',
     fontFamily: 'stolzl-regular',
     color: Colors.grey,
-    backgroundColor: 'red',
     minWidth: 20,
   },
   optionButton: {

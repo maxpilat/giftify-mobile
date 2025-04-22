@@ -29,7 +29,7 @@ export default function AuthLayout() {
     <Stack>
       <Stack.Screen name="index" options={{ headerShown: false }} />
       <Stack.Screen name="signUp" options={getScreenOptions()} />
-      <Stack.Screen name="otp" options={getScreenOptions()} />
+      <Stack.Screen name="validateEmail" options={getScreenOptions()} />
     </Stack>
   );
 }

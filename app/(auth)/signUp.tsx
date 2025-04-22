@@ -26,10 +26,13 @@ export default function SignUpScreen() {
 
   const handleSubmit = async () => {
     if (isValid()) {
-      apiFetch({ endpoint: API.auth.validateEmail, method: 'POST', body: email });
+      const { code }: { code: string } = await apiFetch({
+        endpoint: API.auth.validateEmail,
+        method: 'POST',
+        body: email,
+      });
+      router.push({ pathname: './validateEmail', params: { name, surname, email, password, code } });
     }
-
-    router.push('./otp');
   };
 
   const isValid = () => {
@@ -52,13 +55,12 @@ export default function SignUpScreen() {
     }
 
     typingTimeoutRef.current = setTimeout(async () => {
-      const response: Response = await apiFetch({
+      const isUnique: boolean = await apiFetch({
         endpoint: API.auth.uniqueEmail,
         method: 'POST',
         body: value,
       });
 
-      const isUnique: boolean = await response.json();
       if (!isUnique) {
         setErrors((prev) => ({ ...prev, email: 'Аккаунт с такой почтой уже существует' }));
       }

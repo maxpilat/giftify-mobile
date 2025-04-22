@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
-import { Link, router, useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { ImagePicker } from '@/components/ImagePicker';
 import { TextInput } from '@/components/TextInput';
 import { Currency } from '@/models';
