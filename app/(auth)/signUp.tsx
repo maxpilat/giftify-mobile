@@ -25,7 +25,12 @@ export default function SignUpScreen() {
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const handleSubmit = async () => {
-    if (isValid()) {
+    const isUniqueEmail: boolean = await apiFetch({
+      endpoint: API.auth.uniqueEmail,
+      method: 'POST',
+      body: email,
+    });
+    if (isValid() && isUniqueEmail) {
       const { code }: { code: string } = await apiFetch({
         endpoint: API.auth.validateEmail,
         method: 'POST',
@@ -36,13 +41,13 @@ export default function SignUpScreen() {
   };
 
   const isValid = () => {
-    const errors = {
+    const newErrors = {
       name: !name.trim() ? 'Поле обязательно' : undefined,
       surname: !surname.trim() ? 'Поле обязательно' : undefined,
-      email: !email.trim() ? 'Поле обязательно' : undefined,
+      email: errors.email || (!email.trim() ? 'Поле обязательно' : undefined),
       password: password.trim().length < 6 ? 'Не менее 8 символов' : undefined,
     };
-    setErrors(errors);
+    setErrors(newErrors);
     return !Object.values(errors).some((error) => error);
   };
 
