@@ -3,27 +3,28 @@ import { arrayBufferToBase64 } from '@/utils/imageConverter';
 type RequestOptions = {
   endpoint: string;
   method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
-  contetType?: 'application/json' | 'application/octet-stream';
-  body?: object;
+  contentType?: 'application/json' | 'application/octet-stream';
+  body?: any;
   token?: string;
 };
 
 export const apiFetch = async ({
   endpoint,
   method = 'GET',
-  contetType = 'application/json',
+  contentType = 'application/json',
   body,
   token,
 }: RequestOptions) => {
   try {
-    if (!token) throw new Error('Token Error');
+    const headers: Record<string, string> = { 'Content-Type': contentType };
+
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
 
     const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}${endpoint}`, {
       method,
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': contetType,
-      },
+      headers,
       body: body ? JSON.stringify(body) : undefined,
     });
 
@@ -32,7 +33,7 @@ export const apiFetch = async ({
       throw new Error(`HTTP Error: ${response.status} - ${errorText}`);
     }
 
-    if (contetType === 'application/json') return await response.json();
+    if (contentType === 'application/json') return await response.json();
     return arrayBufferToBase64(await response.arrayBuffer());
   } catch (error) {
     console.error('Error in apiFetch:', error);

@@ -168,6 +168,7 @@ export default function WishModalScreen() {
             inputMode="decimal"
             value={price}
             onChangeText={setPrice}
+            mode="options"
             options={currencies}
             getDisplayedValue={(currency) => currency.symbol}
             getOptionLabel={(currency) => `${currency.symbol} - ${currency.transcription}`}
