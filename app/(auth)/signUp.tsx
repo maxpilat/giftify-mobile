@@ -14,7 +14,6 @@ export default function SignUpScreen() {
   const [surname, setSurname] = useState<string>('');
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
-
   const [errors, setErrors] = useState<Record<'name' | 'surname' | 'email' | 'password', string | undefined>>({
     name: undefined,
     surname: undefined,
@@ -24,13 +23,8 @@ export default function SignUpScreen() {
 
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const handleSubmit = async () => {
-    const isUniqueEmail: boolean = await apiFetch({
-      endpoint: API.auth.uniqueEmail,
-      method: 'POST',
-      body: email,
-    });
-    if (isValid() && isUniqueEmail) {
+  const submit = async () => {
+    if (await isValid()) {
       const { code }: { code: string } = await apiFetch({
         endpoint: API.auth.validateEmail,
         method: 'POST',
@@ -40,15 +34,23 @@ export default function SignUpScreen() {
     }
   };
 
-  const isValid = () => {
+  const isValid = async () => {
+    const isUniqueEmail: boolean = await apiFetch({
+      endpoint: API.auth.uniqueEmail,
+      method: 'POST',
+      body: email,
+    });
+
     const newErrors = {
       name: !name.trim() ? 'Поле обязательно' : undefined,
       surname: !surname.trim() ? 'Поле обязательно' : undefined,
-      email: errors.email || (!email.trim() ? 'Поле обязательно' : undefined),
-      password: password.trim().length < 6 ? 'Не менее 8 символов' : undefined,
+      email:
+        errors.email ||
+        (!email.trim() ? 'Поле обязательно' : !isUniqueEmail ? 'Аккаунт с такой почтой уже существует' : undefined),
+      password: password.trim().length < 8 ? 'Не менее 8 символов' : undefined,
     };
     setErrors(newErrors);
-    return !Object.values(errors).some((error) => error);
+    return !Object.values(newErrors).some((error) => error);
   };
 
   const handleEmailChange = (value: string) => {
@@ -127,7 +129,7 @@ export default function SignUpScreen() {
             keyboardType="visible-password"
           />
         </View>
-        <PlatformButton style={styles.button} onPress={handleSubmit}>
+        <PlatformButton style={styles.button} onPress={submit}>
           <ThemedText type="bodyLargeMedium" style={styles.buttonText}>
             Зарегистрироваться
           </ThemedText>
@@ -136,8 +138,10 @@ export default function SignUpScreen() {
 
       <View style={styles.footer}>
         <ThemedText>Уже есть аккаунт?</ThemedText>
-        <Link href="./">
-          <ThemedText style={styles.signInLink}>Войти</ThemedText>
+        <Link href="./signIn">
+          <ThemedText type="bodyLargeMedium" style={styles.signInLink}>
+            Войти
+          </ThemedText>
         </Link>
       </View>
     </KeyboardAwareScrollView>
@@ -148,9 +152,9 @@ const styles = StyleSheet.create({
   scrollViewContent: {
     flexGrow: 1,
     justifyContent: 'space-between',
+    marginTop: 60,
   },
   content: {
-    marginTop: 60,
     paddingHorizontal: 16,
     gap: 80,
   },
@@ -158,8 +162,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   fields: {
-    flex: 1,
-    gap: 20,
+    gap: 16,
   },
   button: {
     backgroundColor: Colors.blue,

@@ -60,11 +60,11 @@ export default function WishListModalScreen() {
   };
 
   const isValid = () => {
-    const errors = {
+    const newErrors = {
       name: name.trim() === '',
     };
-    setErrors(errors);
-    return !Object.values(errors).some((error) => error);
+    setErrors(newErrors);
+    return !Object.values(newErrors).some((error) => error);
   };
 
   return (

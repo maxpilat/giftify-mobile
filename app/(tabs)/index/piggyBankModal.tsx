@@ -89,12 +89,12 @@ export default function WishModalScreen() {
   };
 
   const isValid = () => {
-    const errors = {
+    const newErrors = {
       name: !name.trim(),
       image: !image?.trim(),
     };
-    setErrors(errors);
-    return !Object.values(errors).some((error) => error);
+    setErrors(newErrors);
+    return !Object.values(newErrors).some((error) => error);
   };
 
   return (

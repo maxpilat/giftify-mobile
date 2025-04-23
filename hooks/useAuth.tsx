@@ -9,6 +9,7 @@ const AuthContext = createContext<{
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (userData: Omit<AuthData, 'userId'> & { name: string; surname: string }) => Promise<void>;
   signOut: () => void;
+  resetPassword: (email: string, newPassword: string) => Promise<void>;
   isAuth: () => boolean;
 } | null>(null);
 
@@ -44,10 +45,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setToken('');
   };
 
+  const resetPassword = async (email: string, newPassword: string) => {
+    console.log({ email, oldPassword: user?.password, newPassword });
+    await apiFetch({
+      endpoint: API.auth.changePassword,
+      method: 'PUT',
+      body: { email, oldPassword: user?.password, newPassword },
+    });
+    setUser((prev) => ({ ...prev!, password: newPassword }));
+  };
+
   const isAuth = () => Boolean(user && token);
 
   return (
-    <AuthContext.Provider value={{ user: user!, token: token!, signIn, signUp, signOut, isAuth }}>
+    <AuthContext.Provider value={{ user: user!, token: token!, signIn, signUp, signOut, resetPassword, isAuth }}>
       {children}
     </AuthContext.Provider>
   );

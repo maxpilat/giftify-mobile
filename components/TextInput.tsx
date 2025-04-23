@@ -32,7 +32,7 @@ export function TextInput<T>({
   const { showActionSheetWithOptions } = useActionSheet();
 
   const [selectedOption, setSelectedOption] = useState<T | null>(options?.[0] ?? null);
-  const [secure, setSecure] = useState(false);
+  const [secure, setSecure] = useState(mode === 'password' ? true : false);
 
   const errorHeight = useSharedValue(0);
   const errorOpacity = useSharedValue(0);
