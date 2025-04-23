@@ -13,15 +13,20 @@ import { API } from '@/constants/api';
 import { useProfile } from '@/hooks/useProfile';
 import { useAuth } from '@/hooks/useAuth';
 import { Wish } from '@/models';
-import { apiFetch } from '@/lib/api';
+import { apiFetchData, apiFetchImage } from '@/lib/api';
 
 const IMAGE_HEIGHT = 450;
+
+type SearchParams = {
+  userId?: string;
+  wishId?: string;
+};
 
 export default function WishesScreen() {
   const { theme } = useTheme();
   const { user: authUser, token } = useAuth();
-  const { isLoaded, wishes: myWishes, fetchWishes: fetchMyWishes } = useProfile();
-  const { userId = authUser.userId, wishId = 0 } = useLocalSearchParams();
+  const { wishes: myWishes } = useProfile();
+  const { userId = authUser.userId, wishId = 0 } = useLocalSearchParams<SearchParams>();
   const scrollViewRef = useRef<ScrollView>(null);
 
   const handleItemLayout = (id: number, pageY: number) => {
@@ -32,33 +37,22 @@ export default function WishesScreen() {
 
   const [wishes, setWishes] = useState<Wish[]>([]);
 
-  const fetchData = async () => {
-    const loadImages = async (wishes: Wish[]) => {
-      for (const wish of wishes) {
-        const image: string = await apiFetch({
-          endpoint: API.wishes.getImage(wish.wishId),
-          contentType: 'application/octet-stream',
-          token,
-        });
-        setWishes((prev) =>
-          prev.map((prevWish) => (prevWish.wishId === wish.wishId ? { ...prevWish, image } : prevWish))
-        );
-      }
-    };
-
+  const fetchData = () => {
     if (+userId === authUser.userId) {
-      if (isLoaded) {
-        setWishes(myWishes);
-        await loadImages(myWishes);
-      } else {
-        await fetchMyWishes();
-        setWishes(myWishes);
-        await loadImages(myWishes);
-      }
+      setWishes(myWishes);
     } else {
-      const fetchedWishes: Wish[] = await apiFetch({ endpoint: API.profile.getWishes(+userId), token });
-      setWishes(fetchedWishes);
-      await loadImages(fetchedWishes);
+      apiFetchData<Wish[]>({ endpoint: API.profile.getWishes(+userId), token }).then((data) => {
+        setWishes(data);
+        data.forEach(async (wish) => {
+          const image: string = await apiFetchImage({
+            endpoint: API.wishes.getImage(wish.wishId),
+            token,
+          });
+          setWishes((prev) =>
+            prev.map((prevWish) => (prevWish.wishId === wish.wishId ? { ...prevWish, image } : prevWish))
+          );
+        });
+      });
     }
   };
 

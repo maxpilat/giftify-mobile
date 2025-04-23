@@ -6,8 +6,8 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import { PlatformButton } from '@/components/PlatformButton';
 import { Colors } from '@/constants/themes';
 import { Link, router } from 'expo-router';
-import { apiFetch } from '@/lib/api';
 import { API } from '@/constants/api';
+import { apiFetchData } from '@/lib/api';
 
 export default function SignUpScreen() {
   const [name, setName] = useState<string>('');
@@ -24,32 +24,38 @@ export default function SignUpScreen() {
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const submit = async () => {
-    if (await isValid()) {
-      const { code }: { code: string } = await apiFetch({
-        endpoint: API.auth.validateEmail,
-        method: 'POST',
-        body: email,
-      });
-      router.push({ pathname: './validateEmail', params: { name, surname, email, password, code } });
+    if (!isValid()) {
+      return;
     }
-  };
 
-  const isValid = async () => {
-    const isUniqueEmail: boolean = await apiFetch({
+    const isUniqueEmail = await apiFetchData<boolean>({
       endpoint: API.auth.uniqueEmail,
       method: 'POST',
       body: email,
     });
 
+    if (!isUniqueEmail) {
+      setErrors((prev) => ({ ...prev, email: 'Аккаунт с такой почтой уже существует' }));
+      return;
+    }
+
+    const { code } = await apiFetchData<{ code: string }>({
+      endpoint: API.auth.validateEmail,
+      method: 'POST',
+      body: email,
+    });
+    router.push({ pathname: './validateEmail', params: { name, surname, email, password, code } });
+  };
+
+  const isValid = () => {
     const newErrors = {
       name: !name.trim() ? 'Поле обязательно' : undefined,
       surname: !surname.trim() ? 'Поле обязательно' : undefined,
-      email:
-        errors.email ||
-        (!email.trim() ? 'Поле обязательно' : !isUniqueEmail ? 'Аккаунт с такой почтой уже существует' : undefined),
+      email: errors.email || !email.trim() ? 'Поле обязательно' : undefined,
       password: password.trim().length < 8 ? 'Не менее 8 символов' : undefined,
     };
-    setErrors(newErrors);
+
+    setErrors((prev) => ({ ...prev, ...newErrors }));
     return !Object.values(newErrors).some((error) => error);
   };
 
@@ -62,7 +68,7 @@ export default function SignUpScreen() {
     }
 
     typingTimeoutRef.current = setTimeout(async () => {
-      const isUnique: boolean = await apiFetch({
+      const isUnique = await apiFetchData<boolean>({
         endpoint: API.auth.uniqueEmail,
         method: 'POST',
         body: value,

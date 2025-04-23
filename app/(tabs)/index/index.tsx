@@ -15,7 +15,7 @@ import { Booking, Friend, Profile, Wish, WishList } from '@/models';
 import { API } from '@/constants/api';
 import { Colors } from '@/constants/themes';
 import { ProgressBar } from '@/components/ProgressBar';
-import { apiFetch } from '@/lib/api';
+import { apiFetchData, apiFetchImage } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 
@@ -46,9 +46,9 @@ export default function ProfileScreen() {
   const [wishLists, setWishLists] = useState<WishList[]>([]);
   const [piggyBanks, setPiggyBanks] = useState<Wish[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [avatar, setAvatar] = useState<string | null>(null);
-  const [background, setBackground] = useState<string | null>(null);
+  const [profile, setProfile] = useState<Profile>();
+  const [avatar, setAvatar] = useState<string>();
+  const [background, setBackground] = useState<string>();
   const [friends, setFriends] = useState<Friend[]>([]);
 
   const contentOpacity = useSharedValue(1);
@@ -73,41 +73,118 @@ export default function ProfileScreen() {
       } else {
         setIsProfileLoaded(true);
         fetchMyAvatar().then(setAvatar);
-        fetchMyBookings().then(setBookings);
-        fetchMyWishes()
-          .then(setWishes)
-          .then(() =>
-            myWishes.forEach(async (wish) => {
-              const image: string = await apiFetch({
-                endpoint: API.wishes.getImage(wish.wishId),
-                contentType: 'application/octet-stream',
-                token,
-              });
-              setWishes((prev) =>
-                prev.map((prevWish) => (prevWish.wishId === wish.wishId ? { ...prevWish, image } : prevWish))
-              );
-            })
-          );
+
+        fetchMyBookings().then((data) => {
+          setBookings(data);
+          data.forEach(async (booking) => {
+            const image: string = await apiFetchImage({
+              endpoint: API.wishes.getImage(booking.wish.wishId),
+              token,
+            });
+            setBookings((prev) =>
+              prev.map((prevBooking) =>
+                prevBooking.wish.wishId === booking.wish.wishId ? { ...prevBooking, image } : prevBooking
+              )
+            );
+          });
+        });
+
+        fetchMyWishes().then((data) => {
+          setWishes(data);
+          data.forEach(async (wish) => {
+            const image: string = await apiFetchImage({
+              endpoint: API.wishes.getImage(wish.wishId),
+              token,
+            });
+            setWishes((prev) =>
+              prev.map((prevWish) => (prevWish.wishId === wish.wishId ? { ...prevWish, image } : prevWish))
+            );
+          });
+        });
+
         fetchMyWishLists().then(setWishLists);
-        fetchMyPiggyBanks().then(setPiggyBanks);
+
+        fetchMyPiggyBanks().then((data) => {
+          setPiggyBanks(data);
+          data.forEach(async (piggyBank) => {
+            const image: string = await apiFetchImage({
+              endpoint: API.wishes.getImage(piggyBank.wishId),
+              token,
+            });
+            setPiggyBanks((prev) =>
+              prev.map((prevPiggyBank) =>
+                prevPiggyBank.wishId === piggyBank.wishId ? { ...prevPiggyBank, image } : prevPiggyBank
+              )
+            );
+          });
+        });
       }
     } else {
-      apiFetch({ endpoint: API.profile.getAvatar(+userId), contentType: 'application/octet-stream', token }).then(
-        setAvatar
-      );
-      apiFetch({ endpoint: API.profile.getBookings(+userId), token }).then(setBookings);
+      apiFetchImage({
+        endpoint: API.profile.getAvatar(+userId),
+        token,
+      }).then(setAvatar);
 
-      apiFetch({ endpoint: API.profile.getWishes(+userId), token }).then(setWishes);
-      apiFetch({ endpoint: API.profile.getWishLists(+userId), token }).then(setWishLists);
+      apiFetchData<Booking[]>({ endpoint: API.profile.getBookings(+userId), token }).then((data) => {
+        setBookings(data);
+        data.forEach(async (booking) => {
+          const image: string = await apiFetchImage({
+            endpoint: API.wishes.getImage(booking.wish.wishId),
+            token,
+          });
+          setBookings((prev) =>
+            prev.map((prevBooking) =>
+              prevBooking.wish.wishId === booking.wish.wishId ? { ...prevBooking, image } : prevBooking
+            )
+          );
+        });
+      });
 
-      apiFetch({ endpoint: API.profile.getPiggyBanks(+userId), token }).then(setPiggyBanks);
+      apiFetchData<Wish[]>({ endpoint: API.profile.getWishes(+userId), token }).then((data) => {
+        setWishes(data);
+        data.forEach(async (wish) => {
+          const image: string = await apiFetchImage({
+            endpoint: API.wishes.getImage(wish.wishId),
+            token,
+          });
+          setWishes((prev) =>
+            prev.map((prevWish) => (prevWish.wishId === wish.wishId ? { ...prevWish, image } : prevWish))
+          );
+        });
+      });
+
+      apiFetchData<WishList[]>({ endpoint: API.profile.getWishLists(+userId), token }).then(setWishLists);
+
+      apiFetchData<Wish[]>({ endpoint: API.profile.getPiggyBanks(+userId), token }).then((data) => {
+        setPiggyBanks(data);
+        data.forEach(async (piggyBank) => {
+          const image: string = await apiFetchImage({
+            endpoint: API.wishes.getImage(piggyBank.wishId),
+            token,
+          });
+          setPiggyBanks((prev) =>
+            prev.map((prevPiggyBank) =>
+              prevPiggyBank.wishId === piggyBank.wishId ? { ...prevPiggyBank, image } : prevPiggyBank
+            )
+          );
+        });
+      });
     }
 
-    apiFetch({ endpoint: API.profile.getProfile(+userId), token }).then(setProfile);
-    apiFetch({ endpoint: API.profile.getBackground(+userId), contentType: 'application/octet-stream', token }).then(
-      setBackground
-    );
-    apiFetch({ endpoint: API.friends.getFriends(+userId), token }).then(setFriends);
+    apiFetchData<Profile>({ endpoint: API.profile.getProfile(+userId), token }).then(setProfile);
+    apiFetchImage({ endpoint: API.profile.getBackground(+userId), token }).then(setBackground);
+    apiFetchData<Friend[]>({ endpoint: API.friends.getFriends(+userId), token }).then((data) => {
+      setFriends(data);
+      data.forEach(async (friend) => {
+        const avatar: string = await apiFetchImage({
+          endpoint: API.profile.getAvatar(friend.friendId),
+          token,
+        });
+        setFriends((prev) =>
+          prev.map((prevFriend) => (prevFriend.friendId === friend.friendId ? { ...prevFriend, avatar } : prevFriend))
+        );
+      });
+    });
   };
 
   useEffect(() => {
@@ -145,15 +222,11 @@ export default function ProfileScreen() {
       <ParallaxScrollView
         header={
           <ProfileHeader
-            avatar={avatar || undefined}
-            background={background || undefined}
-            fullname={`${profile?.name || ''} ${profile?.surname || ''}`}
-            username={`${profile?.username || ''}`}
-            friendsAvatars={[
-              'https://img.freepik.com/free-psd/3d-illustration-human-avatar-profile_23-2150671122.jpg',
-              'https://img.freepik.com/psd-gratuit/illustration-3d-avatar-profil-humain_23-2150671161.jpg',
-              'https://img.freepik.com/free-psd/3d-illustration-human-avatar-profile_23-2150671149.jpg?semt=ais_hybrid',
-            ]}
+            avatar={avatar}
+            background={background}
+            fullname={`${profile?.name} ${profile?.surname}`}
+            username={profile?.username}
+            friendsAvatars={friends.slice(0, 3).map((friend) => friend.avatar)}
             friendsCount={friends.length}
             tabs={['Желания', 'Копилки', 'Я дарю']}
             onTabChange={setCurrentTabIndex}
@@ -213,7 +286,7 @@ export default function ProfileScreen() {
                       >
                         <Pressable>
                           <WishCard
-                            image={{ uri: wish.image }}
+                            image={{ uri: wishes.find((item) => item.wishId === wish.wishId)?.image }}
                             name={wish.name}
                             price={wish.price}
                             currency={wish.currency}
@@ -245,37 +318,41 @@ export default function ProfileScreen() {
           {currentVisibleTabIndex === 1 && (
             <View style={[styles.list, styles.piggyBankList]}>
               {piggyBanks.length ? (
-                piggyBanks.map((wish) => (
+                piggyBanks.map((piggyBank) => (
                   <Link
                     asChild
-                    key={wish.wishId}
+                    key={piggyBank.wishId}
                     style={styles.piggyBank}
-                    href={{ pathname: './piggyBanks', params: { wishId: wish.wishId.toString() } }}
+                    href={{ pathname: './piggyBanks', params: { wishId: piggyBank.wishId.toString() } }}
                   >
                     <Pressable>
                       <View style={styles.piggyBankBody}>
                         <View style={styles.piggyBankInfo}>
-                          <ThemedText type="h3">{wish.name}</ThemedText>
+                          <ThemedText type="h3">{piggyBank.name}</ThemedText>
                           <View style={styles.piggyBankPrice}>
                             <ThemedText type="bodyBase" style={styles.piggyBankPriceLabel}>
                               Стоимость:
                             </ThemedText>
                             <ThemedText type="bodyLargeMedium">
-                              {wish.price} {wish.currency?.symbol}
+                              {piggyBank.price} {piggyBank.currency?.symbol}
                             </ThemedText>
                           </View>
                         </View>
                         <View style={styles.piggyBankCard}>
                           <WishCard
                             image={{
-                              uri: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTL_BgTANZFIIIVFGv1FjjDYvDzygFMkufN1A&s',
+                              uri: piggyBank.image,
                               width: 2,
                               height: 1,
                             }}
                           />
                         </View>
                       </View>
-                      <ProgressBar currentAmount={wish.deposit!} targetAmount={wish.price!} currency={wish.currency} />
+                      <ProgressBar
+                        currentAmount={piggyBank.deposit!}
+                        targetAmount={piggyBank.price!}
+                        currency={piggyBank.currency}
+                      />
                     </Pressable>
                   </Link>
                 ))
@@ -303,11 +380,11 @@ export default function ProfileScreen() {
             (bookings.length ? (
               <MasonryList
                 data={bookings}
-                keyExtractor={(wish: Wish) => wish.wishId.toString()}
+                keyExtractor={(booking: Booking) => booking.bookingId.toString()}
                 numColumns={2}
                 contentContainerStyle={styles.list}
                 renderItem={({ item, i }) => {
-                  const wish = item as Wish;
+                  const wish = (item as Booking).wish;
                   return (
                     <Link
                       asChild
@@ -319,7 +396,7 @@ export default function ProfileScreen() {
                     >
                       <Pressable>
                         <WishCard
-                          image={{ uri: `data:image/jpeg;base64,${API.wishes.getImage(wish.wishId)}` }}
+                          image={{ uri: wish.image }}
                           name={wish.name}
                           price={wish.price}
                           currency={wish.currency}

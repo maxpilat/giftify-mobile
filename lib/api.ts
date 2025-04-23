@@ -1,22 +1,20 @@
 import { arrayBufferToBase64 } from '@/utils/imageConverter';
 
-type RequestOptions = {
+export type ApiFetchDataParams = {
   endpoint: string;
   method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
-  contentType?: 'application/json' | 'application/octet-stream';
-  body?: any;
+  body?: Record<string, any> | string;
   token?: string;
 };
 
-export const apiFetch = async ({
+export const apiFetchData = async <T = void>({
   endpoint,
   method = 'GET',
-  contentType = 'application/json',
   body,
   token,
-}: RequestOptions) => {
+}: ApiFetchDataParams): Promise<T> => {
   try {
-    const headers: Record<string, string> = { 'Content-Type': contentType };
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
 
     if (token) {
       headers.Authorization = `Bearer ${token}`;
@@ -33,10 +31,39 @@ export const apiFetch = async ({
       throw new Error(`HTTP Error: ${response.status} - ${errorText}`);
     }
 
-    if (contentType === 'application/json') return await response.json();
+    return (await response.json()) as T;
+  } catch (error) {
+    console.error('Error in fetchData:', error);
+    throw error;
+  }
+};
+
+export type ApiFetchImageParams = {
+  endpoint: string;
+  token?: string;
+};
+
+export const apiFetchImage = async ({ endpoint, token }: ApiFetchImageParams): Promise<string> => {
+  try {
+    const headers: Record<string, string> = { 'Content-Type': 'application/octet-stream' };
+
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+
+    const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}${endpoint}`, {
+      method: 'GET',
+      headers,
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`HTTP Error: ${response.status} - ${errorText}`);
+    }
+
     return arrayBufferToBase64(await response.arrayBuffer());
   } catch (error) {
-    console.error('Error in apiFetch:', error);
+    console.error('Error in fetchImage:', error);
     throw error;
   }
 };

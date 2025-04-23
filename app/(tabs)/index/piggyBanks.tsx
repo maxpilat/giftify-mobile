@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { ScrollView, Image, StyleSheet, View } from 'react-native';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
@@ -9,44 +9,87 @@ import { Colors } from '@/constants/themes';
 import { useLocalSearchParams } from 'expo-router';
 import { API } from '@/constants/api';
 import { ProgressBar } from '@/components/ProgressBar';
+import { useAuth } from '@/hooks/useAuth';
+import { useProfile } from '@/hooks/useProfile';
+import { Wish } from '@/models';
+import { apiFetchData, apiFetchImage } from '@/lib/api';
 
 const IMAGE_HEIGHT = 450;
 
+type SearchParams = {
+  userId?: string;
+  piggyBankId?: string;
+};
+
 export default function PiggyBanksScreen() {
   const { theme } = useTheme();
-  const { wishId = 0 } = useLocalSearchParams();
+  const { user: authUser, token } = useAuth();
+  const { userId = authUser.userId, piggyBankId = 0 } = useLocalSearchParams<SearchParams>();
   const scrollViewRef = useRef<ScrollView>(null);
 
+  const [piggyBanks, setPiggyBanks] = useState<Wish[]>([]);
+
   const handleItemLayout = (id: number, pageY: number) => {
-    if (+wishId === id && scrollViewRef.current) {
+    if (+piggyBankId === id && scrollViewRef.current) {
       scrollViewRef.current.scrollTo({ y: pageY, animated: false });
     }
   };
 
+  const { piggyBanks: myPiggyBanks } = useProfile();
+
+  const fetchData = () => {
+    if (+userId === authUser.userId) {
+      setPiggyBanks(myPiggyBanks);
+    } else {
+      apiFetchData<Wish[]>({ endpoint: API.profile.getPiggyBanks(+userId), token }).then((data) => {
+        setPiggyBanks(data);
+        data.forEach(async (piggyBank) => {
+          const image: string = await apiFetchImage({
+            endpoint: API.wishes.getImage(piggyBank.wishId),
+            token,
+          });
+          setPiggyBanks((prev) =>
+            prev.map((prevPiggyBank) =>
+              prevPiggyBank.wishId === piggyBank.wishId ? { ...prevPiggyBank, image } : prevPiggyBank
+            )
+          );
+        });
+      });
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
   return (
     <ThemedView>
-      {/* <ScrollView ref={scrollViewRef} contentContainerStyle={styles.scrollViewContainer}>
-        {wishes.map((wish) => (
+      <ScrollView ref={scrollViewRef} contentContainerStyle={styles.scrollViewContainer}>
+        {piggyBanks.map((piggyBank) => (
           <View
-            key={wish.wishId}
+            key={piggyBank.wishId}
             style={styles.wishContainer}
-            onLayout={(event) => handleItemLayout(wish.wishId, event.nativeEvent.layout.y)}
+            onLayout={(event) => handleItemLayout(piggyBank.wishId, event.nativeEvent.layout.y)}
           >
-            <Image source={{ uri: API.getWishImage(wish.wishId) }} style={[styles.image, { height: IMAGE_HEIGHT }]} />
+            <Image source={{ uri: piggyBank.image }} style={[styles.image, { height: IMAGE_HEIGHT }]} />
             <View style={styles.infoContainer}>
               <View style={styles.textContainer}>
-                <ThemedText type="h1">{wish.name}</ThemedText>
+                <ThemedText type="h1">{piggyBank.name}</ThemedText>
                 <View style={styles.price}>
                   <ThemedText type="bodyLarge" style={styles.priceLabel}>
                     Стоимость:
                   </ThemedText>
                   <ThemedText type="h5">
-                    {wish.price} {wish.currency?.symbol}
+                    {piggyBank.price} {piggyBank.currency?.symbol}
                   </ThemedText>
                 </View>
               </View>
 
-              <ProgressBar currentAmount={wish.deposit || 0} targetAmount={wish.price || 0} currency={wish.currency} />
+              <ProgressBar
+                currentAmount={piggyBank.deposit}
+                targetAmount={piggyBank.price}
+                currency={piggyBank.currency}
+              />
 
               <View style={styles.actionContainer}>
                 <View style={styles.hapticButtonContainer}>
@@ -75,7 +118,7 @@ export default function PiggyBanksScreen() {
             </View>
           </View>
         ))}
-      </ScrollView> */}
+      </ScrollView>
     </ThemedView>
   );
 }

@@ -19,10 +19,10 @@ export const HEADER_HEIGHT = 360;
 type Props = {
   avatar?: string;
   background?: string;
-  fullname: string;
-  username: string;
-  friendsAvatars?: string[];
-  friendsCount: number;
+  fullname?: string;
+  username?: string;
+  friendsAvatars?: (string | undefined)[];
+  friendsCount?: number;
   tabs: string[];
   onTabChange: (index: number) => void;
 };
@@ -74,21 +74,21 @@ export function ProfileHeader({
           </MaskedView>
           <ThemedView style={[styles.info, { borderColor: theme.background }]}>
             <ThemedText type="h2" style={styles.fullname} numberOfLines={1}>
-              {fullname}
+              {fullname || ''}
             </ThemedText>
             <View style={styles.details}>
-              {username && <ThemedText type="bodyLargeMedium">{username}</ThemedText>}
+              {username && <ThemedText type="bodyLargeMedium">{username || ''}</ThemedText>}
               <View style={styles.friends}>
                 <View style={styles.friendsAvatars}>
                   {friendsAvatars?.map((friendAvatar, index) => (
                     <Image
                       key={index}
-                      source={{ uri: friendAvatar }}
+                      source={friendAvatar ? { uri: friendAvatar } : require('../assets/images/avatar.png')}
                       style={[styles.friendAvatar, index > 0 && { marginLeft: -13 }, { borderColor: theme.background }]}
                     />
                   ))}
                 </View>
-                <ThemedText>{friendsCount} друзей</ThemedText>
+                <ThemedText>{friendsCount || 0} друзей</ThemedText>
               </View>
             </View>
           </ThemedView>

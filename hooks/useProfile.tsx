@@ -1,11 +1,11 @@
 import React, { createContext, useContext, ReactNode, useState, Dispatch, SetStateAction } from 'react';
 import { API } from '@/constants/api';
-import { apiFetch } from '@/lib/api';
 import { Booking, FriendRequest, Wish, WishList } from '@/models';
 import { useAuth } from '../hooks/useAuth';
+import { apiFetchData, apiFetchImage } from '@/lib/api';
 
 const ProfileContext = createContext<{
-  avatar: string | null;
+  avatar?: string;
   bookings: Booking[];
   friendRequests: FriendRequest[];
   wishes: Wish[];
@@ -23,7 +23,7 @@ const ProfileContext = createContext<{
 
 export const ProfileProvider = ({ children }: { children: ReactNode }) => {
   const { user, token } = useAuth();
-  const [avatar, setAvatar] = useState<string | null>(null);
+  const [avatar, setAvatar] = useState<string>();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [friendRequests, setFriendRequests] = useState<FriendRequest[]>([]);
   const [wishes, setWishes] = useState<Wish[]>([]);
@@ -32,9 +32,8 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
   const [isLoaded, setIsLoaded] = useState<boolean>(false);
 
   const fetchAvatar = async () => {
-    const image: string = await apiFetch({
+    const image = await apiFetchImage({
       endpoint: API.profile.getAvatar(user.userId),
-      contentType: 'application/octet-stream',
       token,
     });
     setAvatar(image);
@@ -42,13 +41,13 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const fetchBookings = async () => {
-    const bookings: Booking[] = await apiFetch({ endpoint: API.profile.getBookings(user.userId), token });
+    const bookings = await apiFetchData<Booking[]>({ endpoint: API.profile.getBookings(user.userId), token });
     setBookings(bookings);
     return bookings;
   };
 
   const fetchFriendRequests = async () => {
-    const friendRequests: FriendRequest[] = await apiFetch({
+    const friendRequests = await apiFetchData<FriendRequest[]>({
       endpoint: API.friends.getFriendRequests(user.userId),
       token,
     });
@@ -57,19 +56,19 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const fetchWishes = async () => {
-    const wishes: Wish[] = await apiFetch({ endpoint: API.profile.getWishes(user.userId), token });
+    const wishes = await apiFetchData<Wish[]>({ endpoint: API.profile.getWishes(user.userId), token });
     setWishes(wishes);
     return wishes;
   };
 
   const fetchWishLists = async () => {
-    const wishLists: WishList[] = await apiFetch({ endpoint: API.profile.getWishLists(user.userId), token });
+    const wishLists = await apiFetchData<WishList[]>({ endpoint: API.profile.getWishLists(user.userId), token });
     setWishLists(wishLists);
     return wishLists;
   };
 
   const fetchPiggyBanks = async () => {
-    const piggyBanks: Wish[] = await apiFetch({ endpoint: API.profile.getPiggyBanks(user.userId), token });
+    const piggyBanks = await apiFetchData<Wish[]>({ endpoint: API.profile.getPiggyBanks(user.userId), token });
     setPiggyBanks(piggyBanks);
     return piggyBanks;
   };

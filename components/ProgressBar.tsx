@@ -6,12 +6,12 @@ import { Currency } from '@/models';
 import Animated, { useSharedValue, useAnimatedStyle, withTiming, Easing } from 'react-native-reanimated';
 
 type Props = {
-  currentAmount: number;
-  targetAmount: number;
+  currentAmount?: number;
+  targetAmount?: number;
   currency?: Currency;
 };
 
-export function ProgressBar({ currentAmount, targetAmount, currency }: Props) {
+export function ProgressBar({ currentAmount = 0, targetAmount = 100, currency }: Props) {
   const { theme } = useTheme();
 
   const progress = Math.min((currentAmount / targetAmount) * 100, 100);

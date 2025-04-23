@@ -10,12 +10,12 @@ import { ThemedText } from '@/components/ThemedText';
 import { Colors } from '@/constants/themes';
 import { Icon } from '@/components/Icon';
 import { Switch } from '@/components/Switch';
-import { apiFetch } from '@/lib/api';
 import { API } from '@/constants/api';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import { base64ToArrayBuffer } from '@/utils/imageConverter';
 import { EncodingType, readAsStringAsync } from 'expo-file-system';
+import { apiFetchData } from '@/lib/api';
 
 type SearchParams = {
   submit?: 'true' | 'false';
@@ -32,10 +32,10 @@ export default function WishModalScreen() {
   const { submit, wishId } = useLocalSearchParams<SearchParams>();
   const { wishes, wishLists, fetchWishes } = useProfile();
 
-  const [image, setImage] = useState<string | null>(null);
+  const [image, setImage] = useState<string>();
   const [name, setName] = useState<string>('');
   const [price, setPrice] = useState<string>('');
-  const [currency, setCurrency] = useState<Currency | null>(null);
+  const [currency, setCurrency] = useState<Currency>();
   const [link, setLink] = useState<string>('');
   const [description, setDescription] = useState<string>('');
   const [errors, setErrors] = useState<Record<'name' | 'link' | 'image', boolean>>({
@@ -52,7 +52,7 @@ export default function WishModalScreen() {
   const [currencies, setCurrencies] = useState<Currency[]>([]);
 
   useEffect(() => {
-    apiFetch({ endpoint: API.currencies.getCurrencies, token }).then((currencies) => {
+    apiFetchData<Currency[]>({ endpoint: API.currencies.getCurrencies, token }).then((currencies) => {
       setCurrencies(currencies);
       if (!currency) setCurrency(currencies[0]);
     });
@@ -61,7 +61,7 @@ export default function WishModalScreen() {
   useEffect(() => {
     if (wishId) {
       const wish = wishes.find((wish) => wish.wishId === +wishId)!;
-      setImage(wish.image!);
+      setImage(wish.image);
       setName(wish.name);
       setPrice(wish.price ? wish.price.toString() : '0');
       wish.currency && setCurrency(wish.currency);
@@ -87,13 +87,12 @@ export default function WishModalScreen() {
         link,
       };
 
-      const base64 = await readAsStringAsync(image!, { encoding: EncodingType.Base64 });
-      const buffer = new Uint8Array(base64ToArrayBuffer(base64));
+      const buffer = new Uint8Array(base64ToArrayBuffer(image!));
       console.log(buffer);
 
       if (wishId) {
         (payload as any).wishId = +wishId;
-        await apiFetch({
+        await apiFetchData({
           endpoint: API.wishes.update,
           method: 'PUT',
           token,
@@ -101,7 +100,7 @@ export default function WishModalScreen() {
         });
       } else {
         (payload as any).wisherId = user.userId;
-        await apiFetch({
+        await apiFetchData({
           endpoint: API.wishes.create,
           method: 'POST',
           token,
@@ -145,8 +144,9 @@ export default function WishModalScreen() {
         <ImagePicker
           valid={!errors.image}
           value={image || undefined}
-          onImagePicked={(imageUri) => {
-            setImage(imageUri);
+          onImagePicked={async (imageUri) => {
+            const image = await readAsStringAsync(imageUri, { encoding: EncodingType.Base64 });
+            setImage(image);
             setErrors((prev) => ({ ...prev, name: false }));
           }}
         />

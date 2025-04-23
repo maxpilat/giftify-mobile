@@ -7,8 +7,8 @@ import { TextInput } from '@/components/TextInput';
 import { useState } from 'react';
 import { PlatformButton } from '@/components/PlatformButton';
 import { API } from '@/constants/api';
-import { apiFetch } from '@/lib/api';
 import { router } from 'expo-router';
+import { apiFetchData } from '@/lib/api';
 
 export default function OTPScreen() {
   const [email, setEmail] = useState<string>('');
@@ -17,8 +17,21 @@ export default function OTPScreen() {
   });
 
   const submit = async () => {
-    if (await isValid()) {
-      const { code }: { code: string } = await apiFetch({
+    const isUniqueEmail = await apiFetchData<boolean>({
+      endpoint: API.auth.uniqueEmail,
+      method: 'POST',
+      body: email,
+    });
+
+    if (isUniqueEmail) {
+      return setErrors((prev) => ({
+        ...prev,
+        email: 'Аккаунта с такой почтой не существует',
+      }));
+    }
+
+    if (isValid()) {
+      const { code } = await apiFetchData<{ code: string }>({
         endpoint: API.auth.validateEmail,
         method: 'POST',
         body: email,
@@ -27,15 +40,9 @@ export default function OTPScreen() {
     }
   };
 
-  const isValid = async () => {
-    const isUniqueEmail: boolean = await apiFetch({
-      endpoint: API.auth.uniqueEmail,
-      method: 'POST',
-      body: email,
-    });
-
+  const isValid = () => {
     const newErrors = {
-      email: !email.trim() ? 'Поле обязательно' : isUniqueEmail ? 'Аккаунта с такой почтой не существует' : undefined,
+      email: !email.trim() ? 'Поле обязательно' : undefined,
     };
 
     setErrors(newErrors);

@@ -30,7 +30,7 @@ export interface WishList {
 
 export interface Booking {
   bookingId: number;
-  wish: object;
+  wish: Omit<Wish, 'wisherId'> & { wisherProfileData: Profile };
   bookerId: number;
   booked: string;
   isActive: boolean;

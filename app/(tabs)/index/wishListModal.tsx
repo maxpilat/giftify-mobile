@@ -4,9 +4,9 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { TextInput } from '@/components/TextInput';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useProfile } from '@/hooks/useProfile';
-import { apiFetch } from '@/lib/api';
 import { API } from '@/constants/api';
 import { useAuth } from '@/hooks/useAuth';
+import { apiFetchData } from '@/lib/api';
 
 type SearchParams = {
   submit?: 'true' | 'false';
@@ -37,14 +37,14 @@ export default function WishListModalScreen() {
 
     if (isValid()) {
       if (wishListId) {
-        await apiFetch({
+        await apiFetchData({
           endpoint: API.wishLists.update,
           method: 'PUT',
           token,
           body: { wishListId: +wishListId, name },
         });
       } else {
-        await apiFetch({
+        await apiFetchData({
           endpoint: API.wishLists.create,
           method: 'POST',
           token,
