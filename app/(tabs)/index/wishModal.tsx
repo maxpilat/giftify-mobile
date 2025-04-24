@@ -87,8 +87,8 @@ export default function WishModalScreen() {
         link,
       };
 
-      const buffer = new Uint8Array(base64ToArrayBuffer(image!));
-      console.log(buffer);
+      const buffer = base64ToArrayBuffer(image!);
+      // console.log(buffer.slice(0, 10));
 
       if (wishId) {
         (payload as any).wishId = +wishId;
@@ -143,9 +143,8 @@ export default function WishModalScreen() {
       <ScrollView contentContainerStyle={styles.container}>
         <ImagePicker
           valid={!errors.image}
-          value={image || undefined}
-          onImagePicked={async (imageUri) => {
-            const image = await readAsStringAsync(imageUri, { encoding: EncodingType.Base64 });
+          initialImage={image}
+          onImagePicked={async (image) => {
             setImage(image);
             setErrors((prev) => ({ ...prev, name: false }));
           }}

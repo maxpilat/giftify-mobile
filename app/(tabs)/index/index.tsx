@@ -62,63 +62,68 @@ export default function ProfileScreen() {
     transform: [{ scale: addItemButtonOpacity.value }],
   }));
 
+  useEffect(() => {
+    if (+userId === authUser.userId && isProfileLoaded) {
+      setAvatar(myAvatar);
+      setBookings(myBookings);
+      setWishes(myWishes);
+      setWishLists(myWishLists);
+      setPiggyBanks(myPiggyBanks);
+    }
+  }, [myAvatar, myBookings, myWishes, myWishLists, myPiggyBanks]);
+
   const fetchData = () => {
-    if (+userId === authUser.userId) {
-      if (isProfileLoaded) {
-        setAvatar(myAvatar);
-        setBookings(myBookings);
-        setWishes(myWishes);
-        setWishLists(myWishLists);
-        setPiggyBanks(myPiggyBanks);
-      } else {
+    if (+userId === authUser.userId && !isProfileLoaded) {
+      fetchMyAvatar().then(setAvatar);
+
+      fetchMyBookings().then((data) => {
+        setBookings(data);
+        data.forEach(async (booking) => {
+          const image: string = await apiFetchImage({
+            endpoint: API.wishes.getImage(booking.wish.wishId),
+            token,
+          });
+          setBookings((prev) =>
+            prev.map((prevBooking) =>
+              prevBooking.wish.wishId === booking.wish.wishId ? { ...prevBooking, image } : prevBooking
+            )
+          );
+        });
+      });
+
+      fetchMyWishes().then((data) => {
+        setWishes(data);
+        data.forEach(async (wish) => {
+          const image: string = await apiFetchImage({
+            endpoint: API.wishes.getImage(wish.wishId),
+            token,
+          });
+          setWishes((prev) =>
+            prev.map((prevWish) => (prevWish.wishId === wish.wishId ? { ...prevWish, image } : prevWish))
+          );
+        });
+      });
+
+      fetchMyWishLists().then(setWishLists);
+
+      fetchMyPiggyBanks().then((data) => {
+        setPiggyBanks(data);
+        data.forEach(async (piggyBank) => {
+          const image: string = await apiFetchImage({
+            endpoint: API.wishes.getImage(piggyBank.wishId),
+            token,
+          });
+          setPiggyBanks((prev) =>
+            prev.map((prevPiggyBank) =>
+              prevPiggyBank.wishId === piggyBank.wishId ? { ...prevPiggyBank, image } : prevPiggyBank
+            )
+          );
+        });
+      });
+
+      Promise.all([fetchMyAvatar, fetchMyBookings, fetchMyWishes, fetchMyWishLists, fetchMyPiggyBanks]).then(() => {
         setIsProfileLoaded(true);
-        fetchMyAvatar().then(setAvatar);
-
-        fetchMyBookings().then((data) => {
-          setBookings(data);
-          data.forEach(async (booking) => {
-            const image: string = await apiFetchImage({
-              endpoint: API.wishes.getImage(booking.wish.wishId),
-              token,
-            });
-            setBookings((prev) =>
-              prev.map((prevBooking) =>
-                prevBooking.wish.wishId === booking.wish.wishId ? { ...prevBooking, image } : prevBooking
-              )
-            );
-          });
-        });
-
-        fetchMyWishes().then((data) => {
-          setWishes(data);
-          data.forEach(async (wish) => {
-            const image: string = await apiFetchImage({
-              endpoint: API.wishes.getImage(wish.wishId),
-              token,
-            });
-            setWishes((prev) =>
-              prev.map((prevWish) => (prevWish.wishId === wish.wishId ? { ...prevWish, image } : prevWish))
-            );
-          });
-        });
-
-        fetchMyWishLists().then(setWishLists);
-
-        fetchMyPiggyBanks().then((data) => {
-          setPiggyBanks(data);
-          data.forEach(async (piggyBank) => {
-            const image: string = await apiFetchImage({
-              endpoint: API.wishes.getImage(piggyBank.wishId),
-              token,
-            });
-            setPiggyBanks((prev) =>
-              prev.map((prevPiggyBank) =>
-                prevPiggyBank.wishId === piggyBank.wishId ? { ...prevPiggyBank, image } : prevPiggyBank
-              )
-            );
-          });
-        });
-      }
+      });
     } else {
       apiFetchImage({
         endpoint: API.profile.getAvatar(+userId),

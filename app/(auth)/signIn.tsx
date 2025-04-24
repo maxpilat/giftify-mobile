@@ -27,7 +27,7 @@ export default function SignUpScreen() {
 
   const isValid = () => {
     const newErrors = {
-      email: errors.email || (!email.trim() ? 'Поле обязательно' : undefined),
+      email: errors.email || (!email.trim() ? 'Обязательное поле' : undefined),
       password: password.trim().length < 8 ? 'Не менее 8 символов' : undefined,
     };
     setErrors(newErrors);

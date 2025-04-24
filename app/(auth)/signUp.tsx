@@ -49,9 +49,9 @@ export default function SignUpScreen() {
 
   const isValid = () => {
     const newErrors = {
-      name: !name.trim() ? 'Поле обязательно' : undefined,
-      surname: !surname.trim() ? 'Поле обязательно' : undefined,
-      email: errors.email || !email.trim() ? 'Поле обязательно' : undefined,
+      name: !name.trim() ? 'Обязательное поле' : undefined,
+      surname: !surname.trim() ? 'Обязательное поле' : undefined,
+      email: errors.email || (!email.trim() ? 'Обязательное поле' : undefined),
       password: password.trim().length < 8 ? 'Не менее 8 символов' : undefined,
     };
 
@@ -62,6 +62,8 @@ export default function SignUpScreen() {
   const handleEmailChange = (value: string) => {
     setEmail(value);
     setErrors((prev) => ({ ...prev, email: undefined }));
+
+    if (!value) return;
 
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current);

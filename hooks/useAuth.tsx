@@ -1,7 +1,8 @@
 import React, { createContext, useContext, ReactNode, useState } from 'react';
+import * as SecureStore from 'expo-secure-store';
 import { API } from '@/constants/api';
-import { apiFetch } from '@/lib/api';
 import { AuthData } from '@/models';
+import { apiFetchData } from '@/lib/api';
 
 const AuthContext = createContext<{
   user: AuthData;
@@ -13,46 +14,67 @@ const AuthContext = createContext<{
   isAuth: () => boolean;
 } | null>(null);
 
-export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<AuthData>();
-  const [token, setToken] = useState<string>();
+export const AuthProvider = ({
+  children,
+  initialUser,
+  initialToken,
+}: {
+  children: ReactNode;
+  initialUser?: AuthData;
+  initialToken?: string;
+}) => {
+  const [user, setUser] = useState<AuthData | null>(initialUser || null);
+  const [token, setToken] = useState<string | null>(initialToken || null);
 
   const signIn = async (email: string, password: string) => {
-    const { id: userId, token: userToken }: { id: number; token: string } = await apiFetch({
+    const { id: userId, token: userToken } = await apiFetchData<{ id: number; token: string }>({
       endpoint: API.auth.signIn,
       method: 'POST',
-      token,
       body: { email, password },
     });
 
-    setUser({ userId, email, password });
+    const newUser = { userId, email, password };
+
+    setUser(newUser);
     setToken(userToken);
+
+    await SecureStore.setItemAsync('user', JSON.stringify(newUser));
+    await SecureStore.setItemAsync('token', userToken);
   };
 
   const signUp = async (userData: Omit<AuthData, 'userId'> & { name: string; surname: string }) => {
-    const { id: userId, token: userToken }: { id: number; token: string } = await apiFetch({
+    const { id: userId, token: userToken } = await apiFetchData<{ id: number; token: string }>({
       endpoint: API.auth.signUp,
       method: 'POST',
       body: userData,
     });
 
-    setUser({ ...userData, userId });
+    const newUser = { ...userData, userId };
+
+    setUser(newUser);
     setToken(userToken);
+
+    await SecureStore.setItemAsync('user', JSON.stringify(newUser));
+    await SecureStore.setItemAsync('token', userToken);
   };
 
-  const signOut = () => {
-    setUser({ userId: 0, email: '', password: '' });
-    setToken('');
+  const signOut = async () => {
+    setUser(null);
+    setToken(null);
+
+    await SecureStore.deleteItemAsync('user');
+    await SecureStore.deleteItemAsync('token');
   };
 
   const resetPassword = async (email: string, newPassword: string) => {
-    console.log({ email, oldPassword: user?.password, newPassword });
-    await apiFetch({
+    await apiFetchData({
       endpoint: API.auth.changePassword,
       method: 'PUT',
       body: { email, oldPassword: user?.password, newPassword },
     });
-    setUser((prev) => ({ ...prev!, password: newPassword }));
+
+    const updatedUser = { ...user, password: newPassword } as AuthData;
+    setUser(updatedUser);
   };
 
   const isAuth = () => Boolean(user && token);
@@ -66,10 +88,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-
   if (!context) {
     throw new Error('useAuth must be used within a AuthProvider');
   }
-
   return context;
 };

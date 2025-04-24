@@ -1,27 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, Image, Pressable } from 'react-native';
 import { launchImageLibraryAsync } from 'expo-image-picker';
+import { EncodingType, readAsStringAsync } from 'expo-file-system';
 import { useTheme } from '@/hooks/useTheme';
 import { Icon } from '@/components/Icon';
 import { ThemedText } from '@/components/ThemedText';
 import { Colors } from '@/constants/themes';
+import { uriToBase64 } from '@/utils/imageConverter';
 
 type Props = {
   onImagePicked: (uri: string) => void;
   valid?: boolean;
-  value?: string;
+  initialImage?: string;
 };
 
-export function ImagePicker({ onImagePicked, valid, value }: Props) {
+export function ImagePicker({ onImagePicked, valid, initialImage }: Props) {
   const { theme } = useTheme();
 
-  const [imageUri, setImageUri] = useState<string | null>(value || null);
-
-  useEffect(() => {
-    if (value) {
-      setImageUri(value);
-    }
-  }, [value]);
+  const [image, setImage] = useState(initialImage);
 
   const pickImage = async () => {
     const result = await launchImageLibraryAsync({
@@ -32,15 +28,17 @@ export function ImagePicker({ onImagePicked, valid, value }: Props) {
 
     if (!result.canceled && result.assets?.[0]?.uri) {
       const uri = result.assets[0].uri;
-      setImageUri(uri);
-      onImagePicked(uri);
+      const base64 = await uriToBase64(uri);
+
+      setImage(base64);
+      onImagePicked(base64);
     }
   };
 
-  return imageUri ? (
+  return image ? (
     <Pressable onPress={pickImage}>
       <View style={styles.imageContainer}>
-        <Image source={{ uri: imageUri }} style={styles.imagePreview} />
+        <Image source={{ uri: image }} style={styles.imagePreview} />
         <View style={styles.overlay}>
           <Icon name="upload" color={Colors.white} size={40} />
         </View>

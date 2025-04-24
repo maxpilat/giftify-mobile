@@ -26,6 +26,8 @@ export const apiFetchData = async <T = void>({
       body: body ? JSON.stringify(body) : undefined,
     });
 
+    console.log(response);
+
     if (!response.ok) {
       const errorText = await response.text();
       throw new Error(`HTTP Error: ${response.status} - ${errorText}`);

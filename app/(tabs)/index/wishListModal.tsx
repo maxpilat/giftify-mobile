@@ -61,7 +61,7 @@ export default function WishListModalScreen() {
 
   const isValid = () => {
     const newErrors = {
-      name: name.trim() === '',
+      name: !name.trim(),
     };
     setErrors(newErrors);
     return !Object.values(newErrors).some((error) => error);

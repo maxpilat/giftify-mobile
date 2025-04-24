@@ -42,7 +42,7 @@ export default function OTPScreen() {
 
   const isValid = () => {
     const newErrors = {
-      email: !email.trim() ? 'Поле обязательно' : undefined,
+      email: !email.trim() ? 'Обязательное поле' : undefined,
     };
 
     setErrors(newErrors);
