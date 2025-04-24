@@ -29,24 +29,20 @@ export default function RootLayout() {
   }, [isFontsLoaded, isAuthLoaded]);
 
   useEffect(() => {
-    const loadAuthData = async () => {
-      try {
-        const storedUser = await SecureStore.getItemAsync('user');
-        const storedToken = await SecureStore.getItemAsync('token');
-
-        if (storedUser && storedToken) {
-          setInitialUser(JSON.parse(storedUser));
-          setInitialToken(storedToken);
-        }
-      } catch (error) {
-        console.error('Error while retrieving Auth Data from Secure Store:', error);
-      } finally {
-        setIsAuthLoaded(true);
-      }
-    };
-
     loadAuthData();
   }, []);
+
+  const loadAuthData = async () => {
+    const storedUser = await SecureStore.getItemAsync('user');
+    const storedToken = await SecureStore.getItemAsync('token');
+
+    if (storedUser && storedToken) {
+      setInitialUser(JSON.parse(storedUser));
+      setInitialToken(storedToken);
+    }
+
+    setIsAuthLoaded(true);
+  };
 
   if (!isFontsLoaded || !isAuthLoaded) {
     return null;

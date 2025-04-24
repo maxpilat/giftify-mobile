@@ -87,8 +87,10 @@ export default function WishModalScreen() {
         link,
       };
 
-      const buffer = base64ToArrayBuffer(image!);
-      // console.log(buffer.slice(0, 10));
+      console.log(payload);
+
+      console.log(image?.slice(0, 10));
+      const buffer = Array.from(new Uint8Array(base64ToArrayBuffer(image!)));
 
       if (wishId) {
         (payload as any).wishId = +wishId;
