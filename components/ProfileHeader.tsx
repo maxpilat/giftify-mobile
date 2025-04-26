@@ -93,7 +93,7 @@ export function ProfileHeader({
             </View>
           </ThemedView>
 
-          <ThemedView style={[styles.tabs]}>
+          <ThemedView style={styles.tabs}>
             {tabs.map((tab, index) => (
               <TouchableOpacity
                 key={index}
