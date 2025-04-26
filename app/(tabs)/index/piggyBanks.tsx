@@ -23,7 +23,7 @@ type SearchParams = {
 
 export default function PiggyBanksScreen() {
   const { theme } = useTheme();
-  const { user: authUser, token } = useAuth();
+  const { user: authUser } = useAuth();
   const { userId = authUser.userId, piggyBankId = 0 } = useLocalSearchParams<SearchParams>();
   const scrollViewRef = useRef<ScrollView>(null);
 
@@ -41,12 +41,12 @@ export default function PiggyBanksScreen() {
     if (+userId === authUser.userId) {
       setPiggyBanks(myPiggyBanks);
     } else {
-      apiFetchData<Wish[]>({ endpoint: API.profile.getPiggyBanks(+userId), token }).then((data) => {
+      apiFetchData<Wish[]>({ endpoint: API.profile.getPiggyBanks(+userId), token: authUser.token }).then((data) => {
         setPiggyBanks(data);
         data.forEach(async (piggyBank) => {
           const image: string = await apiFetchImage({
             endpoint: API.wishes.getImage(piggyBank.wishId),
-            token,
+            token: authUser.token,
           });
           setPiggyBanks((prev) =>
             prev.map((prevPiggyBank) =>

@@ -5,11 +5,13 @@ import React, { useRef, useState } from 'react';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { PlatformButton } from '@/components/PlatformButton';
 import { Colors } from '@/constants/themes';
-import { Link, router } from 'expo-router';
+import { Link, router, useLocalSearchParams } from 'expo-router';
 import { API } from '@/constants/api';
 import { apiFetchData } from '@/lib/api';
 
 export default function SignUpScreen() {
+  const { friendEmail } = useLocalSearchParams<{ friendEmail: string }>();
+
   const [name, setName] = useState<string>('');
   const [surname, setSurname] = useState<string>('');
   const [email, setEmail] = useState<string>('');
@@ -44,7 +46,7 @@ export default function SignUpScreen() {
       method: 'POST',
       body: email,
     });
-    router.push({ pathname: './validateEmail', params: { name, surname, email, password, code } });
+    router.push({ pathname: './validateEmail', params: { name, surname, email, password, friendEmail, code } });
   };
 
   const isValid = () => {

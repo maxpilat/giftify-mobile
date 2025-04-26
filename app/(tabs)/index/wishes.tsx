@@ -24,7 +24,7 @@ type SearchParams = {
 
 export default function WishesScreen() {
   const { theme } = useTheme();
-  const { user: authUser, token } = useAuth();
+  const { user: authUser } = useAuth();
   const { wishes: myWishes } = useProfile();
   const { userId = authUser.userId, wishId = 0 } = useLocalSearchParams<SearchParams>();
   const scrollViewRef = useRef<ScrollView>(null);
@@ -41,12 +41,12 @@ export default function WishesScreen() {
     if (+userId === authUser.userId) {
       setWishes(myWishes);
     } else {
-      apiFetchData<Wish[]>({ endpoint: API.profile.getWishes(+userId), token }).then((data) => {
+      apiFetchData<Wish[]>({ endpoint: API.profile.getWishes(+userId), token: authUser.token }).then((data) => {
         setWishes(data);
         data.forEach(async (wish) => {
           const image: string = await apiFetchImage({
             endpoint: API.wishes.getImage(wish.wishId),
-            token,
+            token: authUser.token,
           });
           setWishes((prev) =>
             prev.map((prevWish) => (prevWish.wishId === wish.wishId ? { ...prevWish, image } : prevWish))

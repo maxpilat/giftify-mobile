@@ -7,19 +7,25 @@ import { Colors } from '@/constants/themes';
 import { useTheme } from '@/hooks/useTheme';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useAuth } from '@/hooks/useAuth';
-import { AuthData } from '@/models';
 
-export default function OTPScreen() {
+type SearchParams = {
+  email: string;
+  password: string;
+  name: string;
+  surname: string;
+  friendEmail: string;
+  code: string;
+};
+
+export default function ValidateEmailScreen() {
   const { theme } = useTheme();
-  const { code, ...userData } = useLocalSearchParams<
-    Omit<AuthData, 'userId'> & { name: string; surname: string; code: string }
-  >();
+  const { code, ...userData } = useLocalSearchParams<SearchParams>();
   const { signUp } = useAuth();
 
   const submit = async (value: string) => {
     if (value === code) {
       await signUp(userData);
-      router.push('../(tabs)');
+      router.replace('../(tabs)');
     }
   };
 

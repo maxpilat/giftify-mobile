@@ -5,6 +5,7 @@ export const API = {
     uniqueEmail: '/api/auth/unique-email',
     validateEmail: '/api/auth/validate-email',
     google: '/api/auth/google',
+    resetPassword: '/api/auth/password',
     changePassword: '/api/auth/password',
     changeEmail: '/api/auth/email',
     deactivateAccount: '/api/auth/deactivate-account',

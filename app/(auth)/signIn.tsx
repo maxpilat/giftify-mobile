@@ -21,7 +21,7 @@ export default function SignUpScreen() {
   const submit = async () => {
     if (isValid()) {
       await signIn(email, password);
-      router.push('../(tabs)');
+      router.replace('../(tabs)');
     }
   };
 

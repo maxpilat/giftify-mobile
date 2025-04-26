@@ -1,12 +1,12 @@
-import { useTheme } from '@/hooks/useTheme';
+import { ProfileProvider } from '@/hooks/useProfile';
 import { Stack } from 'expo-router';
 
-export default function AuthLayout() {
-  const { theme } = useTheme();
-
+export default function FriendsLayout() {
   return (
-    <Stack>
-      <Stack.Screen name="index" options={{ headerShown: false }} />
-    </Stack>
+    <ProfileProvider>
+      <Stack>
+        <Stack.Screen name="index" options={{ headerShown: false }} />
+      </Stack>
+    </ProfileProvider>
   );
 }

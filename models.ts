@@ -63,6 +63,5 @@ export interface FriendRequest {
 export interface AuthData {
   userId: number;
   email: string;
-  password: string;
-  friendEmail?: string;
+  token: string;
 }

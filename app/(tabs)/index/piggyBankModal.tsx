@@ -9,6 +9,7 @@ import { API } from '@/constants/api';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import { base64ToArrayBuffer } from '@/utils/imageConverter';
+import { apiFetchData } from '@/lib/api';
 
 type SearchParams = {
   submit?: 'true' | 'false';
@@ -16,11 +17,11 @@ type SearchParams = {
 };
 
 export default function WishModalScreen() {
-  const { user, token } = useAuth();
+  const { user } = useAuth();
   const { submit, wishId } = useLocalSearchParams<SearchParams>();
   const { piggyBanks, fetchPiggyBanks } = useProfile();
 
-  const [image, setImage] = useState<string | null>(null);
+  const [image, setImage] = useState<string>();
   const [name, setName] = useState<string>('');
   const [deposit, setDeposit] = useState<string>('');
   const [price, setPrice] = useState<string>('');
@@ -34,7 +35,7 @@ export default function WishModalScreen() {
   const [currencies, setCurrencies] = useState<Currency[]>([]);
 
   useEffect(() => {
-    apiFetch({ endpoint: API.currencies.getCurrencies, token }).then((currencies) => {
+    apiFetchData<Currency[]>({ endpoint: API.currencies.getCurrencies, token: user.token }).then((currencies) => {
       setCurrencies(currencies);
       if (!currency) setCurrency(currencies[0]);
     });
@@ -74,10 +75,20 @@ export default function WishModalScreen() {
 
       if (wishId) {
         (payload as any).wishId = +wishId;
-        await apiFetch({ endpoint: API.wishes.update, method: 'PUT', token, body: { ...payload, image: buffer } });
+        await apiFetchData({
+          endpoint: API.wishes.update,
+          method: 'PUT',
+          token: user.token,
+          body: { ...payload, image: buffer },
+        });
       } else {
         (payload as any).wisherId = user.userId;
-        await apiFetch({ endpoint: API.wishes.create, method: 'POST', token, body: { ...payload, image: buffer } });
+        await apiFetchData({
+          endpoint: API.wishes.create,
+          method: 'POST',
+          token: user.token,
+          body: { ...payload, image: buffer },
+        });
       }
 
       await fetchPiggyBanks();
@@ -106,7 +117,7 @@ export default function WishModalScreen() {
       <ScrollView contentContainerStyle={styles.container}>
         <ImagePicker
           valid={!errors.image}
-          value={image || undefined}
+          initialImage={image}
           onImagePicked={(imageUri) => {
             setImage(imageUri);
             setErrors((prev) => ({ ...prev, name: false }));

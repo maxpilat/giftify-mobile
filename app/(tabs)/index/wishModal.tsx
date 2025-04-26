@@ -14,7 +14,6 @@ import { API } from '@/constants/api';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import { base64ToArrayBuffer } from '@/utils/imageConverter';
-import { EncodingType, readAsStringAsync } from 'expo-file-system';
 import { apiFetchData } from '@/lib/api';
 
 type SearchParams = {
@@ -28,7 +27,7 @@ type SwitchState = {
 };
 
 export default function WishModalScreen() {
-  const { user, token } = useAuth();
+  const { user } = useAuth();
   const { submit, wishId } = useLocalSearchParams<SearchParams>();
   const { wishes, wishLists, fetchWishes } = useProfile();
 
@@ -52,7 +51,7 @@ export default function WishModalScreen() {
   const [currencies, setCurrencies] = useState<Currency[]>([]);
 
   useEffect(() => {
-    apiFetchData<Currency[]>({ endpoint: API.currencies.getCurrencies, token }).then((currencies) => {
+    apiFetchData<Currency[]>({ endpoint: API.currencies.getCurrencies, token: user.token }).then((currencies) => {
       setCurrencies(currencies);
       if (!currency) setCurrency(currencies[0]);
     });
@@ -97,7 +96,7 @@ export default function WishModalScreen() {
         await apiFetchData({
           endpoint: API.wishes.update,
           method: 'PUT',
-          token,
+          token: user.token,
           body: { ...payload, image: buffer },
         });
       } else {
@@ -105,7 +104,7 @@ export default function WishModalScreen() {
         await apiFetchData({
           endpoint: API.wishes.create,
           method: 'POST',
-          token,
+          token: user.token,
           body: { ...payload, image: buffer },
         });
       }

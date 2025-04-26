@@ -1,86 +1,100 @@
-import React, { createContext, useContext, ReactNode, useState } from 'react';
+import React, { createContext, useContext, ReactNode, useState, useEffect } from 'react';
 import * as SecureStore from 'expo-secure-store';
 import { API } from '@/constants/api';
 import { AuthData } from '@/models';
 import { apiFetchData } from '@/lib/api';
 
 const AuthContext = createContext<{
-  user: AuthData;
-  token: string;
+  user: { userId: number; email: string; token: string };
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (userData: Omit<AuthData, 'userId'> & { name: string; surname: string }) => Promise<void>;
+  signUp: (userData: {
+    name: string;
+    surname: string;
+    email: string;
+    password: string;
+    friendEmail?: string;
+  }) => Promise<void>;
   signOut: () => void;
+  changePassword: (email: string, oldPassword: string, newPassword: string) => Promise<void>;
   resetPassword: (email: string, newPassword: string) => Promise<void>;
   isAuth: () => boolean;
 } | null>(null);
 
-export const AuthProvider = ({
-  children,
-  initialUser,
-  initialToken,
-}: {
-  children: ReactNode;
-  initialUser?: AuthData;
-  initialToken?: string;
-}) => {
+export const AuthProvider = ({ children, initialUser }: { children: ReactNode; initialUser?: AuthData }) => {
   const [user, setUser] = useState<AuthData | null>(initialUser || null);
-  const [token, setToken] = useState<string | null>(initialToken || null);
 
-  const signIn = async (email: string, password: string) => {
-    const { id: userId, token: userToken } = await apiFetchData<{ id: number; token: string }>({
-      endpoint: API.auth.signIn,
-      method: 'POST',
-      body: { email, password },
-    });
+  // useEffect(() => {
+  //   signOut();
+  // }, []);
 
-    const newUser = { userId, email, password };
-
-    setUser(newUser);
-    setToken(userToken);
-
-    await SecureStore.setItemAsync('user', JSON.stringify(newUser));
-    await SecureStore.setItemAsync('token', userToken);
-  };
-
-  const signUp = async (userData: Omit<AuthData, 'userId'> & { name: string; surname: string }) => {
-    const { id: userId, token: userToken } = await apiFetchData<{ id: number; token: string }>({
+  const signUp = async (userData: {
+    name: string;
+    surname: string;
+    email: string;
+    password: string;
+    friendEmail?: string;
+  }) => {
+    const { id: userId, token } = await apiFetchData<{ id: number; token: string }>({
       endpoint: API.auth.signUp,
       method: 'POST',
       body: userData,
     });
 
-    const newUser = { ...userData, userId };
+    const { password, friendEmail, ...filteredUserData } = userData;
+    const newUser = { ...filteredUserData, userId, token };
 
     setUser(newUser);
-    setToken(userToken);
-
     await SecureStore.setItemAsync('user', JSON.stringify(newUser));
-    await SecureStore.setItemAsync('token', userToken);
+  };
+
+  const signIn = async (email: string, password: string) => {
+    const { id: userId, token } = await apiFetchData<{ id: number; token: string }>({
+      endpoint: API.auth.signIn,
+      method: 'POST',
+      body: { email, password },
+    });
+
+    const newUser = { userId, email, token };
+
+    setUser(newUser);
+    await SecureStore.setItemAsync('user', JSON.stringify(newUser));
   };
 
   const signOut = async () => {
     setUser(null);
-    setToken(null);
-
     await SecureStore.deleteItemAsync('user');
-    await SecureStore.deleteItemAsync('token');
+  };
+
+  const changePassword = async (email: string, oldPassword: string, newPassword: string) => {
+    await apiFetchData({
+      endpoint: API.auth.changePassword,
+      method: 'PUT',
+      body: { email, oldPassword, newPassword },
+    });
   };
 
   const resetPassword = async (email: string, newPassword: string) => {
     await apiFetchData({
-      endpoint: API.auth.changePassword,
-      method: 'PUT',
-      body: { email, oldPassword: user?.password, newPassword },
+      endpoint: API.auth.resetPassword,
+      method: 'POST',
+      body: { email, newPassword },
     });
-
-    const updatedUser = { ...user, password: newPassword } as AuthData;
-    setUser(updatedUser);
   };
 
-  const isAuth = () => Boolean(user && token);
+  const isAuth = () => Boolean(user);
 
   return (
-    <AuthContext.Provider value={{ user: user!, token: token!, signIn, signUp, signOut, resetPassword, isAuth }}>
+    <AuthContext.Provider
+      value={{
+        user: { userId: user?.userId!, email: user?.email!, token: user?.token! },
+        signIn,
+        signUp,
+        signOut,
+        changePassword,
+        resetPassword,
+        isAuth,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

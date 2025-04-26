@@ -25,7 +25,6 @@ export default function SignUpScreen() {
   });
 
   const submit = async () => {
-    console.log(isValid());
     if (isValid()) {
       await resetPassword(params.email, newPassword);
       router.push('./signIn');

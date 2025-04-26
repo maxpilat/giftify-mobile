@@ -14,7 +14,7 @@ type SearchParams = {
 };
 
 export default function WishListModalScreen() {
-  const { user, token } = useAuth();
+  const { user } = useAuth();
   const { submit, wishListId } = useLocalSearchParams<SearchParams>();
   const { wishLists, fetchWishLists } = useProfile();
 
@@ -40,14 +40,14 @@ export default function WishListModalScreen() {
         await apiFetchData({
           endpoint: API.wishLists.update,
           method: 'PUT',
-          token,
+          token: user.token,
           body: { wishListId: +wishListId, name },
         });
       } else {
         await apiFetchData({
           endpoint: API.wishLists.create,
           method: 'POST',
-          token,
+          token: user.token,
           body: { creatorId: user.userId, name },
         });
       }

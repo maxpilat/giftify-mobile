@@ -21,7 +21,7 @@ import { useProfile } from '@/hooks/useProfile';
 
 export default function ProfileScreen() {
   const { theme } = useTheme();
-  const { user: authUser, token } = useAuth();
+  const { user: authUser } = useAuth();
   const {
     avatar: myAvatar,
     bookings: myBookings,
@@ -79,13 +79,15 @@ export default function ProfileScreen() {
       fetchMyBookings().then((data) => {
         setBookings(data);
         data.forEach(async (booking) => {
-          const image: string = await apiFetchImage({
+          const image = await apiFetchImage({
             endpoint: API.wishes.getImage(booking.wish.wishId),
-            token,
+            token: authUser.token,
           });
           setBookings((prev) =>
             prev.map((prevBooking) =>
-              prevBooking.wish.wishId === booking.wish.wishId ? { ...prevBooking, image } : prevBooking
+              prevBooking.wish.wishId === booking.wish.wishId
+                ? { ...prevBooking, wish: { ...prevBooking.wish, image } }
+                : prevBooking
             )
           );
         });
@@ -94,9 +96,9 @@ export default function ProfileScreen() {
       fetchMyWishes().then((data) => {
         setWishes(data);
         data.forEach(async (wish) => {
-          const image: string = await apiFetchImage({
+          const image = await apiFetchImage({
             endpoint: API.wishes.getImage(wish.wishId),
-            token,
+            token: authUser.token,
           });
           setWishes((prev) =>
             prev.map((prevWish) => (prevWish.wishId === wish.wishId ? { ...prevWish, image } : prevWish))
@@ -109,9 +111,9 @@ export default function ProfileScreen() {
       fetchMyPiggyBanks().then((data) => {
         setPiggyBanks(data);
         data.forEach(async (piggyBank) => {
-          const image: string = await apiFetchImage({
+          const image = await apiFetchImage({
             endpoint: API.wishes.getImage(piggyBank.wishId),
-            token,
+            token: authUser.token,
           });
           setPiggyBanks((prev) =>
             prev.map((prevPiggyBank) =>
@@ -127,30 +129,32 @@ export default function ProfileScreen() {
     } else {
       apiFetchImage({
         endpoint: API.profile.getAvatar(+userId),
-        token,
+        token: authUser.token,
       }).then(setAvatar);
 
-      apiFetchData<Booking[]>({ endpoint: API.profile.getBookings(+userId), token }).then((data) => {
+      apiFetchData<Booking[]>({ endpoint: API.profile.getBookings(+userId), token: authUser.token }).then((data) => {
         setBookings(data);
         data.forEach(async (booking) => {
-          const image: string = await apiFetchImage({
+          const image = await apiFetchImage({
             endpoint: API.wishes.getImage(booking.wish.wishId),
-            token,
+            token: authUser.token,
           });
           setBookings((prev) =>
             prev.map((prevBooking) =>
-              prevBooking.wish.wishId === booking.wish.wishId ? { ...prevBooking, image } : prevBooking
+              prevBooking.wish.wishId === booking.wish.wishId
+                ? { ...prevBooking, wish: { ...prevBooking.wish, image } }
+                : prevBooking
             )
           );
         });
       });
 
-      apiFetchData<Wish[]>({ endpoint: API.profile.getWishes(+userId), token }).then((data) => {
+      apiFetchData<Wish[]>({ endpoint: API.profile.getWishes(+userId), token: authUser.token }).then((data) => {
         setWishes(data);
         data.forEach(async (wish) => {
-          const image: string = await apiFetchImage({
+          const image = await apiFetchImage({
             endpoint: API.wishes.getImage(wish.wishId),
-            token,
+            token: authUser.token,
           });
           setWishes((prev) =>
             prev.map((prevWish) => (prevWish.wishId === wish.wishId ? { ...prevWish, image } : prevWish))
@@ -158,14 +162,16 @@ export default function ProfileScreen() {
         });
       });
 
-      apiFetchData<WishList[]>({ endpoint: API.profile.getWishLists(+userId), token }).then(setWishLists);
+      apiFetchData<WishList[]>({ endpoint: API.profile.getWishLists(+userId), token: authUser.token }).then(
+        setWishLists
+      );
 
-      apiFetchData<Wish[]>({ endpoint: API.profile.getPiggyBanks(+userId), token }).then((data) => {
+      apiFetchData<Wish[]>({ endpoint: API.profile.getPiggyBanks(+userId), token: authUser.token }).then((data) => {
         setPiggyBanks(data);
         data.forEach(async (piggyBank) => {
-          const image: string = await apiFetchImage({
+          const image = await apiFetchImage({
             endpoint: API.wishes.getImage(piggyBank.wishId),
-            token,
+            token: authUser.token,
           });
           setPiggyBanks((prev) =>
             prev.map((prevPiggyBank) =>
@@ -176,14 +182,14 @@ export default function ProfileScreen() {
       });
     }
 
-    apiFetchData<Profile>({ endpoint: API.profile.getProfile(+userId), token }).then(setProfile);
-    apiFetchImage({ endpoint: API.profile.getBackground(+userId), token }).then(setBackground);
-    apiFetchData<Friend[]>({ endpoint: API.friends.getFriends(+userId), token }).then((data) => {
+    apiFetchData<Profile>({ endpoint: API.profile.getProfile(+userId), token: authUser.token }).then(setProfile);
+    apiFetchImage({ endpoint: API.profile.getBackground(+userId), token: authUser.token }).then(setBackground);
+    apiFetchData<Friend[]>({ endpoint: API.friends.getFriends(+userId), token: authUser.token }).then((data) => {
       setFriends(data);
       data.forEach(async (friend) => {
-        const avatar: string = await apiFetchImage({
+        const avatar = await apiFetchImage({
           endpoint: API.profile.getAvatar(friend.friendId),
-          token,
+          token: authUser.token,
         });
         setFriends((prev) =>
           prev.map((prevFriend) => (prevFriend.friendId === friend.friendId ? { ...prevFriend, avatar } : prevFriend))

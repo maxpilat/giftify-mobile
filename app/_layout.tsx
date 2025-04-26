@@ -1,5 +1,5 @@
 import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
+import { router, Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import * as SecureStore from 'expo-secure-store';
 import { useEffect, useState } from 'react';
@@ -10,10 +10,6 @@ import { AuthData } from '@/models';
 
 SplashScreen.preventAutoHideAsync();
 
-export const unstable_settings = {
-  initialRouteName: '+not-found',
-};
-
 export default function RootLayout() {
   const [isFontsLoaded] = useFonts({
     'stolzl-regular': require('../assets/fonts/stolzl_regular.otf'),
@@ -22,25 +18,24 @@ export default function RootLayout() {
 
   const [isAuthLoaded, setIsAuthLoaded] = useState(false);
   const [initialUser, setInitialUser] = useState<AuthData>();
-  const [initialToken, setInitialToken] = useState<string>();
-
-  useEffect(() => {
-    if (isFontsLoaded && isAuthLoaded) SplashScreen.hideAsync();
-  }, [isFontsLoaded, isAuthLoaded]);
 
   useEffect(() => {
     loadAuthData();
   }, []);
 
+  useEffect(() => {
+    if (isFontsLoaded && isAuthLoaded) {
+      initialUser && router.replace('./(tabs)');
+      setTimeout(() => {
+        SplashScreen.hideAsync();
+      }, 800);
+    }
+  }, [isFontsLoaded, isAuthLoaded]);
+
   const loadAuthData = async () => {
     const storedUser = await SecureStore.getItemAsync('user');
-    const storedToken = await SecureStore.getItemAsync('token');
 
-    if (storedUser && storedToken) {
-      setInitialUser(JSON.parse(storedUser));
-      setInitialToken(storedToken);
-    }
-
+    if (storedUser) setInitialUser(JSON.parse(storedUser));
     setIsAuthLoaded(true);
   };
 
@@ -50,7 +45,7 @@ export default function RootLayout() {
 
   return (
     <ActionSheetProvider>
-      <AuthProvider initialUser={initialUser} initialToken={initialToken}>
+      <AuthProvider initialUser={initialUser}>
         <ThemeProvider>
           <Stack>
             <Stack.Screen name="index" options={{ headerShown: false }} />
