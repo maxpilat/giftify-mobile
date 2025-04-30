@@ -6,7 +6,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { Icon } from '@/components/Icon';
 import { ThemedText } from '@/components/ThemedText';
 import { Colors } from '@/constants/themes';
-import { uriToBase64 } from '@/utils/imageConverter';
+import { uriToBase64 } from '@/utils/convertImage';
 
 type Props = {
   onImagePicked: (uri: string) => void;

@@ -13,7 +13,7 @@ import { Switch } from '@/components/Switch';
 import { API } from '@/constants/api';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
-import { base64ToArrayBuffer } from '@/utils/imageConverter';
+import { base64ToArrayBuffer } from '@/utils/convertImage';
 import { apiFetchData } from '@/lib/api';
 
 type SearchParams = {
@@ -168,7 +168,7 @@ export default function WishModalScreen() {
             inputMode="decimal"
             value={price}
             onChangeText={setPrice}
-            mode="options"
+            type="options"
             options={currencies}
             getDisplayedValue={(currency) => currency.symbol}
             getOptionLabel={(currency) => `${currency.symbol} - ${currency.transcription}`}
@@ -234,6 +234,7 @@ const styles = StyleSheet.create({
   addWishListButton: {
     flexDirection: 'row',
     gap: 8,
+    backgroundColor: Colors.black,
   },
   addWishListButtonText: {
     color: Colors.white,

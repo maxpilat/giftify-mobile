@@ -8,7 +8,7 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import { API } from '@/constants/api';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
-import { base64ToArrayBuffer } from '@/utils/imageConverter';
+import { base64ToArrayBuffer } from '@/utils/convertImage';
 import { apiFetchData } from '@/lib/api';
 
 type SearchParams = {
@@ -148,7 +148,7 @@ export default function WishModalScreen() {
             inputMode="decimal"
             value={deposit}
             onChangeText={setDeposit}
-            mode="options"
+            type="options"
             options={currencies}
             getDisplayedValue={(currency) => currency.symbol}
             getOptionLabel={(currency) => `${currency.symbol} - ${currency.transcription}`}
@@ -161,7 +161,7 @@ export default function WishModalScreen() {
             inputMode="decimal"
             value={price}
             onChangeText={setPrice}
-            mode="options"
+            type="options"
             options={currencies}
             getDisplayedValue={(currency) => currency.symbol}
             getOptionLabel={(currency) => `${currency.symbol} - ${currency.transcription}`}

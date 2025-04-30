@@ -1,4 +1,4 @@
-import React, { createContext, useContext, ReactNode, useState, useEffect } from 'react';
+import React, { createContext, useContext, ReactNode, useState } from 'react';
 import * as SecureStore from 'expo-secure-store';
 import { API } from '@/constants/api';
 import { AuthData } from '@/models';
@@ -44,7 +44,7 @@ export const AuthProvider = ({ children, initialUser }: { children: ReactNode; i
     const newUser = { ...filteredUserData, userId, token };
 
     setUser(newUser);
-    await SecureStore.setItemAsync('user', JSON.stringify(newUser));
+    await SecureStore.setItemAsync('auth', JSON.stringify(newUser));
   };
 
   const signIn = async (email: string, password: string) => {
@@ -57,12 +57,12 @@ export const AuthProvider = ({ children, initialUser }: { children: ReactNode; i
     const newUser = { userId, email, token };
 
     setUser(newUser);
-    await SecureStore.setItemAsync('user', JSON.stringify(newUser));
+    await SecureStore.setItemAsync('auth', JSON.stringify(newUser));
   };
 
   const signOut = async () => {
     setUser(null);
-    await SecureStore.deleteItemAsync('user');
+    await SecureStore.deleteItemAsync('auth');
   };
 
   const changePassword = async (email: string, oldPassword: string, newPassword: string) => {

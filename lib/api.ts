@@ -1,4 +1,4 @@
-import { arrayBufferToBase64 } from '@/utils/imageConverter';
+import { arrayBufferToBase64 } from '@/utils/convertImage';
 
 export type ApiFetchDataParams = {
   endpoint: string;
@@ -26,7 +26,7 @@ export const apiFetchData = async <T = void>({
       body: body ? JSON.stringify(body) : undefined,
     });
 
-    // console.log(response);
+    console.log(response);
 
     if (!response.ok) {
       const errorText = await response.text();

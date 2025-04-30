@@ -130,7 +130,7 @@ export default function SignUpScreen() {
             placeholder="Пароль"
             valid={!errors.password}
             errorMessage={errors.password}
-            mode="password"
+            type="password"
             passwordRules="minlength: 8"
             onChangeText={(value) => {
               setPassword(value);
@@ -139,7 +139,7 @@ export default function SignUpScreen() {
             keyboardType="visible-password"
           />
         </View>
-        <PlatformButton style={styles.button} onPress={submit}>
+        <PlatformButton onPress={submit}>
           <ThemedText type="bodyLargeMedium" style={styles.buttonText}>
             Зарегистрироваться
           </ThemedText>
@@ -174,11 +174,7 @@ const styles = StyleSheet.create({
   fields: {
     gap: 16,
   },
-  button: {
-    backgroundColor: Colors.blue,
-    paddingHorizontal: 5,
-    paddingVertical: 17,
-  },
+
   buttonText: {
     color: Colors.white,
   },

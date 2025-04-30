@@ -82,7 +82,7 @@ export default function SignUpScreen() {
             placeholder="Новый пароль"
             valid={!errors.newPassword}
             errorMessage={errors.newPassword}
-            mode="password"
+            type="password"
             passwordRules="minlength: 8"
             onChangeText={(value) => {
               setNewPassword(value);
@@ -95,7 +95,7 @@ export default function SignUpScreen() {
             placeholder="Повторите новый пароль"
             valid={!errors.confirmNewPassword}
             errorMessage={errors.confirmNewPassword}
-            mode="password"
+            type="password"
             passwordRules="minlength: 8"
             onChangeText={(value) => {
               setConfirmNewPassword(value);
@@ -147,9 +147,6 @@ const styles = StyleSheet.create({
     borderColor: Colors.blue,
   },
   button: {
-    backgroundColor: Colors.blue,
-    paddingHorizontal: 5,
-    paddingVertical: 17,
     marginTop: 24,
   },
   buttonText: {

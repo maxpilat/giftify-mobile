@@ -22,15 +22,12 @@ export function arrayBufferToBase64(buffer: ArrayBuffer): string {
 // }
 
 export function base64ToArrayBuffer(base64: string): ArrayBuffer {
-  // Убираем всё перед первым `,`, включая `data:image/...;base64,`
   const cleanedBase64 = base64.split(',').pop() ?? '';
 
   console.log(cleanedBase64.slice(0, 10));
 
-  // Декодируем Base64 в бинарную строку
   const binaryString = atob(cleanedBase64);
 
-  // Преобразуем бинарную строку в `Uint8Array`
   const byteArray = new Uint8Array(binaryString.length);
   for (let i = 0; i < binaryString.length; i++) {
     byteArray[i] = binaryString.charCodeAt(i);

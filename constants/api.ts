@@ -28,6 +28,7 @@ export const API = {
     sendRequest: '/api/friends',
     getFriends: (userId: number) => `/api/friends/${userId}`,
     getFriendRequests: (userId: number) => `/api/friends/requests/${userId}`,
+    getAllUsers: 'api/friends',
   },
   booking: {
     create: '/api/booking',

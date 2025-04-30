@@ -90,11 +90,7 @@ export default function WishesScreen() {
 
               <View style={styles.actionContainer}>
                 <View style={styles.hapticButtonContainer}>
-                  <PlatformButton
-                    style={{ backgroundColor: theme.primary }}
-                    onPress={() => console.log('Исполнено')}
-                    hapticFeedback="Heavy"
-                  >
+                  <PlatformButton onPress={() => console.log('Исполнено')} hapticFeedback="Heavy">
                     <ThemedText type="bodyLargeMedium" style={{ color: Colors.white }}>
                       Исполнено
                     </ThemedText>

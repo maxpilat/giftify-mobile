@@ -15,19 +15,19 @@ export default function SignUpScreen() {
         <Text style={styles.title}>Добро пожаловать!</Text>
         <View style={styles.buttonsContainer}>
           <View style={styles.buttons}>
-            <PlatformButton style={styles.button}>
+            <PlatformButton>
               <Icon name="apple" />
               <ThemedText type="bodyLargeMedium" style={styles.buttonText}>
                 Продолжить с Apple
               </ThemedText>
             </PlatformButton>
-            <PlatformButton style={styles.button}>
+            <PlatformButton>
               <Icon name="google" />
               <ThemedText type="bodyLargeMedium" style={styles.buttonText}>
                 Продолжить с Google
               </ThemedText>
             </PlatformButton>
-            <PlatformButton style={styles.button} onPress={() => router.push('./signUp')}>
+            <PlatformButton onPress={() => router.push('./signUp')}>
               <ThemedText type="bodyLargeMedium" style={styles.buttonText}>
                 Электронная почта
               </ThemedText>
@@ -67,13 +67,6 @@ const styles = StyleSheet.create({
   buttons: {
     flex: 1,
     gap: 20,
-  },
-  button: {
-    flexDirection: 'row',
-    gap: 8,
-    backgroundColor: Colors.blue,
-    paddingHorizontal: 5,
-    paddingVertical: 17,
   },
   buttonText: {
     color: Colors.white,

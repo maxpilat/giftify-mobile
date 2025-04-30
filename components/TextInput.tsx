@@ -1,17 +1,18 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, TouchableOpacity, View, TextInput as Input, TextInputProps } from 'react-native';
+import { StyleSheet, TouchableOpacity, View, TextInput as NativeInput, TextInputProps } from 'react-native';
 import { useActionSheet } from '@expo/react-native-action-sheet';
 import { Icon } from '@/components/Icon';
 import { Colors } from '@/constants/themes';
 import { Icons } from '@/constants/icons';
 import { ThemedText } from './ThemedText';
 import Animated, { useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
+import { useTheme } from '@/hooks/useTheme';
 
 type Props<T> = {
   icon?: keyof typeof Icons;
   valid?: boolean;
   errorMessage?: string;
-  mode?: 'options' | 'password';
+  type?: 'options' | 'password' | 'search';
   options?: T[];
   getDisplayedValue?: (item: T) => string;
   getOptionLabel?: (item: T) => string;
@@ -22,17 +23,20 @@ export function TextInput<T>({
   icon,
   valid = true,
   errorMessage,
-  mode,
+  type,
   options,
   getDisplayedValue,
   getOptionLabel,
   onSelectOption,
   ...inputConfig
 }: Props<T>) {
+  const { theme } = useTheme();
   const { showActionSheetWithOptions } = useActionSheet();
 
+  const [value, setValue] = useState('');
   const [selectedOption, setSelectedOption] = useState<T | null>(options?.[0] ?? null);
-  const [secure, setSecure] = useState(mode === 'password' ? true : false);
+  const [isSecure, setIsSecure] = useState(type === 'password' ? true : false);
+  const [isActive, setIsActive] = useState(false);
 
   const errorHeight = useSharedValue(0);
   const errorOpacity = useSharedValue(0);
@@ -85,7 +89,7 @@ export function TextInput<T>({
       <View
         style={[
           styles.inputContainer,
-          { borderColor: Colors.grey },
+          { borderColor: isActive ? theme.secondary : Colors.grey },
           inputConfig.multiline && { alignItems: 'flex-start' },
           !valid && { borderColor: Colors.red },
         ]}
@@ -98,33 +102,53 @@ export function TextInput<T>({
             style={inputConfig.multiline && { marginTop: 6 }}
           />
         )}
-        <Input
-          style={[styles.input, inputConfig.multiline && { height: 96 }]}
-          placeholderTextColor={Colors.grey}
-          secureTextEntry={secure}
+        <NativeInput
           {...inputConfig}
+          style={[styles.input, { color: theme.text }, inputConfig.multiline && { height: 96 }]}
+          placeholderTextColor={Colors.grey}
+          secureTextEntry={isSecure}
+          value={inputConfig.value || value}
+          onChangeText={(value) => {
+            setValue(value);
+            inputConfig.onChangeText?.(value);
+          }}
+          onFocus={(event) => {
+            setIsActive(true);
+            inputConfig.onFocus?.(event);
+          }}
+          onBlur={(event) => {
+            setIsActive(false);
+            inputConfig.onBlur?.(event);
+          }}
         />
-        {mode === 'options' && !!options?.length && getDisplayedValue && (
-          <TouchableOpacity style={styles.optionButton} onPress={openSheet}>
+        {type === 'options' && !!options?.length && getDisplayedValue && (
+          <TouchableOpacity style={styles.button} onPress={openSheet}>
             <ThemedText style={styles.optionText}>
               {selectedOption ? getDisplayedValue(selectedOption) : getDisplayedValue(options[0])}
             </ThemedText>
           </TouchableOpacity>
         )}
-        {mode === 'password' && (
-          <TouchableOpacity onPress={() => setSecure((prev) => !prev)}>
-            <Icon name={secure ? 'hide' : 'show'} size={20} color={Colors.grey} />
+        {type === 'password' && (
+          <TouchableOpacity style={styles.button} onPress={() => setIsSecure((prev) => !prev)}>
+            <Icon name={isSecure ? 'hide' : 'show'} size={20} color={Colors.grey} />
+          </TouchableOpacity>
+        )}
+        {type === 'search' && value && (
+          <TouchableOpacity style={styles.button} onPress={() => setValue('')}>
+            <Icon name="close" size={20} color={Colors.grey} />
           </TouchableOpacity>
         )}
       </View>
 
-      <Animated.View style={[styles.errorMessageContainer, animatedErrorContainerStyle]}>
-        {errorMessage && (
-          <ThemedText type="bodySmall" style={[styles.errorMessage, animatedErrorTextStyle]}>
-            {errorMessage}
-          </ThemedText>
-        )}
-      </Animated.View>
+      {errorMessage && (
+        <Animated.View style={[styles.errorMessageContainer, animatedErrorContainerStyle]}>
+          {errorMessage && (
+            <ThemedText type="bodySmall" style={[styles.errorMessage, animatedErrorTextStyle]}>
+              {errorMessage}
+            </ThemedText>
+          )}
+        </Animated.View>
+      )}
     </View>
   );
 }
@@ -146,10 +170,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '400',
     fontFamily: 'stolzl-regular',
-    color: Colors.grey,
     minWidth: 20,
   },
-  optionButton: {
+  button: {
     paddingHorizontal: 8,
   },
   optionText: {

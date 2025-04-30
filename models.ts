@@ -65,3 +65,5 @@ export interface AuthData {
   email: string;
   token: string;
 }
+
+export type Gender = 'Male' | 'Female';

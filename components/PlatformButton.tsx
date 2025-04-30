@@ -3,6 +3,7 @@ import { Animated, StyleProp, StyleSheet, ViewStyle } from 'react-native';
 import { PlatformPressable } from '@react-navigation/elements';
 import { impactAsync, ImpactFeedbackStyle } from 'expo-haptics';
 import { Colors } from '@/constants/themes';
+import { useTheme } from '@/hooks/useTheme';
 
 type Props = {
   onPress?: () => void;
@@ -13,13 +14,19 @@ type Props = {
 };
 
 export function PlatformButton({ onPress, hapticFeedback = 'Medium', pressOpacity = 0.9, children, style }: Props) {
+  const { theme } = useTheme();
+
   const handlePress = () => {
     hapticFeedback !== 'none' && impactAsync(ImpactFeedbackStyle[hapticFeedback]);
     onPress && onPress();
   };
 
   return (
-    <PlatformPressable onPress={handlePress} style={[styles.container, style]} pressOpacity={pressOpacity}>
+    <PlatformPressable
+      onPress={handlePress}
+      style={[styles.container, { backgroundColor: theme.primary }, style]}
+      pressOpacity={pressOpacity}
+    >
       {children}
     </PlatformPressable>
   );
@@ -30,8 +37,10 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     paddingHorizontal: 5,
     paddingVertical: 17,
-    backgroundColor: Colors.black,
     justifyContent: 'center',
     alignItems: 'center',
+    flexDirection: 'row',
+    gap: 8,
+    color: Colors.white,
   },
 });

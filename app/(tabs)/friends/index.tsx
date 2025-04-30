@@ -2,18 +2,65 @@ import { ThemedText } from '@/components/ThemedText';
 import { View, StyleSheet, TouchableOpacity, ScrollView, Image, Pressable } from 'react-native';
 import { useTheme } from '@/hooks/useTheme';
 import { useEffect, useState } from 'react';
-import { useAnimatedStyle, withTiming, Easing } from 'react-native-reanimated';
+import { useAnimatedStyle, withTiming, Easing, useSharedValue, runOnJS } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { PlatformButton } from '@/components/PlatformButton';
 import { Colors } from '@/constants/themes';
 import { Icon } from '@/components/Icon';
-import { useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { Friend, FriendRequest } from '@/models';
 import { apiFetchData, apiFetchImage } from '@/lib/api';
 import { API } from '@/constants/api';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import React from 'react';
+import { formatDays, formatNewWishes } from '@/utils/formatWord';
+import { getDaysUntilBirthday } from '@/utils/getDaysUntilBirthday';
+import { ThemedView } from '@/components/ThemedView';
+import { FriendCard } from '@/components/FriendCard';
+
+const FRIENDS: Friend[] = [
+  {
+    friendId: 1,
+    name: 'Алексей',
+    surname: 'Иванов',
+    username: 'alex_ivan',
+    birthDate: '14.05.1992',
+    newWishesCount: 3,
+  },
+  {
+    friendId: 2,
+    name: 'Мария',
+    surname: 'Смирнова',
+    username: 'masha_smir',
+    birthDate: '30.11.1995',
+    newWishesCount: 5,
+  },
+  {
+    friendId: 3,
+    name: 'Дмитрий',
+    surname: 'Петров',
+    username: 'dmitriy_pet',
+    birthDate: '22.07.1990',
+    newWishesCount: 1,
+  },
+  {
+    friendId: 4,
+    name: 'Елена',
+    surname: 'Кузнецова',
+    username: 'elena_kuz',
+    birthDate: '28.04.1998',
+    newWishesCount: 4,
+  },
+  {
+    friendId: 5,
+    name: 'Игорь',
+    surname: 'Соколов',
+    username: 'igor_sokol',
+    birthDate: '05.09.1988',
+    newWishesCount: 2,
+  },
+];
 
 export default function FriendsScreen() {
   const { theme } = useTheme();
@@ -22,7 +69,8 @@ export default function FriendsScreen() {
   const { friendRequests } = useProfile();
 
   const [currentTabIndex, setCurrentTabIndex] = useState(0);
-  const [friends, setFriends] = useState<Friend[]>([]);
+  const [currentVisibleTabIndex, setCurrentVisibleTabIndex] = useState(0);
+  const [friends, setFriends] = useState<Friend[]>(FRIENDS);
 
   const getTabTextAnimatedStyle = (index: number) =>
     useAnimatedStyle(() => ({
@@ -31,6 +79,23 @@ export default function FriendsScreen() {
         easing: Easing.inOut(Easing.ease),
       }),
     }));
+
+  const contentOpacity = useSharedValue(1);
+  const contentAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: contentOpacity.value,
+  }));
+
+  useEffect(() => {
+    contentOpacity.value = withTiming(0, { duration: 100 }, (finished) => {
+      if (finished) {
+        runOnJS(setCurrentVisibleTabIndex)(currentTabIndex);
+      }
+    });
+  }, [currentTabIndex]);
+
+  useEffect(() => {
+    contentOpacity.value = withTiming(1, { duration: 300 });
+  }, [currentVisibleTabIndex]);
 
   const fetchData = async () => {
     // const friends = await apiFetchData<Friend[]>({ endpoint: API.friends.getFriends(+userId), token: authUser.token });
@@ -41,49 +106,6 @@ export default function FriendsScreen() {
     //   );
     // });
 
-    const friends: Friend[] = [
-      {
-        friendId: 1,
-        name: 'Алексей',
-        surname: 'Иванов',
-        username: 'alex_ivan',
-        birthDate: '14.05.1992',
-        newWishesCount: 3,
-      },
-      {
-        friendId: 2,
-        name: 'Мария',
-        surname: 'Смирнова',
-        username: 'masha_smir',
-        birthDate: '30.11.1995',
-        newWishesCount: 5,
-      },
-      {
-        friendId: 3,
-        name: 'Дмитрий',
-        surname: 'Петров',
-        username: 'dmitriy_pet',
-        birthDate: '22.07.1990',
-        newWishesCount: 1,
-      },
-      {
-        friendId: 4,
-        name: 'Елена',
-        surname: 'Кузнецова',
-        username: 'elena_kuz',
-        birthDate: '28.04.1998',
-        newWishesCount: 4,
-      },
-      {
-        friendId: 5,
-        name: 'Игорь',
-        surname: 'Соколов',
-        username: 'igor_sokol',
-        birthDate: '05.09.1988',
-        newWishesCount: 2,
-      },
-    ];
-
     setFriends(friends);
   };
 
@@ -91,23 +113,17 @@ export default function FriendsScreen() {
     fetchData();
   }, [userId]);
 
-  const getBirthDateLabel = (birthDate: string) => {
-    const [day, month] = birthDate.split('.').map(Number);
-
-    const today = new Date();
-    const currentYear = today.getFullYear();
-
-    let targetDate = new Date(currentYear, month - 1, day);
-
-    if (targetDate < today) {
-      targetDate = new Date(currentYear + 1, month - 1, day);
-    }
-
-    const differenceInTime = targetDate.getTime() - today.getTime();
-    const differenceInDays = Math.ceil(differenceInTime / (1000 * 60 * 60 * 24));
-
-    return Math.abs(differenceInDays) < 10 ? differenceInDays : null;
+  const isSender = (friendId: number) => {
+    return friendRequests.find(
+      (request) =>
+        (request.userOneId === friendId && request.isUserOneAccept && !request.isUserTwoAccept) ||
+        (request.userTwoId === friendId && request.isUserTwoAccept && !request.isUserOneAccept)
+    )
+      ? true
+      : false;
   };
+
+  const visibleFriends = currentVisibleTabIndex === 0 ? friends : friends.filter((friend) => isSender(friend.friendId));
 
   return (
     <SafeAreaView>
@@ -127,42 +143,30 @@ export default function FriendsScreen() {
             </TouchableOpacity>
           ))}
         </View>
-        <PlatformButton style={styles.button} hapticFeedback="none">
+        <PlatformButton
+          style={styles.button}
+          hapticFeedback="none"
+          onPress={() => router.push('./friends/searchFriends')}
+        >
           <ThemedText type="bodyLargeMedium" style={styles.buttonText}>
             Найти друзей
           </ThemedText>
           <Icon name="search" color={Colors.white} />
         </PlatformButton>
-        <View style={styles.friends}>
-          {friends.map((friend, index) => (
-            <React.Fragment key={friend.friendId}>
-              <View style={styles.friend}>
-                <Image style={styles.friendAvatar} source={require('@/assets/images/avatar.png')} />
-                <View style={styles.friendInfo}>
-                  <ThemedText type="h5" style={styles.friendFullname}>{`${friend.name} ${friend.surname}`}</ThemedText>
-                  {/* Добавить функции для окончаний */}
-                  <View style={styles.friendLabels}>
-                    {friend.newWishesCount && (
-                      <>
-                        <ThemedText type="bodySmall" style={styles.friendLabel}>
-                          {friend.newWishesCount + 'Новых желаний'}
-                        </ThemedText>
-                        <View style={[styles.labelDivider, { backgroundColor: theme.secondary }]}></View>
-                      </>
-                    )}
-                    {getBirthDateLabel(friend.birthDate) && (
-                      <ThemedText type="bodySmall" style={styles.friendLabel}>
-                        {getBirthDateLabel(friend.birthDate) + 'Дней до дня рождения'}
-                      </ThemedText>
-                    )}
-                  </View>
-                </View>
-                <TouchableOpacity style={styles.friendButton}></TouchableOpacity>
-              </View>
-              {index !== friends.length - 1 && <View style={styles.divider}></View>}
-            </React.Fragment>
-          ))}
-        </View>
+        <ThemedView style={[styles.friends, contentAnimatedStyle]}>
+          {!visibleFriends.length ? (
+            <ThemedText type="bodyLarge" style={styles.noFriendsMessage}>
+              Пока пусто...
+            </ThemedText>
+          ) : (
+            visibleFriends.map((friend, index) => (
+              <React.Fragment key={friend.friendId}>
+                <FriendCard friend={friend} />
+                {index !== friends.length - 1 && <View style={styles.divider}></View>}
+              </React.Fragment>
+            ))
+          )}
+        </ThemedView>
       </ScrollView>
     </SafeAreaView>
   );
@@ -187,12 +191,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   button: {
-    backgroundColor: Colors.blue,
-    paddingHorizontal: 5,
-    paddingVertical: 17,
     marginTop: 16,
-    flexDirection: 'row',
-    gap: 8,
   },
   buttonText: {
     color: Colors.white,
@@ -200,33 +199,13 @@ const styles = StyleSheet.create({
   friends: {
     marginTop: 24,
   },
-  friend: {
-    flexDirection: 'row',
-    gap: 24,
-    paddingVertical: 6,
-    alignItems: 'center',
-  },
-  friendAvatar: {
-    width: 70,
-    height: 70,
-  },
-  friendInfo: {},
-  friendFullname: {},
-  friendLabels: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  friendLabel: {},
-  friendButton: {},
   divider: {
     backgroundColor: Colors.light,
     height: 1,
     marginLeft: 80,
   },
-  labelDivider: {
-    width: 4,
-    height: 4,
-    borderRadius: 2,
+  noFriendsMessage: {
+    textAlign: 'center',
+    color: Colors.grey,
   },
 });
