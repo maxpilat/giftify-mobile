@@ -40,7 +40,7 @@ export interface Profile {
   userId: number;
   name: string;
   surname: string;
-  username: string;
+  username?: string;
 }
 
 export interface Friend {
@@ -67,3 +67,18 @@ export interface AuthData {
 }
 
 export type Gender = 'Male' | 'Female';
+
+export type ThemeType = 'TYPE_LIGHT' | 'TYPE_DARK';
+
+export interface SettingsData {
+  id: number;
+  name: string;
+  surname: string;
+  username?: string;
+  birthDate?: string;
+  isMan: boolean;
+  isPrivate: boolean;
+  themeType: ThemeType;
+  primaryColor: string;
+  secondaryColor: string;
+}

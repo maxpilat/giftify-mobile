@@ -36,13 +36,26 @@ export const API = {
     cancel: (bookingId: number) => `/api/booking/${bookingId}`,
   },
   profile: {
-    getProfile: (userId: number) => `/api/profile/7`,
+    getProfile: (userId: number) => `/api/profile/`,
     getWishes: (userId: number) => `/api/profile/${userId}/wishes`,
     getWishLists: (userId: number) => `/api/profile/${userId}/wish-lists`,
     getPiggyBanks: (userId: number) => `/api/profile/${userId}/piggy-banks`,
     getBookings: (userId: number) => `/api/profile/${userId}/bookings`,
     getBackground: (userId: number) => `/api/profile/background/${userId}`,
     getAvatar: (userId: number) => `/api/profile/avatar/${userId}`,
+  },
+  settings: {
+    updateUsername: (userId: number) => `/api/settings/username`,
+    updateTheme: (userId: number) => `/api/settings/theme`,
+    updatePrivacy: (userId: number) => `/api/settings/privacy`,
+    updateName: (userId: number) => `/api/settings/name`,
+    updateGender: (userId: number) => `/api/settings/gender`, // Смена гендера
+    updateColors: (userId: number) => `/api/settings/colors`, // Смена цвета приложения
+    updateBirthDate: (userId: number) => `/api/settings/birth-date`, // Смена даты рождения
+    updateBackground: (userId: number) => `/api/settings/background`, // Смена заднего фона аккаунта
+    updateAvatar: (userId: number) => `/api/settings/avatar`, // Смена аватара
+    getSettings: (userId: number) => `/api/settings`, // Получение всех настроек аккаунта
+    sendHelpMessage: (userId: number) => `/api/settings/help-message`, // Отправка сообщения в поддержку
   },
   currencies: {
     getCurrencies: '/api/currency',

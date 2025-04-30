@@ -33,7 +33,7 @@ export default function RootLayout() {
   }, [isFontsLoaded, isAuthLoaded]);
 
   const loadAuthData = async () => {
-    const storedUser = await SecureStore.getItemAsync('user');
+    const storedUser = await SecureStore.getItemAsync('auth');
 
     if (storedUser) setInitialUser(JSON.parse(storedUser));
     setIsAuthLoaded(true);
@@ -48,7 +48,6 @@ export default function RootLayout() {
       <AuthProvider initialUser={initialUser}>
         <ThemeProvider>
           <Stack>
-            <Stack.Screen name="index" options={{ headerShown: false }} />
             <Stack.Screen name="(auth)" options={{ headerShown: false }} />
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             <Stack.Screen name="+not-found" />

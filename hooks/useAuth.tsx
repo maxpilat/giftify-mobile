@@ -1,4 +1,4 @@
-import React, { createContext, useContext, ReactNode, useState } from 'react';
+import React, { createContext, useContext, ReactNode, useState, useEffect } from 'react';
 import * as SecureStore from 'expo-secure-store';
 import { API } from '@/constants/api';
 import { AuthData } from '@/models';
@@ -14,7 +14,8 @@ const AuthContext = createContext<{
     password: string;
     friendEmail?: string;
   }) => Promise<void>;
-  signOut: () => void;
+  signOut: () => Promise<void>;
+  deactivateAccount: () => Promise<void>;
   changePassword: (email: string, oldPassword: string, newPassword: string) => Promise<void>;
   resetPassword: (email: string, newPassword: string) => Promise<void>;
   isAuth: () => boolean;
@@ -65,6 +66,12 @@ export const AuthProvider = ({ children, initialUser }: { children: ReactNode; i
     await SecureStore.deleteItemAsync('auth');
   };
 
+  const deactivateAccount = async () => {
+    setUser(null);
+    SecureStore.deleteItemAsync('auth');
+    // await apiFetchData({ endpoint: API.auth.resetPassword, method: 'POST', body: { email, password } });
+  };
+
   const changePassword = async (email: string, oldPassword: string, newPassword: string) => {
     await apiFetchData({
       endpoint: API.auth.changePassword,
@@ -90,6 +97,7 @@ export const AuthProvider = ({ children, initialUser }: { children: ReactNode; i
         signIn,
         signUp,
         signOut,
+        deactivateAccount,
         changePassword,
         resetPassword,
         isAuth,

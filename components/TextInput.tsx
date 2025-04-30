@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, TouchableOpacity, View, TextInput as NativeInput, TextInputProps } from 'react-native';
+import { StyleSheet, TouchableOpacity, View, TextInput as NativeTextInput, TextInputProps } from 'react-native';
 import { useActionSheet } from '@expo/react-native-action-sheet';
 import { Icon } from '@/components/Icon';
 import { Colors } from '@/constants/themes';
@@ -102,7 +102,7 @@ export function TextInput<T>({
             style={inputConfig.multiline && { marginTop: 6 }}
           />
         )}
-        <NativeInput
+        <NativeTextInput
           {...inputConfig}
           style={[styles.input, { color: theme.text }, inputConfig.multiline && { height: 96 }]}
           placeholderTextColor={Colors.grey}
