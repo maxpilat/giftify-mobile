@@ -170,6 +170,7 @@ export default function SettingsScreen() {
                   valid={!errors.name}
                   errorMessage={errors.name}
                   onChangeText={handleNameChange}
+                  returnKeyType="done"
                 />
                 <TextInput
                   icon="user"
@@ -178,11 +179,18 @@ export default function SettingsScreen() {
                   valid={!errors.surname}
                   errorMessage={errors.surname}
                   onChangeText={handleSurnameChange}
+                  returnKeyType="done"
                 />
               </View>
             </View>
 
-            <TextInput icon="user" placeholder="Никнейм" value={username} onChangeText={handleUsernameChange} />
+            <TextInput
+              icon="user"
+              placeholder="Никнейм"
+              value={username}
+              onChangeText={handleUsernameChange}
+              returnKeyType="done"
+            />
 
             <View style={styles.actionsSection}>
               <TouchableOpacity style={styles.actionsSectionRow} onPress={() => router.push('/settings/changeEmail')}>

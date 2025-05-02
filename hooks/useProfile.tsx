@@ -19,6 +19,8 @@ const ProfileContext = createContext<{
   fetchWishLists: () => Promise<WishList[]>;
   fetchPiggyBanks: () => Promise<Wish[]>;
   setIsLoaded: Dispatch<SetStateAction<boolean>>;
+  isFriend: (friendId: number) => boolean;
+  isReceiver: (friendId: number) => boolean;
 } | null>(null);
 
 export const ProfileProvider = ({ children }: { children: ReactNode }) => {
@@ -54,6 +56,7 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
       endpoint: API.friends.getFriendRequests(user.userId),
       token: user.token,
     });
+    console.log(friendRequests);
     setFriendRequests(friendRequests);
     return friendRequests;
   };
@@ -82,6 +85,28 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
     return piggyBanks;
   };
 
+  const isFriend = (friendId: number) => {
+    return friendRequests.find(
+      (request) =>
+        (request.userOneId === friendId || request.userTwoId === friendId) &&
+        request.isUserOneAccept &&
+        request.isUserTwoAccept
+    )
+      ? true
+      : false;
+  };
+
+  const isReceiver = (friendId: number) => {
+    // console.log(friendRequests);
+    return friendRequests.find(
+      (request) =>
+        (request.userOneId === friendId && !request.isUserOneAccept && request.isUserTwoAccept) ||
+        (request.userTwoId === friendId && !request.isUserTwoAccept && request.isUserOneAccept)
+    )
+      ? true
+      : false;
+  };
+
   return (
     <ProfileContext.Provider
       value={{
@@ -99,6 +124,8 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
         fetchWishLists,
         fetchPiggyBanks,
         setIsLoaded,
+        isFriend,
+        isReceiver,
       }}
     >
       {children}

@@ -49,8 +49,8 @@ export interface Friend {
   friendId: number;
   name: string;
   surname: string;
-  username: string;
-  birthDate: string;
+  username?: string;
+  birthDate?: string;
   newWishesCount: number;
   avatar?: string;
 }

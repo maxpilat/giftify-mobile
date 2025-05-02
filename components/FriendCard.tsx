@@ -19,7 +19,7 @@ type Props = {
 export const FriendCard = ({ friend }: Props) => {
   const { theme } = useTheme();
   const { user } = useAuth();
-  const { friendRequests, fetchFriendRequests } = useProfile();
+  const { friendRequests, fetchFriendRequests, isFriend, isReceiver } = useProfile();
 
   const cancelFriendRequest = () => {};
 
@@ -37,28 +37,8 @@ export const FriendCard = ({ friend }: Props) => {
     }).then(fetchFriendRequests);
   };
 
-  const isFriend = (friendId: number) => {
-    return friendRequests.find(
-      (request) =>
-        (request.userOneId === friendId || request.userTwoId === friendId) &&
-        request.isUserOneAccept &&
-        request.isUserTwoAccept
-    )
-      ? true
-      : false;
-  };
-
-  const isReceiver = (friendId: number) => {
-    return friendRequests.find(
-      (request) =>
-        (request.userOneId === friendId && !request.isUserOneAccept && request.isUserTwoAccept) ||
-        (request.userTwoId === friendId && !request.isUserTwoAccept && request.isUserOneAccept)
-    )
-      ? true
-      : false;
-  };
-
   const getFriendButton = (friendId: number) => {
+    // console.log(isReceiver(friendId));
     if (isFriend(friendId)) return null;
     else if (isReceiver(friendId))
       return (
@@ -95,6 +75,7 @@ export const FriendCard = ({ friend }: Props) => {
             </>
           )}
           {(() => {
+            if (!friend.birthDate) return;
             const daysUntilBirthday = getDaysUntilBirthday(friend.birthDate);
             return daysUntilBirthday > 10 ? (
               <ThemedText type="bodySmall">{`${formatDays(daysUntilBirthday)} до дня рождения`}</ThemedText>

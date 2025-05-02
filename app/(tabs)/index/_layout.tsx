@@ -33,7 +33,7 @@ export default function IndexLayout() {
   return (
     <ProfileProvider>
       <Stack>
-        <Stack.Screen name="index" options={{ title: 'Профиль', headerShown: false }} />
+        <Stack.Screen name="index" options={{ title: '', headerShown: false }} />
         <Stack.Screen name="wishes" options={{ title: 'Желания', headerBackTitle: 'Назад' }} />
         <Stack.Screen name="piggyBanks" options={{ title: 'Копилки', headerBackTitle: 'Назад' }} />
         <Stack.Screen

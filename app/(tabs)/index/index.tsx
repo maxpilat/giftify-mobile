@@ -39,6 +39,7 @@ export default function ProfileScreen() {
     fetchWishLists: fetchMyWishLists,
     fetchPiggyBanks: fetchMyPiggyBanks,
     setIsLoaded: setIsProfileLoaded,
+    isFriend,
   } = useProfile();
   const { userId = authUser.userId } = useLocalSearchParams<SearchParams>();
 
@@ -232,6 +233,18 @@ export default function ProfileScreen() {
     ? wishLists.find((wishList) => wishList.wishListId === currentWishListId)!.wishes
     : wishes;
 
+  const shareWishList = () => {
+    console.log('Поделиться');
+  };
+
+  const editWishList = () => {
+    console.log('Редактировать');
+  };
+
+  const deleteWishList = () => {
+    console.log('Удалить');
+  };
+
   return (
     <View style={styles.wrapper}>
       <ParallaxScrollView
@@ -243,7 +256,11 @@ export default function ProfileScreen() {
             username={profile?.username}
             friendsAvatars={friends.slice(0, 3).map((friend) => friend.avatar)}
             friendsCount={friends.length}
-            tabs={['Желания', 'Копилки', 'Я дарю']}
+            tabs={[
+              'Желания',
+              'Копилки',
+              +userId === authUser.userId ? 'Я дарю' : isFriend(+userId) ? 'Идеи' : '',
+            ].filter(Boolean)}
             onTabChange={setCurrentTabIndex}
           />
         }
@@ -261,6 +278,8 @@ export default function ProfileScreen() {
                     count={wishes.length}
                     isActive={!currentWishListId}
                     onPress={() => setCurrentWishListId(null)}
+                    enableActions={+userId === authUser.userId ? true : false}
+                    actions={[{ label: 'Поделиться', onPress: shareWishList }]}
                   />
                 </View>
                 <View style={[styles.wishList, styles.addWishListButton]}>
@@ -277,6 +296,12 @@ export default function ProfileScreen() {
                       count={wishList.wishes.length}
                       isActive={currentWishListId === wishList.wishListId}
                       onPress={() => setCurrentWishListId(wishList.wishListId)}
+                      enableActions={+userId === authUser.userId ? true : false}
+                      actions={[
+                        { label: 'Редактировать', onPress: editWishList },
+                        { label: 'Поделиться', onPress: shareWishList },
+                        { label: 'Удалить', onPress: deleteWishList },
+                      ]}
                     />
                   </View>
                 ))}
@@ -311,7 +336,7 @@ export default function ProfileScreen() {
                     );
                   }}
                 />
-              ) : userId === authUser.userId ? (
+              ) : +userId === authUser.userId ? (
                 <View style={styles.noWishesContainer}>
                   <ThemedText style={styles.noWishesMessage} type="bodyLarge">
                     Пока пусто...
@@ -371,7 +396,7 @@ export default function ProfileScreen() {
                     </Pressable>
                   </Link>
                 ))
-              ) : userId === authUser.userId ? (
+              ) : +userId === authUser.userId ? (
                 <View style={styles.noWishesContainer}>
                   <ThemedText style={styles.noWishesMessage} type="bodyLarge">
                     Здесь пока только эхо...
@@ -390,7 +415,7 @@ export default function ProfileScreen() {
             </View>
           )}
 
-          {userId === authUser.userId &&
+          {+userId === authUser.userId &&
             currentVisibleTabIndex === 2 &&
             (bookings.length ? (
               <MasonryList
@@ -424,7 +449,9 @@ export default function ProfileScreen() {
             ) : (
               <View style={styles.noWishesContainer}>
                 <ThemedText style={styles.noWishesMessage} type="bodyLarge">
-                  Забронируйте желание друга и оно появится здесь
+                  {+userId === authUser.userId
+                    ? 'Забронируйте желание друга и оно появится здесь'
+                    : 'Мы на грани вдохновения! Ждём, когда ваш друг загадает желания'}
                 </ThemedText>
               </View>
             ))}

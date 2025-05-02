@@ -27,7 +27,7 @@ export default function SignUpScreen() {
     password: undefined,
   });
 
-  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const typingTimeoutRef = useRef<number | null>(null);
 
   const submit = async () => {
     if (!isValid()) {

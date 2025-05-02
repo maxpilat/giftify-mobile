@@ -4,7 +4,7 @@ import Animated, { useSharedValue, useAnimatedStyle, withTiming, Easing } from '
 import { Colors } from '@/constants/themes';
 import { ThemedText } from '@/components/ThemedText';
 import { useTheme } from '@/hooks/useTheme';
-import { ActionButton } from '@/components/ActionsButton';
+import { Action, ActionButton } from '@/components/ActionsButton';
 
 type Props = {
   name: string;
@@ -13,9 +13,20 @@ type Props = {
   onPress?: () => void;
   pressOpacity?: number;
   duration?: number;
+  enableActions?: boolean;
+  actions?: Action[];
 };
 
-export function WishListTab({ name, count, isActive, onPress, pressOpacity = 0.7, duration = 300 }: Props) {
+export function WishListTab({
+  name,
+  count,
+  isActive,
+  onPress,
+  pressOpacity = 0.7,
+  duration = 300,
+  enableActions = true,
+  actions = [],
+}: Props) {
   const { theme } = useTheme();
 
   const backgroundColorValue = isActive ? theme.secondary : Colors.black;
@@ -51,14 +62,11 @@ export function WishListTab({ name, count, isActive, onPress, pressOpacity = 0.7
           {count}
         </ThemedText>
 
-        <Animated.View style={[styles.actionButtonContainer, animatedActionButtonStyle]}>
-          <ActionButton
-            style={[styles.actionButton]}
-            size={36}
-            actions={[{ label: 'Поделиться', onPress: () => console.log('Поделиться') }]}
-            pressOpacity={pressOpacity}
-          />
-        </Animated.View>
+        {enableActions && (
+          <Animated.View style={[styles.actionButtonContainer, animatedActionButtonStyle]}>
+            <ActionButton style={[styles.actionButton]} size={36} actions={actions} pressOpacity={pressOpacity} />
+          </Animated.View>
+        )}
       </TouchableOpacity>
     </Animated.View>
   );

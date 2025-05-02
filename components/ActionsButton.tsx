@@ -4,7 +4,7 @@ import { useActionSheet } from '@expo/react-native-action-sheet';
 import { Colors } from '@/constants/themes';
 import { Icon } from '@/components/Icon';
 
-type Action = {
+export type Action = {
   label: string;
   onPress: () => void;
 };
@@ -24,10 +24,13 @@ export function ActionButton({ actions, size = 50, pressOpacity = 0.9, style }: 
     options.push('Отмена');
     const cancelButtonIndex = options.length - 1;
 
+    const destructiveButtonIndex = actions.findIndex((action) => action.label === 'Удалить');
+
     showActionSheetWithOptions(
       {
         options,
         cancelButtonIndex,
+        destructiveButtonIndex,
       },
       (buttonIndex) => {
         if (typeof buttonIndex === 'number' && buttonIndex < actions.length) {
