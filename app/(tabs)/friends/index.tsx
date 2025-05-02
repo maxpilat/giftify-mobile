@@ -1,21 +1,19 @@
 import { ThemedText } from '@/components/ThemedText';
-import { View, StyleSheet, TouchableOpacity, ScrollView, Image, Pressable } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { useTheme } from '@/hooks/useTheme';
 import { useEffect, useState } from 'react';
-import { useAnimatedStyle, withTiming, Easing, useSharedValue, runOnJS } from 'react-native-reanimated';
+import { useAnimatedStyle, withTiming, useSharedValue, runOnJS } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { PlatformButton } from '@/components/PlatformButton';
 import { Colors } from '@/constants/themes';
 import { Icon } from '@/components/Icon';
 import { router, useLocalSearchParams } from 'expo-router';
-import { Friend, FriendRequest } from '@/models';
+import { Friend } from '@/models';
 import { apiFetchData, apiFetchImage } from '@/lib/api';
 import { API } from '@/constants/api';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import React from 'react';
-import { formatDays, formatNewWishes } from '@/utils/formatWord';
-import { getDaysUntilBirthday } from '@/utils/getDaysUntilBirthday';
 import { ThemedView } from '@/components/ThemedView';
 import { FriendCard } from '@/components/FriendCard';
 
@@ -32,14 +30,6 @@ export default function FriendsScreen() {
   const [currentTabIndex, setCurrentTabIndex] = useState(0);
   const [currentVisibleTabIndex, setCurrentVisibleTabIndex] = useState(0);
   const [friends, setFriends] = useState<Friend[]>([]);
-
-  const getTabTextAnimatedStyle = (index: number) =>
-    useAnimatedStyle(() => ({
-      color: withTiming(currentTabIndex === index ? theme.background : theme.text, {
-        duration: 300,
-        easing: Easing.inOut(Easing.ease),
-      }),
-    }));
 
   const contentOpacity = useSharedValue(1);
   const contentAnimatedStyle = useAnimatedStyle(() => ({
@@ -95,10 +85,12 @@ export default function FriendsScreen() {
             <TouchableOpacity
               key={index}
               style={[styles.tab, currentTabIndex === index && { backgroundColor: theme.secondary }]}
-              activeOpacity={0.7}
               onPress={() => setCurrentTabIndex(index)}
             >
-              <ThemedText type="bodyLargeMedium" style={[getTabTextAnimatedStyle(index)]}>
+              <ThemedText
+                type="bodyLargeMedium"
+                style={{ color: currentTabIndex === index ? theme.background : theme.text }}
+              >
                 {tab}
               </ThemedText>
             </TouchableOpacity>

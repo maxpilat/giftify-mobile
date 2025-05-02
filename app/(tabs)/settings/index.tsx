@@ -1,6 +1,15 @@
 import { ThemedText } from '@/components/ThemedText';
-import { SafeAreaView, ScrollView, StyleSheet, View, Image, TouchableOpacity, Alert } from 'react-native';
-import React, { useEffect, useState } from 'react';
+import {
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  View,
+  Image,
+  TouchableOpacity,
+  Alert,
+  RefreshControl,
+} from 'react-native';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Gender, SettingsData } from '@/models';
 import { TextInput } from '@/components/TextInput';
 import { useTheme } from '@/hooks/useTheme';
@@ -30,10 +39,18 @@ export default function SettingsScreen() {
   const [isDatePickerVisible, setIsDatePickerVisible] = useState<boolean>(false);
   const [gender, setGender] = useState<Gender | null>(null);
   const [isPrivateAccount, setIsPrivateAccount] = useState<boolean>(false);
+
   const [errors, setErrors] = useState<Record<'name' | 'surname', string | undefined>>({
     name: undefined,
     surname: undefined,
   });
+
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const onRefresh = useCallback(() => {
+    setIsRefreshing(true);
+    fetchData().then(() => setIsRefreshing(false));
+  }, []);
 
   useEffect(() => {
     fetchData();
@@ -76,11 +93,12 @@ export default function SettingsScreen() {
   };
 
   const handleUsernameChange = (value: string) => {
+    console.log(value);
     setUsername(value);
     apiFetchData({
       endpoint: API.settings.updateUsername,
       method: 'PUT',
-      body: { email: user.email, newUsername: value },
+      body: { email: user.email, newUsername: value || user.email },
       token: user.token,
     });
   };
@@ -151,10 +169,11 @@ export default function SettingsScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView style={styles.scrollView}>
-        <ThemedText type="h1" style={styles.header}>
-          Настройки
-        </ThemedText>
+      <ScrollView
+        style={styles.scrollView}
+        refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />}
+      >
+        <ThemedText type="h1">Настройки</ThemedText>
         <View style={styles.content}>
           <View style={styles.body}>
             <View style={styles.mainInfo}>
@@ -302,9 +321,6 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     paddingHorizontal: 16,
-  },
-  header: {
-    marginTop: 12,
   },
   content: {
     paddingBottom: 90,

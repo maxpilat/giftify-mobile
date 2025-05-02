@@ -46,7 +46,10 @@ export default function SettingsLayout() {
             ),
           }}
         />
-        <Stack.Screen name="changeTheme" options={{ ...getScreenOptions(), headerTitle: 'Смена темы' }} />
+        <Stack.Screen
+          name="changeTheme"
+          options={{ ...getScreenOptions(), headerTitle: () => <ThemedText>Смена темы</ThemedText> }}
+        />
       </Stack>
     </ProfileProvider>
   );
