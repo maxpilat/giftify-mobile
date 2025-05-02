@@ -41,14 +41,6 @@ export function ProfileHeader({
 
   const [currentTabIndex, setCurrentTabIndex] = useState(0);
 
-  const getTabTextAnimatedStyle = (index: number) =>
-    useAnimatedStyle(() => ({
-      color: withTiming(currentTabIndex === index ? theme.background : theme.text, {
-        duration: 300,
-        easing: Easing.inOut(Easing.ease),
-      }),
-    }));
-
   return (
     <ImageBackground
       source={background ? { uri: background } : require('@/assets/images/bg-01.jpeg')}
@@ -98,13 +90,15 @@ export function ProfileHeader({
               <TouchableOpacity
                 key={index}
                 style={[styles.tab, currentTabIndex === index && { backgroundColor: theme.secondary }]}
-                activeOpacity={0.7}
                 onPress={() => {
                   setCurrentTabIndex(index);
                   onTabChange(index);
                 }}
               >
-                <ThemedText type="bodyLargeMedium" style={[getTabTextAnimatedStyle(index)]}>
+                <ThemedText
+                  type="bodyLargeMedium"
+                  style={{ color: currentTabIndex === index ? theme.background : theme.text }}
+                >
                   {tab}
                 </ThemedText>
               </TouchableOpacity>
