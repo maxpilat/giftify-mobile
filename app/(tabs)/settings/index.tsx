@@ -1,12 +1,12 @@
 import { ThemedText } from '@/components/ThemedText';
 import { SafeAreaView, ScrollView, StyleSheet, View, Image, TouchableOpacity, Alert } from 'react-native';
-import React, { useState } from 'react';
-import { Gender, Profile, SettingsData } from '@/models';
+import React, { useEffect, useState } from 'react';
+import { Gender, SettingsData } from '@/models';
 import { TextInput } from '@/components/TextInput';
 import { useTheme } from '@/hooks/useTheme';
 import { Icon } from '@/components/Icon';
 import { Colors } from '@/constants/themes';
-import { dateToString } from '@/utils/formatDate';
+import { dateToString, stringToDate } from '@/utils/formatDate';
 import { Checkbox } from '@/components/Checkbox';
 import { Switch } from '@/components/Switch';
 import { PlatformButton } from '@/components/PlatformButton';
@@ -35,21 +35,90 @@ export default function SettingsScreen() {
     surname: undefined,
   });
 
-  const fetchData = async () => {};
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    const settings = await apiFetchData<SettingsData>({
+      endpoint: API.settings.getSettings(user.userId),
+      token: user.token,
+    });
+
+    setName(settings.name);
+    setSurname(settings.surname);
+    setUsername(settings.username);
+    settings.birthDate && setBirthDate(stringToDate(settings.birthDate));
+    setGender(settings.isMan ? 'Male' : 'Female');
+    setIsPrivateAccount(settings.isPrivate);
+  };
+
+  const handleNameChange = (value: string) => {
+    setName(value);
+    setErrors((prev) => ({ ...prev, name: undefined }));
+    apiFetchData({
+      endpoint: API.settings.updateName,
+      method: 'PUT',
+      body: { email: user.email, newName: value, newSurname: surname },
+      token: user.token,
+    });
+  };
+
+  const handleSurnameChange = (value: string) => {
+    setSurname(value);
+    setErrors((prev) => ({ ...prev, surname: undefined }));
+    apiFetchData({
+      endpoint: API.settings.updateName,
+      method: 'PUT',
+      body: { email: user.email, newName: name, newSurname: value },
+      token: user.token,
+    });
+  };
+
+  const handleUsernameChange = (value: string) => {
+    setUsername(value);
+    apiFetchData({
+      endpoint: API.settings.updateUsername,
+      method: 'PUT',
+      body: { email: user.email, newUsername: value },
+      token: user.token,
+    });
+  };
+
+  const handleBirthDateChange = (value: Date) => {
+    setBirthDate(value);
+    setIsDatePickerVisible(false);
+    apiFetchData({
+      endpoint: API.settings.updateBirthDate,
+      method: 'PUT',
+      body: { email: user.email, newBirthDate: dateToString(value) },
+      token: user.token,
+    });
+  };
 
   const handleGenderChange = (value: Gender) => {
-    if (value === gender) {
-      // fetch
-      setGender(null);
-    } else {
-      // fetch
-      setGender(value);
-    }
+    const newGender = value === gender ? null : value;
+    setGender(newGender);
+    apiFetchData({
+      endpoint: API.settings.updateGender,
+      method: 'PUT',
+      body: { email: user.email, newGender: newGender === 'Male' ? true : false },
+      token: user.token,
+    });
   };
 
   const handlePrivacyChange = () => {
-    // fetch
-    setIsPrivateAccount((prev) => !prev);
+    setIsPrivateAccount((prev) => {
+      const newPrivacy = !prev;
+      apiFetchData({
+        endpoint: API.settings.updatePrivacy,
+        method: 'PUT',
+        body: { email: user.email, newPrivacy },
+        token: user.token,
+      });
+
+      return newPrivacy;
+    });
   };
 
   const handleSignOut = async () => {
@@ -97,27 +166,23 @@ export default function SettingsScreen() {
                 <TextInput
                   icon="user"
                   placeholder="Имя"
+                  value={name}
                   valid={!errors.name}
                   errorMessage={errors.name}
-                  onChangeText={(value) => {
-                    setName(value);
-                    setErrors((prev) => ({ ...prev, name: undefined }));
-                  }}
+                  onChangeText={handleNameChange}
                 />
                 <TextInput
                   icon="user"
                   placeholder="Фамилия"
+                  value={surname}
                   valid={!errors.surname}
                   errorMessage={errors.surname}
-                  onChangeText={(value) => {
-                    setSurname(value);
-                    setErrors((prev) => ({ ...prev, surname: undefined }));
-                  }}
+                  onChangeText={handleSurnameChange}
                 />
               </View>
             </View>
 
-            <TextInput icon="user" placeholder="Никнейм" onChangeText={setUsername} />
+            <TextInput icon="user" placeholder="Никнейм" value={username} onChangeText={handleUsernameChange} />
 
             <View style={styles.actionsSection}>
               <TouchableOpacity style={styles.actionsSectionRow} onPress={() => router.push('/settings/changeEmail')}>
@@ -150,10 +215,7 @@ export default function SettingsScreen() {
               date={birthDate}
               isVisible={isDatePickerVisible}
               mode="date"
-              onConfirm={(value) => {
-                setBirthDate(value);
-                setIsDatePickerVisible(false);
-              }}
+              onConfirm={handleBirthDateChange}
               onCancel={() => setIsDatePickerVisible(false)}
               accentColor={theme.primary}
               confirmTextIOS="Сохранить"

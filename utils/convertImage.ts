@@ -21,10 +21,8 @@ export function arrayBufferToBase64(buffer: ArrayBuffer): string {
 //   return bytes.buffer;
 // }
 
-export function base64ToArrayBuffer(base64: string): ArrayBuffer {
+export function base64ToBinaryArray(base64: string): number[] {
   const cleanedBase64 = base64.split(',').pop() ?? '';
-
-  console.log(cleanedBase64.slice(0, 10));
 
   const binaryString = atob(cleanedBase64);
 
@@ -33,7 +31,7 @@ export function base64ToArrayBuffer(base64: string): ArrayBuffer {
     byteArray[i] = binaryString.charCodeAt(i);
   }
 
-  return byteArray.buffer;
+  return Array.from(new Uint8Array(byteArray.buffer));
 }
 
 export async function uriToBase64(imageUri: string): Promise<string> {

@@ -13,7 +13,7 @@ import { Switch } from '@/components/Switch';
 import { API } from '@/constants/api';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
-import { base64ToArrayBuffer } from '@/utils/convertImage';
+import { base64ToBinaryArray } from '@/utils/convertImage';
 import { apiFetchData } from '@/lib/api';
 
 type SearchParams = {
@@ -78,6 +78,7 @@ export default function WishModalScreen() {
 
     if (isValid()) {
       const payload = {
+        wisherId: user.userId,
         wishType: 'TYPE_WISH',
         name,
         description,
@@ -86,10 +87,10 @@ export default function WishModalScreen() {
         link,
       };
 
-      console.log(payload);
+      // console.log(payload);
+      // console.log(image?.slice(0, 10));
 
-      console.log(image?.slice(0, 10));
-      const buffer = Array.from(new Uint8Array(base64ToArrayBuffer(image!)));
+      const buffer = base64ToBinaryArray(image!);
 
       if (wishId) {
         (payload as any).wishId = +wishId;

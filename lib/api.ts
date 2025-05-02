@@ -21,6 +21,7 @@ export const apiFetchData = async <T = void>({
     }
 
     console.log(token);
+    console.log(body);
 
     const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}${endpoint}`, {
       method,

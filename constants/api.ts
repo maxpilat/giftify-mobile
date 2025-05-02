@@ -51,7 +51,7 @@ export const API = {
     updateGender: '/api/settings/gender',
     updateEmail: '/api/settings/email',
     updateColors: '/api/settings/colors',
-    updateBirthDate: '/api/settings/bitrh-date',
+    updateBirthDate: '/api/settings/birth-date',
     updateBackground: '/api/settings/background',
     updateAvatar: '/api/settings/avatar',
     sendHelpMessage: '/api/settings/help-message',

@@ -8,7 +8,7 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import { API } from '@/constants/api';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
-import { base64ToArrayBuffer } from '@/utils/convertImage';
+import { base64ToBinaryArray } from '@/utils/convertImage';
 import { apiFetchData } from '@/lib/api';
 
 type SearchParams = {
@@ -70,8 +70,7 @@ export default function WishModalScreen() {
         currency,
       };
 
-      const buffer = base64ToArrayBuffer(image!);
-      console.log(buffer);
+      const buffer = base64ToBinaryArray(image!);
 
       if (wishId) {
         (payload as any).wishId = +wishId;
