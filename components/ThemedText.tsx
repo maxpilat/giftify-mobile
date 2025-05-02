@@ -1,31 +1,43 @@
-import { Text, type TextProps, StyleSheet } from 'react-native';
+import { useTheme } from '@/hooks/useTheme';
+import { TextProps, StyleProp, TextStyle, StyleSheet } from 'react-native';
+import Animated, { AnimatedStyle } from 'react-native-reanimated';
 
-import { useThemeColor } from '@/hooks/useThemeColor';
-
-export type ThemedTextProps = TextProps & {
-  lightColor?: string;
-  darkColor?: string;
-  type?: 'default' | 'title' | 'defaultSemiBold' | 'subtitle' | 'link';
+type Props = TextProps & {
+  type?:
+    | 'h1'
+    | 'h2'
+    | 'h3'
+    | 'h4'
+    | 'h5'
+    | 'bodyLargeMedium'
+    | 'bodyLarge'
+    | 'bodyBase'
+    | 'bodySmall'
+    | 'labelLarge'
+    | 'labelBase'
+    | 'labelSmall';
+  style?: StyleProp<TextStyle> | StyleProp<AnimatedStyle<StyleProp<TextStyle>>>;
 };
 
-export function ThemedText({
-  style,
-  lightColor,
-  darkColor,
-  type = 'default',
-  ...rest
-}: ThemedTextProps) {
-  const color = useThemeColor({ light: lightColor, dark: darkColor }, 'text');
+export function ThemedText({ style, type = 'bodyBase', ...rest }: Props) {
+  const { theme } = useTheme();
 
   return (
-    <Text
+    <Animated.Text
       style={[
-        { color },
-        type === 'default' ? styles.default : undefined,
-        type === 'title' ? styles.title : undefined,
-        type === 'defaultSemiBold' ? styles.defaultSemiBold : undefined,
-        type === 'subtitle' ? styles.subtitle : undefined,
-        type === 'link' ? styles.link : undefined,
+        { color: theme.text },
+        type === 'bodyBase' ? styles.bodyBase : undefined,
+        type === 'h1' ? styles.h1 : undefined,
+        type === 'h2' ? styles.h2 : undefined,
+        type === 'h3' ? styles.h3 : undefined,
+        type === 'h4' ? styles.h4 : undefined,
+        type === 'h5' ? styles.h5 : undefined,
+        type === 'bodyLargeMedium' ? styles.bodyLargeMedium : undefined,
+        type === 'bodyLarge' ? styles.bodyLarge : undefined,
+        type === 'bodySmall' ? styles.bodySmall : undefined,
+        type === 'labelLarge' ? styles.labelLarge : undefined,
+        type === 'labelBase' ? styles.labelBase : undefined,
+        type === 'labelSmall' ? styles.labelSmall : undefined,
         style,
       ]}
       {...rest}
@@ -34,27 +46,64 @@ export function ThemedText({
 }
 
 const styles = StyleSheet.create({
-  default: {
-    fontSize: 16,
-    lineHeight: 24,
+  h1: {
+    fontSize: 26,
+    lineHeight: 38,
+    fontFamily: 'stolzl-medium',
   },
-  defaultSemiBold: {
-    fontSize: 16,
-    lineHeight: 24,
-    fontWeight: '600',
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: 'bold',
+  h2: {
+    fontSize: 24,
     lineHeight: 32,
+    fontFamily: 'stolzl-medium',
   },
-  subtitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
+  h3: {
+    fontSize: 22,
+    lineHeight: 28,
+    fontFamily: 'stolzl-medium',
   },
-  link: {
-    lineHeight: 30,
+  h4: {
+    fontSize: 22,
+    lineHeight: 26,
+    fontFamily: 'stolzl-medium',
+  },
+  h5: {
+    fontSize: 18,
+    lineHeight: 24,
+    fontFamily: 'stolzl-medium',
+  },
+  bodyLargeMedium: {
     fontSize: 16,
-    color: '#0a7ea4',
+    lineHeight: 26,
+    fontFamily: 'stolzl-medium',
+  },
+  bodyLarge: {
+    fontSize: 16,
+    lineHeight: 26,
+    fontFamily: 'stolzl-regular',
+  },
+  bodyBase: {
+    fontSize: 16,
+    lineHeight: 24,
+    fontFamily: 'stolzl-regular',
+  },
+  bodySmall: {
+    fontSize: 14,
+    lineHeight: 20,
+    fontFamily: 'stolzl-regular',
+  },
+  labelLarge: {
+    fontSize: 14,
+    lineHeight: 20,
+    fontFamily: 'stolzl-medium',
+  },
+  labelBase: {
+    fontSize: 12,
+    lineHeight: 16,
+    fontFamily: 'stolzl-medium',
+  },
+  labelSmall: {
+    fontSize: 10,
+    lineHeight: 15,
+    fontFamily: 'stolzl-medium',
   },
 });

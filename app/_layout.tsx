@@ -1,39 +1,59 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
+import { router, Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-import { StatusBar } from 'expo-status-bar';
-import { useEffect } from 'react';
-import 'react-native-reanimated';
+import * as SecureStore from 'expo-secure-store';
+import { useEffect, useState } from 'react';
+import { ThemeProvider } from '@/hooks/useTheme';
+import { ActionSheetProvider } from '@expo/react-native-action-sheet';
+import { AuthProvider } from '@/hooks/useAuth';
+import { AuthData } from '@/models';
 
-import { useColorScheme } from '@/hooks/useColorScheme';
-
-// Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
-  const [loaded] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
+  const [isFontsLoaded] = useFonts({
+    'stolzl-regular': require('../assets/fonts/stolzl_regular.otf'),
+    'stolzl-medium': require('../assets/fonts/stolzl_medium.otf'),
   });
 
-  useEffect(() => {
-    if (loaded) {
-      SplashScreen.hideAsync();
-    }
-  }, [loaded]);
+  const [isAuthLoaded, setIsAuthLoaded] = useState(false);
+  const [initialUser, setInitialUser] = useState<AuthData>();
 
-  if (!loaded) {
+  useEffect(() => {
+    loadAuthData();
+  }, []);
+
+  useEffect(() => {
+    if (isFontsLoaded && isAuthLoaded) {
+      initialUser && router.replace('./(tabs)');
+      setTimeout(() => {
+        SplashScreen.hideAsync();
+      }, 800);
+    }
+  }, [isFontsLoaded, isAuthLoaded]);
+
+  const loadAuthData = async () => {
+    const storedUser = await SecureStore.getItemAsync('user');
+
+    if (storedUser) setInitialUser(JSON.parse(storedUser));
+    setIsAuthLoaded(true);
+  };
+
+  if (!isFontsLoaded || !isAuthLoaded) {
     return null;
   }
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" />
-      </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
+    <ActionSheetProvider>
+      <AuthProvider initialUser={initialUser}>
+        <ThemeProvider>
+          <Stack>
+            <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen name="+not-found" />
+          </Stack>
+        </ThemeProvider>
+      </AuthProvider>
+    </ActionSheetProvider>
   );
 }
