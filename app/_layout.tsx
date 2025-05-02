@@ -39,9 +39,7 @@ export default function RootLayout() {
     setIsAuthLoaded(true);
   };
 
-  if (!isFontsLoaded || !isAuthLoaded) {
-    return null;
-  }
+  if (!isFontsLoaded || !isAuthLoaded) return;
 
   return (
     <ActionSheetProvider>
