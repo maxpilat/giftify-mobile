@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { View, Image, StyleSheet } from 'react-native';
+import React, { useEffect } from 'react';
+import { View, StyleSheet } from 'react-native';
 import MaskedView from '@react-native-masked-view/masked-view';
 import { SvgXml } from 'react-native-svg';
 import { ThemedView } from '@/components/ThemedView';
@@ -26,46 +26,28 @@ type Props = {
   name?: string;
   price?: number;
   currency?: Currency;
+  aspectRatio?: number;
 };
 
-export function WishCard({ image, name, price, currency }: Props) {
-  const [aspectRatio, setAspectRatio] = useState<number | null>(null);
+export function WishCard({ image, name, price, currency, aspectRatio = 1 }: Props) {
   const opacity = useSharedValue(0);
 
   const { theme } = useTheme();
 
   useEffect(() => {
-    if (image.uri) calcImageAspectRatio(image.uri);
+    if (image.uri) opacity.value = withTiming(1, { duration: 300 });
   }, [image]);
-
-  const calcImageAspectRatio = (imageUri: string) => {
-    if (!image.width || !image.height) {
-      Image.getSize(imageUri, (width, height) => {
-        setAspectRatio(width / height);
-        opacity.value = withTiming(1, { duration: 500 });
-      });
-    } else {
-      setAspectRatio(image.width / image.height);
-      opacity.value = withTiming(1, { duration: 500 });
-    }
-  };
 
   const animatedStyle = useAnimatedStyle(() => ({
     opacity: opacity.value,
   }));
 
-  if (!aspectRatio) return null;
-
   return (
     <View style={styles.container}>
       <Animated.Image
         source={{ uri: image.uri }}
-        style={[
-          styles.image,
-          { aspectRatio: aspectRatio > MAX_ASPECT_RATIO ? MAX_ASPECT_RATIO : aspectRatio },
-          animatedStyle,
-        ]}
-        resizeMode={aspectRatio > MAX_ASPECT_RATIO ? 'cover' : 'contain'}
+        style={[styles.image, { aspectRatio }, animatedStyle]}
+        resizeMode={'cover'}
       />
 
       {name && (

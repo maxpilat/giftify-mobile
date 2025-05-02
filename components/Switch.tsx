@@ -10,7 +10,7 @@ export function Switch(props: SwitchProps) {
   const disabledTrackColor = 'rgba(184, 184, 186, 0.4)';
 
   const trackColor = {
-    false: disabled ? disabledTrackColor : Colors.grey,
+    false: disabled ? disabledTrackColor : theme.tabBarBorder,
     true: disabled ? disabledTrackColor : theme.primary,
   };
 
@@ -19,7 +19,7 @@ export function Switch(props: SwitchProps) {
       {...props}
       trackColor={trackColor}
       thumbColor={Colors.white}
-      ios_backgroundColor={disabled ? disabledTrackColor : Colors.grey}
+      ios_backgroundColor={disabled ? disabledTrackColor : theme.tabBarBorder}
     />
   );
 }

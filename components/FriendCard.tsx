@@ -38,7 +38,6 @@ export const FriendCard = ({ friend }: Props) => {
   };
 
   const getFriendButton = (friendId: number) => {
-    // console.log(isReceiver(friendId));
     if (isFriend(friendId)) return null;
     else if (isReceiver(friendId))
       return (

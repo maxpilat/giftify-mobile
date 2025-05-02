@@ -17,7 +17,7 @@ export default function FriendsLayout() {
     contentStyle: {
       backgroundColor: theme.background,
     },
-    headerTitle: 'Найти друзей',
+    headerTitle: () => <ThemedText>Найти друзей</ThemedText>,
     headerLeft: () => (
       <TouchableOpacity onPress={() => router.back()} style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
         <Icon name="left" size={18} color={theme.primary} />

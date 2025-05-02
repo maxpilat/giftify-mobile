@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, Pressable, ScrollView, TouchableOpacity } from 'react-native';
+import React, { useCallback, useEffect, useState } from 'react';
+import { View, StyleSheet, Pressable, ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
 import { ParallaxScrollView } from '@/components/ParallaxScrollView';
-import { ProfileHeader, HEADER_HEIGHT } from '@/components/ProfileHeader';
+import { ProfileHeader } from '@/components/ProfileHeader';
 import MasonryList from '@react-native-seoul/masonry-list';
 import { WishCard } from '@/components/WishCard';
 import { WishListTab } from '@/components/WishListTab';
@@ -56,6 +56,13 @@ export default function ProfileScreen() {
   const [background, setBackground] = useState<string>();
   const [friends, setFriends] = useState<Friend[]>([]);
 
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const onRefresh = useCallback(() => {
+    setIsRefreshing(true);
+    fetchData().then(() => setIsRefreshing(false));
+  }, []);
+
   const contentOpacity = useSharedValue(1);
   const contentAnimatedStyle = useAnimatedStyle(() => ({
     opacity: contentOpacity.value,
@@ -77,11 +84,13 @@ export default function ProfileScreen() {
     }
   }, [myAvatar, myBookings, myWishes, myWishLists, myPiggyBanks]);
 
-  const fetchData = () => {
-    if (+userId === authUser.userId && !isProfileLoaded) {
-      fetchMyAvatar().then(setAvatar);
+  const fetchData = async () => {
+    const promises = [];
 
-      fetchMyBookings().then((data) => {
+    if (+userId === authUser.userId && !isProfileLoaded) {
+      const avatarPromise = fetchMyAvatar().then(setAvatar);
+
+      const bookingsPromise = fetchMyBookings().then((data) => {
         setBookings(data);
         data.forEach(async (booking) => {
           const image = await apiFetchImage({
@@ -98,7 +107,7 @@ export default function ProfileScreen() {
         });
       });
 
-      fetchMyWishes().then((data) => {
+      const wishesPromise = fetchMyWishes().then((data) => {
         setWishes(data);
         data.forEach(async (wish) => {
           const image = await apiFetchImage({
@@ -111,9 +120,9 @@ export default function ProfileScreen() {
         });
       });
 
-      fetchMyWishLists().then(setWishLists);
+      const wishListsPromise = fetchMyWishLists().then(setWishLists);
 
-      fetchMyPiggyBanks().then((data) => {
+      const piggyBanksPromise = fetchMyPiggyBanks().then((data) => {
         setPiggyBanks(data);
         data.forEach(async (piggyBank) => {
           const image = await apiFetchImage({
@@ -128,16 +137,18 @@ export default function ProfileScreen() {
         });
       });
 
-      Promise.all([fetchMyAvatar, fetchMyBookings, fetchMyWishes, fetchMyWishLists, fetchMyPiggyBanks]).then(() => {
-        setIsProfileLoaded(true);
-      });
+      promises.push(avatarPromise, bookingsPromise, wishesPromise, wishListsPromise, piggyBanksPromise);
+      setIsProfileLoaded(true);
     } else {
-      apiFetchImage({
+      const avatarPromise = apiFetchImage({
         endpoint: API.profile.getAvatar(+userId),
         token: authUser.token,
       }).then(setAvatar);
 
-      apiFetchData<Booking[]>({ endpoint: API.profile.getBookings(+userId), token: authUser.token }).then((data) => {
+      const bookingsPromise = apiFetchData<Booking[]>({
+        endpoint: API.profile.getBookings(+userId),
+        token: authUser.token,
+      }).then((data) => {
         setBookings(data);
         data.forEach(async (booking) => {
           const image = await apiFetchImage({
@@ -154,7 +165,10 @@ export default function ProfileScreen() {
         });
       });
 
-      apiFetchData<Wish[]>({ endpoint: API.profile.getWishes(+userId), token: authUser.token }).then((data) => {
+      const wishesPromise = apiFetchData<Wish[]>({
+        endpoint: API.profile.getWishes(+userId),
+        token: authUser.token,
+      }).then((data) => {
         setWishes(data);
         data.forEach(async (wish) => {
           const image = await apiFetchImage({
@@ -167,11 +181,15 @@ export default function ProfileScreen() {
         });
       });
 
-      apiFetchData<WishList[]>({ endpoint: API.profile.getWishLists(+userId), token: authUser.token }).then(
-        setWishLists
-      );
+      const wishListsPromise = apiFetchData<WishList[]>({
+        endpoint: API.profile.getWishLists(+userId),
+        token: authUser.token,
+      }).then(setWishLists);
 
-      apiFetchData<Wish[]>({ endpoint: API.profile.getPiggyBanks(+userId), token: authUser.token }).then((data) => {
+      const piggyBanksPromise = apiFetchData<Wish[]>({
+        endpoint: API.profile.getPiggyBanks(+userId),
+        token: authUser.token,
+      }).then((data) => {
         setPiggyBanks(data);
         data.forEach(async (piggyBank) => {
           const image = await apiFetchImage({
@@ -185,11 +203,25 @@ export default function ProfileScreen() {
           );
         });
       });
+
+      promises.push(avatarPromise, bookingsPromise, wishesPromise, wishListsPromise, piggyBanksPromise);
+      setIsProfileLoaded(true);
     }
 
-    apiFetchData<Profile>({ endpoint: API.profile.getProfile(+userId), token: authUser.token }).then(setProfile);
-    apiFetchImage({ endpoint: API.profile.getBackground(+userId), token: authUser.token }).then(setBackground);
-    apiFetchData<Friend[]>({ endpoint: API.friends.getFriends(+userId), token: authUser.token }).then((data) => {
+    const profilePromise = apiFetchData<Profile>({
+      endpoint: API.profile.getProfile(+userId),
+      token: authUser.token,
+    }).then(setProfile);
+
+    const backgroundPromise = apiFetchImage({
+      endpoint: API.profile.getBackground(+userId),
+      token: authUser.token,
+    }).then(setBackground);
+
+    const friendsPromise = apiFetchData<Friend[]>({
+      endpoint: API.friends.getFriends(+userId),
+      token: authUser.token,
+    }).then((data) => {
       setFriends(data);
       data.forEach(async (friend) => {
         const avatar = await apiFetchImage({
@@ -201,6 +233,9 @@ export default function ProfileScreen() {
         );
       });
     });
+
+    promises.push(profilePromise, backgroundPromise, friendsPromise);
+    await Promise.all(promises);
   };
 
   useEffect(() => {
@@ -264,9 +299,9 @@ export default function ProfileScreen() {
             onTabChange={setCurrentTabIndex}
           />
         }
-        headerHeight={HEADER_HEIGHT}
-        translateY={[-HEADER_HEIGHT / 1.5, 0, 0]}
+        translateYFactor={[-0.5, 0, 0]}
         scale={[1, 1, 1]}
+        refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />}
       >
         <ThemedView style={[styles.content, contentAnimatedStyle]}>
           {currentVisibleTabIndex === 0 && (
@@ -330,6 +365,7 @@ export default function ProfileScreen() {
                             name={wish.name}
                             price={wish.price}
                             currency={wish.currency}
+                            aspectRatio={0.8}
                           />
                         </Pressable>
                       </Link>
@@ -379,13 +415,7 @@ export default function ProfileScreen() {
                           </View>
                         </View>
                         <View style={styles.piggyBankCard}>
-                          <WishCard
-                            image={{
-                              uri: piggyBank.image,
-                              width: 2,
-                              height: 1,
-                            }}
-                          />
+                          <WishCard image={{ uri: piggyBank.image }} />
                         </View>
                       </View>
                       <ProgressBar
@@ -440,6 +470,7 @@ export default function ProfileScreen() {
                           name={wish.name}
                           price={wish.price}
                           currency={wish.currency}
+                          aspectRatio={0.8}
                         />
                       </Pressable>
                     </Link>
