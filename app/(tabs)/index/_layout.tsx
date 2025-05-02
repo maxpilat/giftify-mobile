@@ -11,7 +11,6 @@ export default function IndexLayout() {
   const getModalOptions = (title: string): NativeStackNavigationOptions => ({
     presentation: 'modal',
     headerShadowVisible: false,
-    sheetCornerRadius: 100,
     headerStyle: {
       backgroundColor: theme.background,
     },
@@ -25,7 +24,7 @@ export default function IndexLayout() {
       </TouchableOpacity>
     ),
     headerRight: () => (
-      <TouchableOpacity onPress={() => router.setParams({ submit: 'true' })}>
+      <TouchableOpacity onPress={() => router.setParams({ isSubmit: 'true' })}>
         <ThemedText style={{ color: theme.primary }}>Готово</ThemedText>
       </TouchableOpacity>
     ),

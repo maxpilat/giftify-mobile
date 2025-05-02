@@ -1,5 +1,5 @@
 import { ThemedText } from '@/components/ThemedText';
-import { SafeAreaView, ScrollView, StyleSheet, View, Image, TouchableOpacity, Pressable } from 'react-native';
+import { SafeAreaView, ScrollView, StyleSheet, View, Image, TouchableOpacity, Alert } from 'react-native';
 import React, { useState } from 'react';
 import { Gender, Profile, SettingsData } from '@/models';
 import { TextInput } from '@/components/TextInput';
@@ -35,9 +35,7 @@ export default function SettingsScreen() {
     surname: undefined,
   });
 
-  const fetchData = async () => {
-    const settingsData = await apiFetchData<SettingsData>({ endpoint: API.(user.userId) });
-  };
+  const fetchData = async () => {};
 
   const handleGenderChange = (value: Gender) => {
     if (value === gender) {
@@ -54,23 +52,48 @@ export default function SettingsScreen() {
     setIsPrivateAccount((prev) => !prev);
   };
 
-  const handleSignOut = () => {
-    router.replace('../../(auth)');
-    signOut();
+  const handleSignOut = async () => {
+    Alert.alert('Подтвердите', 'Вы уверены, что хотите выйти?', [
+      { text: 'Отмена', style: 'cancel' },
+      {
+        text: 'Выйти',
+        style: 'destructive',
+        onPress: async () => {
+          await signOut();
+          router.replace('/(auth)');
+        },
+      },
+    ]);
+  };
+
+  const handleDeactivateAccount = async () => {
+    Alert.alert('Подтвердите', 'Вы уверены, что хотите безвозвратно удалить аккаунт?', [
+      { text: 'Отмена', style: 'cancel' },
+      {
+        text: 'Удалить аккаунт',
+        style: 'destructive',
+        onPress: async () => {
+          await deactivateAccount();
+          router.replace('/(auth)');
+        },
+      },
+    ]);
   };
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
-      <ScrollView style={{ paddingHorizontal: 16 }}>
-        <View style={{ paddingBottom: 90, paddingTop: 8 }}>
-          <ThemedText type="h1">Настройки</ThemedText>
-          <View style={{ gap: 24 }}>
-            <View style={{ flexDirection: 'row', gap: 20, marginTop: 32 }}>
+    <SafeAreaView style={styles.container}>
+      <ScrollView style={styles.scrollView}>
+        <ThemedText type="h1" style={styles.header}>
+          Настройки
+        </ThemedText>
+        <View style={styles.content}>
+          <View style={styles.body}>
+            <View style={styles.mainInfo}>
               <Image
                 source={avatar ? { uri: avatar } : require('@/assets/images/avatar.png')}
-                style={[{ width: 110, height: 110, borderRadius: 55 }, { backgroundColor: theme.tabBarBorder }]}
+                style={[styles.avatar, { backgroundColor: theme.tabBarBorder }]}
               />
-              <View style={{ flex: 1, gap: 16 }}>
+              <View style={styles.fullnameContainer}>
                 <TextInput
                   icon="user"
                   placeholder="Имя"
@@ -93,42 +116,28 @@ export default function SettingsScreen() {
                 />
               </View>
             </View>
-            <TextInput
-              icon="user"
-              placeholder="Никнейм"
-              onChangeText={(value) => {
-                setUsername(value);
-              }}
-            />
-            <View style={{ borderWidth: 1, borderColor: Colors.grey, borderRadius: 14 }}>
-              <View
-                style={{
-                  flexDirection: 'row',
-                  justifyContent: 'space-between',
-                  paddingHorizontal: 24,
-                  paddingVertical: 15,
-                }}
-              >
+
+            <TextInput icon="user" placeholder="Никнейм" onChangeText={setUsername} />
+
+            <View style={styles.actionsSection}>
+              <TouchableOpacity style={styles.actionsSectionRow} onPress={() => router.push('/settings/changeEmail')}>
                 <ThemedText type="bodyLarge" style={{ color: theme.primary }}>
                   Изменить электронную почту
                 </ThemedText>
                 <Icon name="right" color={theme.primary} />
-              </View>
-              <View style={{ height: 1, backgroundColor: Colors.grey }} />
-              <View
-                style={{
-                  flexDirection: 'row',
-                  justifyContent: 'space-between',
-                  paddingHorizontal: 24,
-                  paddingVertical: 15,
-                }}
+              </TouchableOpacity>
+              <View style={styles.divider} />
+              <TouchableOpacity
+                style={styles.actionsSectionRow}
+                onPress={() => router.push('/settings/changePassword')}
               >
                 <ThemedText type="bodyLarge" style={{ color: theme.primary }}>
                   Сменить пароль
                 </ThemedText>
                 <Icon name="right" color={theme.primary} />
-              </View>
+              </TouchableOpacity>
             </View>
+
             <TextInput
               icon="user"
               placeholder="DD.MM.YYYY"
@@ -151,67 +160,55 @@ export default function SettingsScreen() {
               cancelTextIOS="Отмена"
               locale="ru"
             />
-            <View style={{ flexDirection: 'row', gap: 24, marginTop: 8 }}>
-              <Checkbox isSelected={gender === 'Male'} onPress={() => handleGenderChange('Male')} label="Мужской" />
-              <Checkbox isSelected={gender === 'Female'} onPress={() => handleGenderChange('Female')} label="Женский" />
+
+            <View style={styles.genderPrivacyContainer}>
+              <View style={styles.genderContainer}>
+                <Checkbox isSelected={gender === 'Male'} onPress={() => handleGenderChange('Male')} label="Мужской" />
+                <Checkbox
+                  isSelected={gender === 'Female'}
+                  onPress={() => handleGenderChange('Female')}
+                  label="Женский"
+                />
+              </View>
+
+              <View style={styles.privacyContainer}>
+                <ThemedText type="bodyLargeMedium">Закрытый аккаунт</ThemedText>
+                <Switch value={isPrivateAccount} onChange={handlePrivacyChange} />
+              </View>
             </View>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 8 }}>
-              <ThemedText type="bodyLargeMedium">Закрытый аккаунт</ThemedText>
-              <Switch value={isPrivateAccount} onChange={handlePrivacyChange} />
-            </View>
-            <View style={{ borderWidth: 1, borderColor: Colors.grey, borderRadius: 14, marginTop: 8 }}>
-              <View
-                style={{
-                  flexDirection: 'row',
-                  justifyContent: 'space-between',
-                  paddingHorizontal: 24,
-                  paddingVertical: 15,
-                }}
-              >
+
+            <View style={styles.actionsSection}>
+              <TouchableOpacity style={styles.actionsSectionRow} onPress={() => router.push('/settings/changeTheme')}>
                 <ThemedText type="bodyLarge" style={{ color: theme.primary }}>
                   Тема приложения
                 </ThemedText>
                 <Icon name="right" color={theme.primary} />
-              </View>
-              <View style={{ height: 1, backgroundColor: Colors.grey }} />
-              <View
-                style={{
-                  flexDirection: 'row',
-                  justifyContent: 'space-between',
-                  paddingHorizontal: 24,
-                  paddingVertical: 15,
-                }}
-              >
+              </TouchableOpacity>
+              <View style={styles.divider} />
+              <TouchableOpacity style={styles.actionsSectionRow} onPress={() => router.push('/settings/changeEmail')}>
                 <ThemedText type="bodyLarge" style={{ color: theme.primary }}>
                   Изменить цвета
                 </ThemedText>
                 <Icon name="right" color={theme.primary} />
-              </View>
-              <View style={{ height: 1, backgroundColor: Colors.grey }} />
-              <View
-                style={{
-                  flexDirection: 'row',
-                  justifyContent: 'space-between',
-                  paddingHorizontal: 24,
-                  paddingVertical: 15,
-                }}
-              >
+              </TouchableOpacity>
+              <View style={styles.divider} />
+              <TouchableOpacity style={styles.actionsSectionRow} onPress={() => router.push('/settings/changeEmail')}>
                 <ThemedText type="bodyLarge" style={{ color: theme.primary }}>
                   Изменить фон профиля
                 </ThemedText>
                 <Icon name="right" color={theme.primary} />
-              </View>
+              </TouchableOpacity>
             </View>
           </View>
 
-          <View style={{ marginTop: 32, gap: 32 }}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 16 }}>
+          <View style={styles.footer}>
+            <View style={styles.dangerZone}>
               <TouchableOpacity onPress={handleSignOut}>
                 <ThemedText type="bodyLargeMedium" style={{ color: theme.primary }}>
                   Выход
                 </ThemedText>
               </TouchableOpacity>
-              <TouchableOpacity onPress={deactivateAccount}>
+              <TouchableOpacity onPress={handleDeactivateAccount}>
                 <ThemedText type="bodyLargeMedium" style={{ color: Colors.red }}>
                   Удалить аккаунт
                 </ThemedText>
@@ -229,4 +226,70 @@ export default function SettingsScreen() {
   );
 }
 
-const styles = StyleSheet.create({});
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  scrollView: {
+    paddingHorizontal: 16,
+  },
+  header: {
+    marginTop: 12,
+  },
+  content: {
+    paddingBottom: 90,
+    gap: 32,
+    marginTop: 24,
+  },
+  body: {
+    gap: 24,
+  },
+  mainInfo: {
+    flexDirection: 'row',
+    gap: 20,
+  },
+  avatar: {
+    width: 110,
+    height: 110,
+    borderRadius: 55,
+  },
+  fullnameContainer: {
+    flex: 1,
+    gap: 16,
+  },
+  actionsSection: {
+    borderWidth: 1,
+    borderColor: Colors.grey,
+    borderRadius: 14,
+  },
+  actionsSectionRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 24,
+    paddingVertical: 15,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: Colors.grey,
+  },
+  genderPrivacyContainer: {
+    marginVertical: 8,
+    gap: 32,
+  },
+  genderContainer: {
+    flexDirection: 'row',
+    gap: 24,
+  },
+  privacyContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  footer: {
+    gap: 32,
+  },
+  dangerZone: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+  },
+});

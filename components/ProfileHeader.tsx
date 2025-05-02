@@ -19,7 +19,7 @@ export const HEADER_HEIGHT = 360;
 type Props = {
   avatar?: string;
   background?: string;
-  fullname?: string;
+  fullname: string;
   username?: string;
   friendsAvatars?: (string | undefined)[];
   friendsCount?: number;
@@ -74,7 +74,7 @@ export function ProfileHeader({
           </MaskedView>
           <ThemedView style={[styles.info, { borderColor: theme.background }]}>
             <ThemedText type="h2" style={styles.fullname} numberOfLines={1}>
-              {fullname || ''}
+              {fullname}
             </ThemedText>
             <View style={styles.details}>
               {username && <ThemedText type="bodyLargeMedium">{username || ''}</ThemedText>}

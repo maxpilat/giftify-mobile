@@ -12,13 +12,13 @@ import { base64ToArrayBuffer } from '@/utils/convertImage';
 import { apiFetchData } from '@/lib/api';
 
 type SearchParams = {
-  submit?: 'true' | 'false';
+  isSubmit?: 'true' | 'false';
   wishId?: string;
 };
 
 export default function WishModalScreen() {
   const { user } = useAuth();
-  const { submit, wishId } = useLocalSearchParams<SearchParams>();
+  const { isSubmit, wishId } = useLocalSearchParams<SearchParams>();
   const { piggyBanks, fetchPiggyBanks } = useProfile();
 
   const [image, setImage] = useState<string>();
@@ -55,10 +55,10 @@ export default function WishModalScreen() {
 
   useEffect(() => {
     handleSubmit();
-  }, [submit]);
+  }, [isSubmit]);
 
   const handleSubmit = async () => {
-    if (submit !== 'true') return;
+    if (isSubmit !== 'true') return;
 
     if (isValid()) {
       const payload = {
@@ -95,7 +95,7 @@ export default function WishModalScreen() {
       router.back();
     }
 
-    router.setParams({ submit: 'false' });
+    router.setParams({ isSubmit: 'false' });
   };
 
   const isValid = () => {

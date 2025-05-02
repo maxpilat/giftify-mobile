@@ -33,7 +33,7 @@ export default function RootLayout() {
   }, [isFontsLoaded, isAuthLoaded]);
 
   const loadAuthData = async () => {
-    const storedUser = await SecureStore.getItemAsync('auth');
+    const storedUser = await SecureStore.getItemAsync('user');
 
     if (storedUser) setInitialUser(JSON.parse(storedUser));
     setIsAuthLoaded(true);

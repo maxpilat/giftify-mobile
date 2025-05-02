@@ -8,7 +8,7 @@ import { Colors } from '@/constants/themes';
 import { Link, router } from 'expo-router';
 import { useAuth } from '@/hooks/useAuth';
 
-export default function SignUpScreen() {
+export default function SignInScreen() {
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [errors, setErrors] = useState<Record<'email' | 'password', string | undefined>>({
@@ -41,10 +41,10 @@ export default function SignUpScreen() {
       enableOnAndroid
       contentContainerStyle={styles.scrollViewContent}
     >
-      <ThemedText type="h1" style={styles.title}>
-        Вход
-      </ThemedText>
       <View style={styles.content}>
+        <ThemedText type="h1" style={styles.title}>
+          Вход
+        </ThemedText>
         <View style={styles.fields}>
           <TextInput
             icon="email"
@@ -102,12 +102,12 @@ const styles = StyleSheet.create({
   scrollViewContent: {
     flex: 1,
     justifyContent: 'space-between',
-    marginTop: 60,
+    paddingHorizontal: 16,
+    marginTop: 120,
+    marginBottom: 60,
   },
   content: {
-    paddingHorizontal: 16,
-    gap: 24,
-    marginBottom: 0,
+    gap: 80,
   },
   title: {
     textAlign: 'center',
@@ -118,15 +118,13 @@ const styles = StyleSheet.create({
   passwordContainer: {
     gap: 5,
   },
-
   buttonText: {
     color: Colors.white,
   },
   footer: {
-    paddingVertical: 60,
     flexDirection: 'row',
-    gap: 10,
     justifyContent: 'center',
+    gap: 10,
   },
   signUpLink: {
     color: Colors.blue,

@@ -40,17 +40,14 @@ export function TextInput<T>({
 
   const errorHeight = useSharedValue(0);
   const errorOpacity = useSharedValue(0);
-  const errorTranslateY = useSharedValue(-5);
 
   useEffect(() => {
     if (errorMessage) {
-      errorHeight.value = withTiming(20, { duration: 300 });
+      errorHeight.value = withTiming(20, { duration: 150 });
       errorOpacity.value = withTiming(1, { duration: 500 });
-      errorTranslateY.value = withTiming(0, { duration: 300 });
     } else {
-      errorHeight.value = withTiming(0, { duration: 300 });
+      errorHeight.value = withTiming(0, { duration: 150 });
       errorOpacity.value = withTiming(0, { duration: 500 });
-      errorTranslateY.value = withTiming(-5, { duration: 300 });
     }
   }, [errorMessage]);
 
@@ -60,7 +57,6 @@ export function TextInput<T>({
 
   const animatedErrorTextStyle = useAnimatedStyle(() => ({
     opacity: errorOpacity.value,
-    transform: [{ translateY: errorTranslateY.value }],
   }));
 
   const openSheet = () => {
@@ -134,7 +130,13 @@ export function TextInput<T>({
           </TouchableOpacity>
         )}
         {type === 'search' && value && (
-          <TouchableOpacity style={styles.button} onPress={() => setValue('')}>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() => {
+              setValue('');
+              inputConfig.onChangeText?.('');
+            }}
+          >
             <Icon name="close" size={20} color={Colors.grey} />
           </TouchableOpacity>
         )}

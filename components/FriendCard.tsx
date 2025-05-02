@@ -8,6 +8,9 @@ import { formatNewWishes, formatDays } from '@/utils/formatWord';
 import { Colors } from 'react-native/Libraries/NewAppScreen';
 import { Icon } from './Icon';
 import { useProfile } from '@/hooks/useProfile';
+import { apiFetchData } from '@/lib/api';
+import { API } from '@/constants/api';
+import { useAuth } from '@/hooks/useAuth';
 
 type Props = {
   friend: Friend;
@@ -15,11 +18,24 @@ type Props = {
 
 export const FriendCard = ({ friend }: Props) => {
   const { theme } = useTheme();
-  const { friendRequests } = useProfile();
+  const { user } = useAuth();
+  const { friendRequests, fetchFriendRequests } = useProfile();
 
   const cancelFriendRequest = () => {};
 
-  const sendFriendRequest = () => {};
+  const sendFriendRequest = (friendId: number) => {
+    apiFetchData({
+      endpoint: API.friends.sendRequest,
+      method: 'POST',
+      body: {
+        userOneId: user.userId,
+        isUserOneAccept: true,
+        userTwoId: friendId,
+        isUserTwoAccept: false,
+      },
+      token: user.token,
+    }).then(fetchFriendRequests);
+  };
 
   const isFriend = (friendId: number) => {
     return friendRequests.find(
@@ -50,11 +66,14 @@ export const FriendCard = ({ friend }: Props) => {
           style={[styles.friendButton, { backgroundColor: Colors.lightBlue }]}
           onPress={cancelFriendRequest}
         >
-          <Icon name="accept" color={Colors.blue} />;
+          <Icon name="accept" color={Colors.blue} />
         </TouchableOpacity>
       );
     return (
-      <TouchableOpacity style={[styles.friendButton, { backgroundColor: Colors.black }]} onPress={sendFriendRequest}>
+      <TouchableOpacity
+        style={[styles.friendButton, { backgroundColor: Colors.black }]}
+        onPress={() => sendFriendRequest(friendId)}
+      >
         <Icon name="plus" color={Colors.white} />
       </TouchableOpacity>
     );
@@ -69,7 +88,7 @@ export const FriendCard = ({ friend }: Props) => {
       <View style={styles.friendInfo}>
         <ThemedText type="h5">{`${friend.name} ${friend.surname}`}</ThemedText>
         <View style={styles.friendLabels}>
-          {friend.newWishesCount && (
+          {friend.newWishesCount > 0 && (
             <>
               <ThemedText type="bodySmall">{formatNewWishes(friend.newWishesCount)}</ThemedText>
               <View style={[styles.labelDivider, { backgroundColor: theme.secondary }]} />

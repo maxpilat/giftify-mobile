@@ -19,6 +19,10 @@ import { apiFetchData, apiFetchImage } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 
+type SearchParams = {
+  userId?: string;
+};
+
 export default function ProfileScreen() {
   const { theme } = useTheme();
   const { user: authUser } = useAuth();
@@ -36,7 +40,7 @@ export default function ProfileScreen() {
     fetchPiggyBanks: fetchMyPiggyBanks,
     setIsLoaded: setIsProfileLoaded,
   } = useProfile();
-  const { userId = authUser.userId } = useLocalSearchParams();
+  const { userId = authUser.userId } = useLocalSearchParams<SearchParams>();
 
   const [currentTabIndex, setCurrentTabIndex] = useState(0);
   const [currentVisibleTabIndex, setCurrentVisibleTabIndex] = useState(0);
@@ -199,7 +203,7 @@ export default function ProfileScreen() {
   };
 
   useEffect(() => {
-    fetchData();
+    if (userId) fetchData();
   }, [userId]);
 
   useEffect(() => {
@@ -235,7 +239,7 @@ export default function ProfileScreen() {
           <ProfileHeader
             avatar={avatar}
             background={background}
-            fullname={`${profile?.name} ${profile?.surname}`}
+            fullname={`${profile?.name || ''} ${profile?.surname || ''}`}
             username={profile?.username}
             friendsAvatars={friends.slice(0, 3).map((friend) => friend.avatar)}
             friendsCount={friends.length}

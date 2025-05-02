@@ -1,44 +1,50 @@
 import { StyleSheet, View } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { TextInput } from '@/components/TextInput';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import { PlatformButton } from '@/components/PlatformButton';
 import { Colors } from '@/constants/themes';
-import { router, useLocalSearchParams } from 'expo-router';
+import { Link, router, useLocalSearchParams } from 'expo-router';
 import { useAuth } from '@/hooks/useAuth';
-import { OtpInput } from 'react-native-otp-entry';
 import { useTheme } from '@/hooks/useTheme';
 
 type SearchParams = {
-  code: string;
-  email: string;
+  isSubmit?: 'true' | 'false';
 };
 
-export default function ResetPasswordScreen() {
-  const params = useLocalSearchParams<SearchParams>();
+export default function ChangePasswordScreen() {
   const { theme } = useTheme();
-  const { resetPassword } = useAuth();
+  const { isSubmit } = useLocalSearchParams<SearchParams>();
 
-  const [code, setCode] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
   const [newPassword, setNewPassword] = useState<string>('');
   const [confirmNewPassword, setConfirmNewPassword] = useState<string>('');
-  const [errors, setErrors] = useState<Record<'code' | 'newPassword' | 'confirmNewPassword', string | undefined>>({
-    code: undefined,
+  const [errors, setErrors] = useState<Record<'password' | 'newPassword' | 'confirmNewPassword', string | undefined>>({
+    password: undefined,
     newPassword: undefined,
     confirmNewPassword: undefined,
   });
 
+  const { changePassword } = useAuth();
+
+  useEffect(() => {
+    handleSubmit();
+  }, [isSubmit]);
+
   const handleSubmit = async () => {
+    if (isSubmit !== 'true') return;
+
     if (isValid()) {
-      await resetPassword(params.email, newPassword);
-      router.replace('./signIn');
+      await changePassword(password, newPassword);
+      router.replace('/settings');
     }
+
+    router.setParams({ isSubmit: 'false' });
   };
 
   const isValid = () => {
     const newErrors = {
-      code: code !== params.code ? 'Неверный код' : undefined,
+      password: password.trim().length < 8 ? 'Не менее 8 символов' : undefined,
       newPassword: newPassword.trim().length < 8 ? 'Не менее 8 символов' : undefined,
       confirmNewPassword:
         confirmNewPassword.trim().length < 8
@@ -48,11 +54,6 @@ export default function ResetPasswordScreen() {
           : undefined,
     };
     setErrors(newErrors);
-
-    if (newErrors.code) {
-      // notification
-    }
-
     return !Object.values(newErrors).some((error) => error);
   };
 
@@ -63,30 +64,29 @@ export default function ResetPasswordScreen() {
       enableOnAndroid
       contentContainerStyle={styles.scrollViewContent}
     >
-      <ThemedText type="h1" style={styles.title}>
-        Сброс пароля
-      </ThemedText>
       <View style={styles.content}>
-        <ThemedText type="bodyLargeMedium" style={styles.title}>
-          Введите свою электронную почту и мы вышлем инструкции по сбросу пароля
+        <ThemedText type="h1" style={styles.title}>
+          Смена пароля
         </ThemedText>
         <View style={styles.fields}>
-          <OtpInput
-            numberOfDigits={4}
-            onFilled={setCode}
-            hideStick
-            theme={{
-              containerStyle: styles.pinCode,
-              pinCodeContainerStyle: styles.pinCodeContainer,
-              pinCodeTextStyle: { color: theme.text, ...styles.pinCodeText },
-              focusedPinCodeContainerStyle: styles.focusedPinCodeContainer,
+          <TextInput
+            icon="lock"
+            placeholder="Пароль"
+            valid={!errors.password}
+            errorMessage={errors.password}
+            type="password"
+            passwordRules="minlength: 8"
+            onChangeText={(value) => {
+              setPassword(value);
+              setErrors((prev) => ({ ...prev, password: undefined }));
             }}
+            keyboardType="visible-password"
           />
           <TextInput
             icon="lock"
             placeholder="Новый пароль"
-            valid={!errors.newPassword}
-            errorMessage={errors.newPassword}
+            valid={!errors.password}
+            errorMessage={errors.password}
             type="password"
             passwordRules="minlength: 8"
             onChangeText={(value) => {
@@ -98,8 +98,8 @@ export default function ResetPasswordScreen() {
           <TextInput
             icon="lock"
             placeholder="Повторите новый пароль"
-            valid={!errors.confirmNewPassword}
-            errorMessage={errors.confirmNewPassword}
+            valid={!errors.password}
+            errorMessage={errors.password}
             type="password"
             passwordRules="minlength: 8"
             onChangeText={(value) => {
@@ -109,11 +109,14 @@ export default function ResetPasswordScreen() {
             keyboardType="visible-password"
           />
         </View>
-        <PlatformButton style={styles.button} onPress={handleSubmit}>
-          <ThemedText type="bodyLargeMedium" style={styles.buttonText}>
-            Подтвердить
+      </View>
+
+      <View style={styles.footer}>
+        <Link href="/(auth)/forgotPassword">
+          <ThemedText type="bodyLargeMedium" style={[styles.forgotPasswordLink, { color: theme.primary }]}>
+            Забыли пароль?
           </ThemedText>
-        </PlatformButton>
+        </Link>
       </View>
     </KeyboardAwareScrollView>
   );
@@ -121,40 +124,32 @@ export default function ResetPasswordScreen() {
 
 const styles = StyleSheet.create({
   scrollViewContent: {
-    marginTop: 60,
+    flex: 1,
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    marginVertical: 120,
   },
   content: {
-    paddingHorizontal: 16,
-    marginTop: 60,
+    gap: 80,
   },
   title: {
     textAlign: 'center',
   },
   fields: {
     gap: 20,
-    marginTop: 40,
   },
-  pinCode: {
-    marginBottom: 6,
-    justifyContent: 'center',
-    gap: 20,
-  },
-  pinCodeContainer: {
-    borderColor: Colors.grey,
-    width: 64,
-    height: 64,
-  },
-  pinCodeText: {
-    fontSize: 32,
-    fontFamily: 'stolzl-regular',
-  },
-  focusedPinCodeContainer: {
-    borderColor: Colors.blue,
-  },
-  button: {
-    marginTop: 24,
+  passwordContainer: {
+    gap: 5,
   },
   buttonText: {
     color: Colors.white,
+  },
+  footer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 10,
+  },
+  forgotPasswordLink: {
+    textAlign: 'right',
   },
 });

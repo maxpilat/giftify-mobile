@@ -9,23 +9,19 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useAuth } from '@/hooks/useAuth';
 
 type SearchParams = {
-  email: string;
-  password: string;
-  name: string;
-  surname: string;
-  friendEmail: string;
+  newEmail: string;
   code: string;
 };
 
 export default function ValidateEmailScreen() {
   const { theme } = useTheme();
-  const { code, ...userData } = useLocalSearchParams<SearchParams>();
-  const { signUp } = useAuth();
+  const { code, newEmail } = useLocalSearchParams<SearchParams>();
+  const { changeEmail } = useAuth();
 
-  const handleSubmit = async (value: string) => {
+  const submit = async (value: string) => {
     if (value === code) {
-      await signUp(userData);
-      router.replace('../(tabs)');
+      await changeEmail(newEmail);
+      router.replace('/settings');
     }
   };
 
@@ -34,14 +30,14 @@ export default function ValidateEmailScreen() {
       <ThemedView style={styles.container}>
         <View style={styles.content}>
           <ThemedText type="h1" style={styles.tittle}>
-            Подтвердите адрес электронной почты
+            Осталось проверить почту
           </ThemedText>
           <ThemedText type="bodyLargeMedium" style={styles.subtitle}>
             Код для подтверждения отправлен вам на электронную почту
           </ThemedText>
           <OtpInput
             numberOfDigits={4}
-            onFilled={handleSubmit}
+            onFilled={submit}
             hideStick
             theme={{
               containerStyle: styles.pinCode,

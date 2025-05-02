@@ -57,7 +57,7 @@ export default function WishesScreen() {
   };
 
   useEffect(() => {
-    fetchData();
+    if (userId) fetchData();
   }, [userId]);
 
   return (

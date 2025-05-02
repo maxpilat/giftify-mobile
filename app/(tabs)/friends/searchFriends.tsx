@@ -4,7 +4,6 @@ import { PlatformButton } from '@/components/PlatformButton';
 import { TextInput } from '@/components/TextInput';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
-import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
@@ -26,11 +25,17 @@ export default function SearchFriendsScreen() {
   }, []);
 
   const filterUsers = (value: string) => {
-    setFilteredUsers(
-      users.filter((user) => {
-        user.name.includes(value) || user.surname.includes(value);
-      })
-    );
+    if (!value) {
+      setFilteredUsers([]);
+    } else {
+      setFilteredUsers(
+        users.filter(
+          (user) =>
+            user.name.toLowerCase().includes(value.toLowerCase()) ||
+            user.surname.toLowerCase().includes(value.toLowerCase())
+        )
+      );
+    }
   };
 
   return (
@@ -50,7 +55,7 @@ export default function SearchFriendsScreen() {
         keyboardType="default"
         inputMode="search"
       />
-      <PlatformButton hapticFeedback="none" onPress={() => router.push('./friends/searchFriends')}>
+      <PlatformButton hapticFeedback="none">
         <ThemedText type="bodyLargeMedium" style={styles.buttonText}>
           Пригласить в приложение
         </ThemedText>

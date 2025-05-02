@@ -16,8 +16,9 @@ const AuthContext = createContext<{
   }) => Promise<void>;
   signOut: () => Promise<void>;
   deactivateAccount: () => Promise<void>;
-  changePassword: (email: string, oldPassword: string, newPassword: string) => Promise<void>;
+  changePassword: (oldPassword: string, newPassword: string) => Promise<void>;
   resetPassword: (email: string, newPassword: string) => Promise<void>;
+  changeEmail: (newEmail: string) => Promise<void>;
   isAuth: () => boolean;
 } | null>(null);
 
@@ -45,7 +46,7 @@ export const AuthProvider = ({ children, initialUser }: { children: ReactNode; i
     const newUser = { ...filteredUserData, userId, token };
 
     setUser(newUser);
-    await SecureStore.setItemAsync('auth', JSON.stringify(newUser));
+    await SecureStore.setItemAsync('user', JSON.stringify(newUser));
   };
 
   const signIn = async (email: string, password: string) => {
@@ -58,25 +59,25 @@ export const AuthProvider = ({ children, initialUser }: { children: ReactNode; i
     const newUser = { userId, email, token };
 
     setUser(newUser);
-    await SecureStore.setItemAsync('auth', JSON.stringify(newUser));
+    await SecureStore.setItemAsync('user', JSON.stringify(newUser));
   };
 
   const signOut = async () => {
     setUser(null);
-    await SecureStore.deleteItemAsync('auth');
+    await SecureStore.deleteItemAsync('user');
   };
 
   const deactivateAccount = async () => {
     setUser(null);
-    SecureStore.deleteItemAsync('auth');
-    // await apiFetchData({ endpoint: API.auth.resetPassword, method: 'POST', body: { email, password } });
+    await apiFetchData({ endpoint: API.auth.deactivateAccount(user?.userId!), method: 'DELETE' });
+    await SecureStore.deleteItemAsync('user');
   };
 
-  const changePassword = async (email: string, oldPassword: string, newPassword: string) => {
+  const changePassword = async (oldPassword: string, newPassword: string) => {
     await apiFetchData({
-      endpoint: API.auth.changePassword,
+      endpoint: API.auth.updatePassword,
       method: 'PUT',
-      body: { email, oldPassword, newPassword },
+      body: { email: user?.email, oldPassword, newPassword },
     });
   };
 
@@ -85,6 +86,14 @@ export const AuthProvider = ({ children, initialUser }: { children: ReactNode; i
       endpoint: API.auth.resetPassword,
       method: 'POST',
       body: { email, newPassword },
+    });
+  };
+
+  const changeEmail = async (newEmail: string) => {
+    await apiFetchData({
+      endpoint: API.settings.updateEmail,
+      method: 'PUT',
+      body: { email: user?.email, newEmail },
     });
   };
 
@@ -100,6 +109,7 @@ export const AuthProvider = ({ children, initialUser }: { children: ReactNode; i
         deactivateAccount,
         changePassword,
         resetPassword,
+        changeEmail,
         isAuth,
       }}
     >

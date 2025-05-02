@@ -9,13 +9,13 @@ import { useAuth } from '@/hooks/useAuth';
 import { apiFetchData } from '@/lib/api';
 
 type SearchParams = {
-  submit?: 'true' | 'false';
+  isSubmit?: 'true' | 'false';
   wishListId?: string;
 };
 
 export default function WishListModalScreen() {
   const { user } = useAuth();
-  const { submit, wishListId } = useLocalSearchParams<SearchParams>();
+  const { isSubmit, wishListId } = useLocalSearchParams<SearchParams>();
   const { wishLists, fetchWishLists } = useProfile();
 
   const [name, setName] = useState<string>('');
@@ -30,10 +30,10 @@ export default function WishListModalScreen() {
 
   useEffect(() => {
     handleSubmit();
-  }, [submit]);
+  }, [isSubmit]);
 
   const handleSubmit = async () => {
-    if (submit !== 'true') return;
+    if (isSubmit !== 'true') return;
 
     if (isValid()) {
       if (wishListId) {
@@ -56,7 +56,7 @@ export default function WishListModalScreen() {
       router.back();
     }
 
-    router.setParams({ submit: 'false' });
+    router.setParams({ isSubmit: 'false' });
   };
 
   const isValid = () => {

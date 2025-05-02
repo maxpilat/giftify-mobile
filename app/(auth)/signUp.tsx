@@ -9,8 +9,12 @@ import { Link, router, useLocalSearchParams } from 'expo-router';
 import { API } from '@/constants/api';
 import { apiFetchData } from '@/lib/api';
 
+type SearchParams = {
+  friendEmail?: string;
+};
+
 export default function SignUpScreen() {
-  const { friendEmail } = useLocalSearchParams<{ friendEmail: string }>();
+  const { friendEmail } = useLocalSearchParams<SearchParams>();
 
   const [name, setName] = useState<string>('');
   const [surname, setSurname] = useState<string>('');
@@ -160,9 +164,9 @@ export default function SignUpScreen() {
 
 const styles = StyleSheet.create({
   scrollViewContent: {
-    flexGrow: 1,
+    flex: 1,
+    marginVertical: 60,
     justifyContent: 'space-between',
-    marginTop: 60,
   },
   content: {
     paddingHorizontal: 16,
@@ -174,15 +178,13 @@ const styles = StyleSheet.create({
   fields: {
     gap: 16,
   },
-
   buttonText: {
     color: Colors.white,
   },
   footer: {
-    padding: 60,
     flexDirection: 'row',
-    gap: 10,
     justifyContent: 'center',
+    gap: 10,
   },
   signInLink: {
     color: Colors.blue,

@@ -6,7 +6,7 @@ import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, View, Text, Image, ImageBackground } from 'react-native';
 
-export default function SignUpScreen() {
+export default function StartScreen() {
   return (
     <ImageBackground source={require('@/assets/images/bg-01.jpeg')} style={styles.background}>
       <StatusBar style="light" />

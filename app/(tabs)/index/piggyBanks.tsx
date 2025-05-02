@@ -60,7 +60,7 @@ export default function PiggyBanksScreen() {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [userId]);
 
   return (
     <ThemedView>

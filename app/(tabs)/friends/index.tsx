@@ -19,58 +19,19 @@ import { getDaysUntilBirthday } from '@/utils/getDaysUntilBirthday';
 import { ThemedView } from '@/components/ThemedView';
 import { FriendCard } from '@/components/FriendCard';
 
-const FRIENDS: Friend[] = [
-  {
-    friendId: 1,
-    name: 'Алексей',
-    surname: 'Иванов',
-    username: 'alex_ivan',
-    birthDate: '14.05.1992',
-    newWishesCount: 3,
-  },
-  {
-    friendId: 2,
-    name: 'Мария',
-    surname: 'Смирнова',
-    username: 'masha_smir',
-    birthDate: '30.11.1995',
-    newWishesCount: 5,
-  },
-  {
-    friendId: 3,
-    name: 'Дмитрий',
-    surname: 'Петров',
-    username: 'dmitriy_pet',
-    birthDate: '22.07.1990',
-    newWishesCount: 1,
-  },
-  {
-    friendId: 4,
-    name: 'Елена',
-    surname: 'Кузнецова',
-    username: 'elena_kuz',
-    birthDate: '28.04.1998',
-    newWishesCount: 4,
-  },
-  {
-    friendId: 5,
-    name: 'Игорь',
-    surname: 'Соколов',
-    username: 'igor_sokol',
-    birthDate: '05.09.1988',
-    newWishesCount: 2,
-  },
-];
+type SearchParams = {
+  userId?: string;
+};
 
 export default function FriendsScreen() {
   const { theme } = useTheme();
   const { user: authUser } = useAuth();
-  const { userId = authUser.userId } = useLocalSearchParams<{ userId: string }>();
+  const { userId = authUser.userId } = useLocalSearchParams<SearchParams>();
   const { friendRequests } = useProfile();
 
   const [currentTabIndex, setCurrentTabIndex] = useState(0);
   const [currentVisibleTabIndex, setCurrentVisibleTabIndex] = useState(0);
-  const [friends, setFriends] = useState<Friend[]>(FRIENDS);
+  const [friends, setFriends] = useState<Friend[]>([]);
 
   const getTabTextAnimatedStyle = (index: number) =>
     useAnimatedStyle(() => ({
@@ -98,19 +59,19 @@ export default function FriendsScreen() {
   }, [currentVisibleTabIndex]);
 
   const fetchData = async () => {
-    // const friends = await apiFetchData<Friend[]>({ endpoint: API.friends.getFriends(+userId), token: authUser.token });
-    // friends.forEach(async (friend) => {
-    //   const avatar = await apiFetchImage({ endpoint: API.profile.getAvatar(friend.friendId), token: authUser.token });
-    //   setFriends((prev) =>
-    //     prev.map((prevFriend) => (prevFriend.friendId === friend.friendId ? { ...prevFriend, avatar } : prevFriend))
-    //   );
-    // });
-
+    const friends = await apiFetchData<Friend[]>({ endpoint: API.friends.getFriends(+userId), token: authUser.token });
     setFriends(friends);
+
+    friends.forEach(async (friend) => {
+      const avatar = await apiFetchImage({ endpoint: API.profile.getAvatar(friend.friendId), token: authUser.token });
+      setFriends((prev) =>
+        prev.map((prevFriend) => (prevFriend.friendId === friend.friendId ? { ...prevFriend, avatar } : prevFriend))
+      );
+    });
   };
 
   useEffect(() => {
-    fetchData();
+    if (userId) fetchData();
   }, [userId]);
 
   const isSender = (friendId: number) => {
@@ -146,7 +107,7 @@ export default function FriendsScreen() {
         <PlatformButton
           style={styles.button}
           hapticFeedback="none"
-          onPress={() => router.push('./friends/searchFriends')}
+          onPress={() => router.push('/friends/searchFriends')}
         >
           <ThemedText type="bodyLargeMedium" style={styles.buttonText}>
             Найти друзей

@@ -1,3 +1,5 @@
+import { ThemeType } from './constants/themes';
+
 export interface Wish {
   wishId: number;
   wisherId: number;
@@ -68,8 +70,6 @@ export interface AuthData {
 
 export type Gender = 'Male' | 'Female';
 
-export type ThemeType = 'TYPE_LIGHT' | 'TYPE_DARK';
-
 export interface SettingsData {
   id: number;
   name: string;
@@ -78,7 +78,9 @@ export interface SettingsData {
   birthDate?: string;
   isMan: boolean;
   isPrivate: boolean;
-  themeType: ThemeType;
+  themeType: ServerThemeType;
   primaryColor: string;
   secondaryColor: string;
 }
+
+export type ServerThemeType = 'TYPE_LIGHT' | 'TYPE_DARK' | 'TYPE_SYSTEM';

@@ -6,9 +6,8 @@ export const API = {
     validateEmail: '/api/auth/validate-email',
     google: '/api/auth/google',
     resetPassword: '/api/auth/password',
-    changePassword: '/api/auth/password',
-    changeEmail: '/api/auth/email',
-    deactivateAccount: '/api/auth/deactivate-account',
+    updatePassword: '/api/auth/password',
+    deactivateAccount: (userId: number) => `/api/auth/deactivate-account/${userId}`,
   },
   wishes: {
     create: '/api/wish',
@@ -28,7 +27,7 @@ export const API = {
     sendRequest: '/api/friends',
     getFriends: (userId: number) => `/api/friends/${userId}`,
     getFriendRequests: (userId: number) => `/api/friends/requests/${userId}`,
-    getAllUsers: 'api/friends',
+    getAllUsers: '/api/friends',
   },
   booking: {
     create: '/api/booking',
@@ -36,7 +35,7 @@ export const API = {
     cancel: (bookingId: number) => `/api/booking/${bookingId}`,
   },
   profile: {
-    getProfile: (userId: number) => `/api/profile/`,
+    getProfile: (userId: number) => `/api/profile/${userId}`,
     getWishes: (userId: number) => `/api/profile/${userId}/wishes`,
     getWishLists: (userId: number) => `/api/profile/${userId}/wish-lists`,
     getPiggyBanks: (userId: number) => `/api/profile/${userId}/piggy-banks`,
@@ -45,17 +44,18 @@ export const API = {
     getAvatar: (userId: number) => `/api/profile/avatar/${userId}`,
   },
   settings: {
-    updateUsername: (userId: number) => `/api/settings/username`,
-    updateTheme: (userId: number) => `/api/settings/theme`,
-    updatePrivacy: (userId: number) => `/api/settings/privacy`,
-    updateName: (userId: number) => `/api/settings/name`,
-    updateGender: (userId: number) => `/api/settings/gender`, // Смена гендера
-    updateColors: (userId: number) => `/api/settings/colors`, // Смена цвета приложения
-    updateBirthDate: (userId: number) => `/api/settings/birth-date`, // Смена даты рождения
-    updateBackground: (userId: number) => `/api/settings/background`, // Смена заднего фона аккаунта
-    updateAvatar: (userId: number) => `/api/settings/avatar`, // Смена аватара
-    getSettings: (userId: number) => `/api/settings`, // Получение всех настроек аккаунта
-    sendHelpMessage: (userId: number) => `/api/settings/help-message`, // Отправка сообщения в поддержку
+    updateUsername: '/api/settings/username',
+    updateTheme: '/api/settings/theme',
+    updatePrivacy: '/api/settings/privacy',
+    updateName: '/api/settings/name',
+    updateGender: '/api/settings/gender',
+    updateEmail: '/api/settings/email',
+    updateColors: '/api/settings/colors',
+    updateBirthDate: '/api/settings/bitrh-date',
+    updateBackground: '/api/settings/background',
+    updateAvatar: '/api/settings/avatar',
+    sendHelpMessage: '/api/settings/help-message',
+    getSettings: (userId: number) => `/api/settings/${userId}`,
   },
   currencies: {
     getCurrencies: '/api/currency',
