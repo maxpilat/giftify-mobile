@@ -1,9 +1,9 @@
-import React, { useEffect } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { useEffect, useState } from 'react';
+import { View, StyleSheet, Image } from 'react-native';
 import MaskedView from '@react-native-masked-view/masked-view';
 import { SvgXml } from 'react-native-svg';
 import { ThemedView } from '@/components/ThemedView';
-import { ActionButton } from './ActionsButton';
+import { Action, ActionButton } from '@/components/ActionsButton';
 import Animated, { useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
 import { ThemedText } from '@/components/ThemedText';
 import { useTheme } from '@/hooks/useTheme';
@@ -15,38 +15,47 @@ const mask = `
   </svg>
 `;
 
-const MAX_ASPECT_RATIO = 1;
-
 type Props = {
-  image: {
-    uri?: string;
-    width?: number;
-    height?: number;
-  };
+  image?: string;
   name?: string;
   price?: number;
   currency?: Currency;
   aspectRatio?: number;
+  actions?: Action[];
 };
 
-export function WishCard({ image, name, price, currency, aspectRatio = 1 }: Props) {
-  const opacity = useSharedValue(0);
-
+export function WishCard({ image, name, price, currency, aspectRatio, actions = [] }: Props) {
   const { theme } = useTheme();
 
+  const [computedAspectRatio, setComputedAspectRatio] = useState<number>(aspectRatio ?? 1);
+
+  const opacity = useSharedValue(0);
+
   useEffect(() => {
-    if (image.uri) opacity.value = withTiming(1, { duration: 300 });
+    if (image) {
+      if (!aspectRatio) {
+        Image.getSize(image, (width, height) => {
+          setComputedAspectRatio(Math.min(width / height, 1));
+        });
+      }
+
+      opacity.value = withTiming(1, { duration: 300 });
+    }
   }, [image]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     opacity: opacity.value,
   }));
 
+  useEffect(() => {
+    console.log(computedAspectRatio);
+  }, [computedAspectRatio]);
+
   return (
     <View style={styles.container}>
       <Animated.Image
-        source={{ uri: image.uri }}
-        style={[styles.image, { aspectRatio }, animatedStyle]}
+        source={{ uri: image }}
+        style={[styles.image, { aspectRatio: computedAspectRatio }, animatedStyle]}
         resizeMode={'cover'}
       />
 
@@ -64,7 +73,7 @@ export function WishCard({ image, name, price, currency, aspectRatio = 1 }: Prop
       </MaskedView>
 
       <View style={styles.actionButton}>
-        <ActionButton actions={[{ label: 'Поделиться', onPress: () => console.log('Поделиться') }]} />
+        <ActionButton actions={actions} />
       </View>
     </View>
   );

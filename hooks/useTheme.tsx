@@ -1,4 +1,4 @@
-import React, { createContext, useContext, ReactNode, useState, useEffect, useMemo } from 'react';
+import { createContext, useContext, ReactNode, useState, useEffect, useMemo } from 'react';
 import { Appearance } from 'react-native';
 import { Themes, Colors, Theme, ThemeType } from '@/constants/themes';
 import { apiFetchData } from '@/lib/api';
@@ -14,8 +14,6 @@ export const serverThemeToClient = (serverTheme: ServerThemeType): ThemeType | '
       return 'dark';
     case 'TYPE_SYSTEM':
       return 'system';
-    default:
-      throw new Error(`Unknown ServerThemeType: ${serverTheme}`);
   }
 };
 
@@ -27,16 +25,15 @@ export const clientThemeToServer = (theme: ThemeType | 'system'): ServerThemeTyp
       return 'TYPE_DARK';
     case 'system':
       return 'TYPE_SYSTEM';
-    default:
-      throw new Error(`Unknown ThemeType: ${theme}`);
   }
 };
 
 const ThemeContext = createContext<{
   theme: Theme;
   themeType: ThemeType | 'system';
-  changeTheme: (type: ThemeType | 'system') => void;
-  updateCustomColors: (primary: string, secondary: string) => void;
+  systemThemeType: ThemeType;
+  changeTheme: (type: ThemeType | 'system') => Promise<void>;
+  updateCustomColors: (primary: string, secondary: string) => Promise<void>;
 } | null>(null);
 
 export const ThemeProvider = ({ children }: { children: ReactNode }) => {
@@ -49,6 +46,16 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
     secondary: Colors.orange,
   });
 
+  useEffect(() => {
+    const subscription = Appearance.addChangeListener(({ colorScheme }) => {
+      setSystemThemeType(colorScheme || 'light');
+    });
+
+    initThemeType();
+
+    return () => subscription.remove();
+  }, []);
+
   const initThemeType = async () => {
     if (isAuth()) {
       const { themeType: storedThemeType } = await apiFetchData<SettingsData>({
@@ -59,16 +66,6 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
       if (storedThemeType) setThemeType(serverThemeToClient(storedThemeType));
     }
   };
-
-  useEffect(() => {
-    const subscription = Appearance.addChangeListener(({ colorScheme }) => {
-      setSystemThemeType(colorScheme || 'light');
-    });
-
-    initThemeType();
-
-    return () => subscription.remove();
-  }, []);
 
   const theme: Theme = useMemo(
     () => ({
@@ -88,12 +85,18 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
     });
   };
 
-  const updateCustomColors = (primary: string, secondary: string) => {
+  const updateCustomColors = async (primary: string, secondary: string) => {
     setCustomColors({ primary, secondary });
+    await apiFetchData({
+      endpoint: API.settings.updateColors,
+      method: 'PUT',
+      body: { email: user.email, newPrimaryColor: primary, newSecondaryColor: secondary },
+      token: user.token,
+    });
   };
 
   return (
-    <ThemeContext.Provider value={{ theme, themeType, changeTheme, updateCustomColors }}>
+    <ThemeContext.Provider value={{ theme, themeType, systemThemeType, changeTheme, updateCustomColors }}>
       {children}
     </ThemeContext.Provider>
   );

@@ -1,7 +1,7 @@
 import { StyleSheet, View } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { TextInput } from '@/components/TextInput';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { Colors } from '@/constants/themes';
 import { Link, router, useLocalSearchParams } from 'expo-router';

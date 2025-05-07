@@ -1,8 +1,7 @@
-import React from 'react';
 import { StyleProp, StyleSheet, TouchableOpacity, ViewStyle } from 'react-native';
 import { useActionSheet } from '@expo/react-native-action-sheet';
-import { Colors } from '@/constants/themes';
 import { Icon } from '@/components/Icon';
+import { useTheme } from '@/hooks/useTheme';
 
 export type Action = {
   label: string;
@@ -18,6 +17,7 @@ type Props = {
 
 export function ActionButton({ actions, size = 50, pressOpacity = 0.9, style }: Props) {
   const { showActionSheetWithOptions } = useActionSheet();
+  const { theme } = useTheme();
 
   const handleActions = () => {
     const options = actions.map((action) => action.label);
@@ -42,7 +42,7 @@ export function ActionButton({ actions, size = 50, pressOpacity = 0.9, style }: 
 
   return (
     <TouchableOpacity
-      style={[styles.button, style, { width: size, height: size, borderRadius: size / 2 }]}
+      style={[styles.button, { width: size, height: size, backgroundColor: theme.button }, style]}
       onPress={handleActions}
       activeOpacity={pressOpacity}
     >
@@ -53,8 +53,8 @@ export function ActionButton({ actions, size = 50, pressOpacity = 0.9, style }: 
 
 const styles = StyleSheet.create({
   button: {
-    backgroundColor: Colors.black,
     justifyContent: 'center',
     alignItems: 'center',
+    borderRadius: '100%',
   },
 });

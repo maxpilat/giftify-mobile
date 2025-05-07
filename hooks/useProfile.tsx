@@ -1,11 +1,27 @@
-import React, { createContext, useContext, ReactNode, useState, Dispatch, SetStateAction } from 'react';
+import {
+  createContext,
+  useContext,
+  ReactNode,
+  useState,
+  Dispatch,
+  SetStateAction,
+  useEffect,
+  useCallback,
+  useMemo,
+} from 'react';
 import { API } from '@/constants/api';
-import { Booking, FriendRequest, Wish, WishList } from '@/models';
+import { Booking, FriendRequest, ProfileBackground, Wish, WishList } from '@/models';
 import { useAuth } from '../hooks/useAuth';
 import { apiFetchData, apiFetchImage } from '@/lib/api';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { base64ToBinaryArray, uriToBase64 } from '@/utils/convertImage';
+import { getDefaultBackground, loadDefaultBackgrounds } from '@/utils/profileBackground';
+import { useTheme } from '@/hooks/useTheme';
 
 const ProfileContext = createContext<{
   avatar?: string;
+  allBackgrounds: ProfileBackground[];
+  background: ProfileBackground;
   bookings: Booking[];
   friendRequests: FriendRequest[];
   wishes: Wish[];
@@ -21,116 +37,251 @@ const ProfileContext = createContext<{
   setIsLoaded: Dispatch<SetStateAction<boolean>>;
   isFriend: (friendId: number) => boolean;
   isReceiver: (friendId: number) => boolean;
+  fetchBackground: () => Promise<ProfileBackground>;
+  fetchAllBackgrounds: () => Promise<ProfileBackground[]>;
+  addBackgroundImage: (backgroundUri: string) => Promise<ProfileBackground>;
+  changeBackground: (background: ProfileBackground) => Promise<void>;
 } | null>(null);
 
 export const ProfileProvider = ({ children }: { children: ReactNode }) => {
+  const { themeType, systemThemeType } = useTheme();
+  const themeTypeValue = themeType === 'system' ? systemThemeType : themeType;
+
   const { user } = useAuth();
+
   const [avatar, setAvatar] = useState<string>();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [friendRequests, setFriendRequests] = useState<FriendRequest[]>([]);
   const [wishes, setWishes] = useState<Wish[]>([]);
   const [wishLists, setWishLists] = useState<WishList[]>([]);
   const [piggyBanks, setPiggyBanks] = useState<Wish[]>([]);
+  const [defaultBackgrounds, setDefaultBackgrounds] = useState<ProfileBackground[]>([]);
+  const [allBackgrounds, setAllBackgrounds] = useState<ProfileBackground[]>([]);
+  const [background, setBackground] = useState<ProfileBackground>(getDefaultBackground(themeTypeValue));
   const [isLoaded, setIsLoaded] = useState<boolean>(false);
 
-  const fetchAvatar = async () => {
-    const image = await apiFetchImage({
-      endpoint: API.profile.getAvatar(user.userId),
-      token: user.token,
-    });
+  useEffect(() => {
+    loadDefaultBackgrounds().then(setDefaultBackgrounds);
+  }, []);
+
+  useEffect(() => {
+    if (background.backgroundId === 0) {
+      setBackground(getDefaultBackground(themeTypeValue));
+    }
+  }, [themeTypeValue]);
+
+  const fetchAvatar = useCallback(async () => {
+    const image = await apiFetchImage({ endpoint: API.profile.getAvatar(user.userId), token: user.token });
     setAvatar(image);
     return image;
-  };
+  }, [user]);
 
-  const fetchBookings = async () => {
+  const fetchBookings = useCallback(async () => {
     const bookings = await apiFetchData<Booking[]>({
       endpoint: API.profile.getBookings(user.userId),
       token: user.token,
     });
     setBookings(bookings);
-    return bookings;
-  };
 
-  const fetchFriendRequests = async () => {
+    await Promise.all(
+      bookings.map(async (booking) => {
+        const image = await apiFetchImage({
+          endpoint: API.wishes.getImage(booking.wish.wishId),
+          token: user.token,
+        });
+        setBookings((prev) =>
+          prev.map((prevBooking) =>
+            prevBooking.wish.wishId === booking.wish.wishId
+              ? { ...prevBooking, wish: { ...prevBooking.wish, image } }
+              : prevBooking
+          )
+        );
+      })
+    );
+
+    return bookings;
+  }, [user]);
+
+  const fetchFriendRequests = useCallback(async () => {
     const friendRequests = await apiFetchData<FriendRequest[]>({
       endpoint: API.friends.getFriendRequests(user.userId),
       token: user.token,
     });
-    console.log(friendRequests);
+
     setFriendRequests(friendRequests);
     return friendRequests;
-  };
+  }, [user]);
 
-  const fetchWishes = async () => {
-    const wishes = await apiFetchData<Wish[]>({ endpoint: API.profile.getWishes(user.userId), token: user.token });
+  const fetchWishes = useCallback(async () => {
+    const wishes = await apiFetchData<Wish[]>({
+      endpoint: API.profile.getWishes(user.userId),
+      token: user.token,
+    });
+
     setWishes(wishes);
-    return wishes;
-  };
 
-  const fetchWishLists = async () => {
+    await Promise.all(
+      wishes.map(async (wish) => {
+        const image = await apiFetchImage({
+          endpoint: API.wishes.getImage(wish.wishId),
+          token: user.token,
+        });
+        setWishes((prev) =>
+          prev.map((prevWish) => (prevWish.wishId === wish.wishId ? { ...prevWish, image } : prevWish))
+        );
+      })
+    );
+
+    return wishes;
+  }, [user]);
+
+  const fetchWishLists = useCallback(async () => {
     const wishLists = await apiFetchData<WishList[]>({
       endpoint: API.profile.getWishLists(user.userId),
       token: user.token,
     });
+
     setWishLists(wishLists);
     return wishLists;
-  };
+  }, [user]);
 
-  const fetchPiggyBanks = async () => {
+  const fetchPiggyBanks = useCallback(async () => {
     const piggyBanks = await apiFetchData<Wish[]>({
       endpoint: API.profile.getPiggyBanks(user.userId),
       token: user.token,
     });
+
     setPiggyBanks(piggyBanks);
+
+    await Promise.all(
+      piggyBanks.map(async (piggyBank) => {
+        const image = await apiFetchImage({
+          endpoint: API.wishes.getImage(piggyBank.wishId),
+          token: user.token,
+        });
+
+        setPiggyBanks((prev) =>
+          prev.map((prevPiggyBank) =>
+            prevPiggyBank.wishId === piggyBank.wishId ? { ...prevPiggyBank, image } : prevPiggyBank
+          )
+        );
+      })
+    );
+
     return piggyBanks;
-  };
+  }, [user]);
 
-  const isFriend = (friendId: number) => {
-    return friendRequests.find(
-      (request) =>
-        (request.userOneId === friendId || request.userTwoId === friendId) &&
-        request.isUserOneAccept &&
-        request.isUserTwoAccept
-    )
-      ? true
-      : false;
-  };
-
-  const isReceiver = (friendId: number) => {
-    // console.log(friendRequests);
-    return friendRequests.find(
-      (request) =>
-        (request.userOneId === friendId && !request.isUserOneAccept && request.isUserTwoAccept) ||
-        (request.userTwoId === friendId && !request.isUserTwoAccept && request.isUserOneAccept)
-    )
-      ? true
-      : false;
-  };
-
-  return (
-    <ProfileContext.Provider
-      value={{
-        avatar,
-        bookings,
-        friendRequests,
-        wishes,
-        wishLists,
-        piggyBanks,
-        isLoaded,
-        fetchAvatar,
-        fetchBookings,
-        fetchFriendRequests,
-        fetchWishes,
-        fetchWishLists,
-        fetchPiggyBanks,
-        setIsLoaded,
-        isFriend,
-        isReceiver,
-      }}
-    >
-      {children}
-    </ProfileContext.Provider>
+  const isFriend = useCallback(
+    (friendId: number) => {
+      return friendRequests.some(
+        (request) =>
+          (request.userOneId === friendId || request.userTwoId === friendId) &&
+          request.isUserOneAccept &&
+          request.isUserTwoAccept
+      );
+    },
+    [friendRequests]
   );
+
+  const isReceiver = useCallback(
+    (friendId: number) => {
+      return friendRequests.some(
+        (request) =>
+          (request.userOneId === friendId && !request.isUserOneAccept && request.isUserTwoAccept) ||
+          (request.userTwoId === friendId && !request.isUserTwoAccept && request.isUserOneAccept)
+      );
+    },
+    [friendRequests]
+  );
+
+  const fetchBackground = useCallback(async () => {
+    const storedBackground = await AsyncStorage.getItem('currentBackground');
+    const targetBackground: ProfileBackground = storedBackground ? JSON.parse(storedBackground) : background;
+
+    setBackground(targetBackground);
+    return targetBackground;
+  }, [background]);
+
+  const changeBackground = useCallback(
+    async (background: ProfileBackground) => {
+      setBackground(background);
+
+      await AsyncStorage.setItem('currentBackground', JSON.stringify(background));
+
+      await apiFetchData({
+        endpoint: API.settings.updateBackground,
+        method: 'PUT',
+        body: {
+          email: user.email,
+          backgroundType: background.backgroundType,
+          backgroundColor: background.backgroundColor,
+          backgroundImage: background.backgroundUri
+            ? base64ToBinaryArray(await uriToBase64(background.backgroundUri))
+            : undefined,
+        },
+        token: user.token,
+      });
+    },
+    [user]
+  );
+
+  const fetchAllBackgrounds = useCallback(async () => {
+    const storedBackgrounds = await AsyncStorage.getItem('backgrounds');
+    const parsedBackgrounds = storedBackgrounds ? JSON.parse(storedBackgrounds) : [];
+
+    const newBackgrounds: ProfileBackground[] = [...defaultBackgrounds, ...parsedBackgrounds];
+
+    setAllBackgrounds(newBackgrounds);
+    return newBackgrounds;
+  }, [defaultBackgrounds]);
+
+  const addBackgroundImage = useCallback(
+    async (backgroundUri: string) => {
+      const newBackground: ProfileBackground = {
+        backgroundType: 'TYPE_IMAGE',
+        backgroundId: allBackgrounds.length + 1,
+        backgroundUri,
+      };
+
+      setAllBackgrounds((prev) => [...prev, newBackground]);
+
+      const storedBackgrounds = [...allBackgrounds.slice(4), newBackground];
+      await AsyncStorage.setItem('backgrounds', JSON.stringify(storedBackgrounds));
+
+      return newBackground;
+    },
+    [allBackgrounds]
+  );
+
+  const providerValue = useMemo(
+    () => ({
+      avatar,
+      allBackgrounds,
+      background,
+      bookings,
+      friendRequests,
+      wishes,
+      wishLists,
+      piggyBanks,
+      isLoaded,
+      fetchAvatar,
+      fetchBackground,
+      fetchAllBackgrounds,
+      addBackgroundImage,
+      changeBackground,
+      fetchBookings,
+      fetchFriendRequests,
+      fetchWishes,
+      fetchWishLists,
+      fetchPiggyBanks,
+      setIsLoaded,
+      isFriend,
+      isReceiver,
+    }),
+    [avatar, allBackgrounds, background, bookings, friendRequests, wishes, wishLists, piggyBanks, isLoaded]
+  );
+
+  return <ProfileContext.Provider value={providerValue}>{children}</ProfileContext.Provider>;
 };
 
 export const useProfile = () => {

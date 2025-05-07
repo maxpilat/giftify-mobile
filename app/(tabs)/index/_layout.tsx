@@ -4,6 +4,7 @@ import { router, Stack } from 'expo-router';
 import { TouchableOpacity } from 'react-native';
 import type { NativeStackNavigationOptions } from '@react-navigation/native-stack';
 import { ProfileProvider } from '@/hooks/useProfile';
+import { BackButton } from '@/components/BackButton';
 
 export default function IndexLayout() {
   const { theme } = useTheme();
@@ -19,7 +20,7 @@ export default function IndexLayout() {
     },
     headerTitle: () => <ThemedText>{title}</ThemedText>,
     headerLeft: () => (
-      <TouchableOpacity onPress={() => router.back()}>
+      <TouchableOpacity onPress={router.back}>
         <ThemedText style={{ color: theme.primary }}>Отмена</ThemedText>
       </TouchableOpacity>
     ),
@@ -30,31 +31,35 @@ export default function IndexLayout() {
     ),
   });
 
+  const getProfileOptions = (): NativeStackNavigationOptions => ({
+    headerTransparent: true,
+    title: '',
+    headerLeft: () => router.canGoBack() && <BackButton />,
+  });
+
   return (
-    <ProfileProvider>
-      <Stack>
-        <Stack.Screen name="index" options={{ title: '', headerShown: false }} />
-        <Stack.Screen name="wishes" options={{ title: 'Желания', headerBackTitle: 'Назад' }} />
-        <Stack.Screen name="piggyBanks" options={{ title: 'Копилки', headerBackTitle: 'Назад' }} />
-        <Stack.Screen
-          name="wishModal"
-          options={({ route }) =>
-            getModalOptions((route.params as { wishId?: string })?.wishId ? 'Редактирование' : 'Новое желание')
-          }
-        />
-        <Stack.Screen
-          name="wishListModal"
-          options={({ route }) =>
-            getModalOptions((route.params as { wishListId?: string })?.wishListId ? 'Редактирование' : 'Новый список')
-          }
-        />
-        <Stack.Screen
-          name="piggyBankModal"
-          options={({ route }) =>
-            getModalOptions((route.params as { wishListId?: string })?.wishListId ? 'Редактирование' : 'Новая копилка')
-          }
-        />
-      </Stack>
-    </ProfileProvider>
+    <Stack>
+      <Stack.Screen name="index" options={getProfileOptions()} />
+      <Stack.Screen name="wishes" options={{ title: 'Желания', headerLeft: BackButton }} />
+      <Stack.Screen name="piggyBanks" options={{ title: 'Копилки', headerLeft: BackButton }} />
+      <Stack.Screen
+        name="wishModal"
+        options={({ route }) =>
+          getModalOptions((route.params as { wishId?: string })?.wishId ? 'Редактирование' : 'Новое желание')
+        }
+      />
+      <Stack.Screen
+        name="wishListModal"
+        options={({ route }) =>
+          getModalOptions((route.params as { wishListId?: string })?.wishListId ? 'Редактирование' : 'Новый список')
+        }
+      />
+      <Stack.Screen
+        name="piggyBankModal"
+        options={({ route }) =>
+          getModalOptions((route.params as { wishListId?: string })?.wishListId ? 'Редактирование' : 'Новая копилка')
+        }
+      />
+    </Stack>
   );
 }

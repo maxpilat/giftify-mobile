@@ -9,7 +9,7 @@ import {
   Alert,
   RefreshControl,
 } from 'react-native';
-import React, { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Gender, SettingsData } from '@/models';
 import { TextInput } from '@/components/TextInput';
 import { useTheme } from '@/hooks/useTheme';
@@ -93,7 +93,6 @@ export default function SettingsScreen() {
   };
 
   const handleUsernameChange = (value: string) => {
-    console.log(value);
     setUsername(value);
     apiFetchData({
       endpoint: API.settings.updateUsername,
@@ -274,14 +273,20 @@ export default function SettingsScreen() {
                 <Icon name="right" color={theme.primary} />
               </TouchableOpacity>
               <View style={styles.divider} />
-              <TouchableOpacity style={styles.actionsSectionRow} onPress={() => router.push('/settings/changeEmail')}>
+              <TouchableOpacity
+                style={styles.actionsSectionRow}
+                onPress={() => router.push('/settings/pickCustomColors')}
+              >
                 <ThemedText type="bodyLarge" style={{ color: theme.primary }}>
                   Изменить цвета
                 </ThemedText>
                 <Icon name="right" color={theme.primary} />
               </TouchableOpacity>
               <View style={styles.divider} />
-              <TouchableOpacity style={styles.actionsSectionRow} onPress={() => router.push('/settings/changeEmail')}>
+              <TouchableOpacity
+                style={styles.actionsSectionRow}
+                onPress={() => router.push('/settings/changeProfileBackground')}
+              >
                 <ThemedText type="bodyLarge" style={{ color: theme.primary }}>
                   Изменить фон профиля
                 </ThemedText>
@@ -337,7 +342,7 @@ const styles = StyleSheet.create({
   avatar: {
     width: 110,
     height: 110,
-    borderRadius: 55,
+    borderRadius: '100%',
   },
   fullnameContainer: {
     flex: 1,

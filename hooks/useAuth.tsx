@@ -1,4 +1,4 @@
-import React, { createContext, useContext, ReactNode, useState, useEffect } from 'react';
+import { createContext, useContext, ReactNode, useState } from 'react';
 import * as SecureStore from 'expo-secure-store';
 import { API } from '@/constants/api';
 import { AuthData } from '@/models';
@@ -24,10 +24,6 @@ const AuthContext = createContext<{
 
 export const AuthProvider = ({ children, initialUser }: { children: ReactNode; initialUser?: AuthData }) => {
   const [user, setUser] = useState<AuthData | null>(initialUser || null);
-
-  // useEffect(() => {
-  //   signOut();
-  // }, []);
 
   const signUp = async (userData: {
     name: string;

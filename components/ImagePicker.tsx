@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { StyleSheet, View, Image, Pressable } from 'react-native';
 import { launchImageLibraryAsync } from 'expo-image-picker';
-import { EncodingType, readAsStringAsync } from 'expo-file-system';
 import { useTheme } from '@/hooks/useTheme';
 import { Icon } from '@/components/Icon';
 import { ThemedText } from '@/components/ThemedText';
@@ -14,10 +13,14 @@ type Props = {
   initialImage?: string;
 };
 
-export function ImagePicker({ onImagePicked, valid, initialImage }: Props) {
+export function ImagePicker({ initialImage, valid, onImagePicked }: Props) {
   const { theme } = useTheme();
 
   const [image, setImage] = useState(initialImage);
+
+  useEffect(() => {
+    setImage(initialImage);
+  }, [initialImage]);
 
   const pickImage = async () => {
     const result = await launchImageLibraryAsync({

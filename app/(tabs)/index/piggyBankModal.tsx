@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { ImagePicker } from '@/components/ImagePicker';
 import { TextInput } from '@/components/TextInput';
-import { Currency } from '@/models';
+import { Currency, WishType } from '@/models';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { API } from '@/constants/api';
 import { useAuth } from '@/hooks/useAuth';
@@ -62,12 +62,13 @@ export default function WishModalScreen() {
 
     if (isValid()) {
       const payload = {
-        wishType: 'TYPE_PIGGY_BANK',
+        wisherId: user.userId,
+        wishType: 'TYPE_PIGGY_BANK' as WishType,
         name,
         description,
         deposit: +deposit,
         price: +price,
-        currency,
+        currencyId: currency?.currencyId,
       };
 
       const buffer = base64ToBinaryArray(image!);

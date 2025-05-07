@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { View, StyleSheet, Pressable, ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
 import { ParallaxScrollView } from '@/components/ParallaxScrollView';
 import { ProfileHeader } from '@/components/ProfileHeader';
@@ -11,13 +11,15 @@ import { Link, router, useLocalSearchParams } from 'expo-router';
 import { useTheme } from '@/hooks/useTheme';
 import Animated, { runOnJS, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { ThemedText } from '@/components/ThemedText';
-import { Booking, Friend, Profile, Wish, WishList } from '@/models';
+import { Booking, Friend, Profile, ProfileBackground, ServerProfileBackground, Wish, WishList } from '@/models';
 import { API } from '@/constants/api';
 import { Colors } from '@/constants/themes';
 import { ProgressBar } from '@/components/ProgressBar';
 import { apiFetchData, apiFetchImage } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
+import { Action } from '@/components/ActionsButton';
+import { binaryArrayToBase64 } from '@/utils/convertImage';
 
 type SearchParams = {
   userId?: string;
@@ -28,12 +30,14 @@ export default function ProfileScreen() {
   const { user: authUser } = useAuth();
   const {
     avatar: myAvatar,
+    background: myBackground,
     bookings: myBookings,
     wishes: myWishes,
     wishLists: myWishLists,
     piggyBanks: myPiggyBanks,
     isLoaded: isProfileLoaded,
     fetchAvatar: fetchMyAvatar,
+    fetchBackground: fetchMyBackground,
     fetchBookings: fetchMyBookings,
     fetchWishes: fetchMyWishes,
     fetchWishLists: fetchMyWishLists,
@@ -53,8 +57,10 @@ export default function ProfileScreen() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [profile, setProfile] = useState<Profile>();
   const [avatar, setAvatar] = useState<string>();
-  const [background, setBackground] = useState<string>();
+  const [background, setBackground] = useState<ProfileBackground>();
   const [friends, setFriends] = useState<Friend[]>([]);
+
+  const scrollRef = useRef<ScrollView>(null);
 
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -74,76 +80,45 @@ export default function ProfileScreen() {
     transform: [{ scale: addItemButtonOpacity.value }],
   }));
 
+  const isCurrentUser = +userId === authUser.userId;
+
   useEffect(() => {
-    if (+userId === authUser.userId && isProfileLoaded) {
+    if (isCurrentUser && isProfileLoaded) {
       setAvatar(myAvatar);
+      setBackground(myBackground);
       setBookings(myBookings);
       setWishes(myWishes);
       setWishLists(myWishLists);
       setPiggyBanks(myPiggyBanks);
     }
-  }, [myAvatar, myBookings, myWishes, myWishLists, myPiggyBanks]);
+  }, [myAvatar, myBackground, myBookings, myWishes, myWishLists, myPiggyBanks]);
 
   const fetchData = async () => {
-    const promises = [];
+    const promises: Promise<any>[] = [];
 
-    if (+userId === authUser.userId && !isProfileLoaded) {
-      const avatarPromise = fetchMyAvatar().then(setAvatar);
+    if (isCurrentUser) {
+      fetchMyAvatar();
+      fetchMyBackground();
+      const bookingsPromise = fetchMyBookings();
+      const wishesPromise = fetchMyWishes();
+      const wishListsPromise = fetchMyWishLists();
+      const piggyBanksPromise = fetchMyPiggyBanks();
 
-      const bookingsPromise = fetchMyBookings().then((data) => {
-        setBookings(data);
-        data.forEach(async (booking) => {
-          const image = await apiFetchImage({
-            endpoint: API.wishes.getImage(booking.wish.wishId),
-            token: authUser.token,
-          });
-          setBookings((prev) =>
-            prev.map((prevBooking) =>
-              prevBooking.wish.wishId === booking.wish.wishId
-                ? { ...prevBooking, wish: { ...prevBooking.wish, image } }
-                : prevBooking
-            )
-          );
-        });
-      });
-
-      const wishesPromise = fetchMyWishes().then((data) => {
-        setWishes(data);
-        data.forEach(async (wish) => {
-          const image = await apiFetchImage({
-            endpoint: API.wishes.getImage(wish.wishId),
-            token: authUser.token,
-          });
-          setWishes((prev) =>
-            prev.map((prevWish) => (prevWish.wishId === wish.wishId ? { ...prevWish, image } : prevWish))
-          );
-        });
-      });
-
-      const wishListsPromise = fetchMyWishLists().then(setWishLists);
-
-      const piggyBanksPromise = fetchMyPiggyBanks().then((data) => {
-        setPiggyBanks(data);
-        data.forEach(async (piggyBank) => {
-          const image = await apiFetchImage({
-            endpoint: API.wishes.getImage(piggyBank.wishId),
-            token: authUser.token,
-          });
-          setPiggyBanks((prev) =>
-            prev.map((prevPiggyBank) =>
-              prevPiggyBank.wishId === piggyBank.wishId ? { ...prevPiggyBank, image } : prevPiggyBank
-            )
-          );
-        });
-      });
-
-      promises.push(avatarPromise, bookingsPromise, wishesPromise, wishListsPromise, piggyBanksPromise);
-      setIsProfileLoaded(true);
+      promises.push(bookingsPromise, wishesPromise, wishListsPromise, piggyBanksPromise);
     } else {
-      const avatarPromise = apiFetchImage({
+      apiFetchImage({
         endpoint: API.profile.getAvatar(+userId),
         token: authUser.token,
       }).then(setAvatar);
+
+      apiFetchData<ServerProfileBackground>({
+        endpoint: API.profile.getBackground(+userId),
+        token: authUser.token,
+      }).then((data) => {
+        const backgroundUri = data.backgroundImage ? binaryArrayToBase64(data.backgroundImage) : undefined;
+        const background: ProfileBackground = { ...data, backgroundUri };
+        setBackground(background);
+      });
 
       const bookingsPromise = apiFetchData<Booking[]>({
         endpoint: API.profile.getBookings(+userId),
@@ -204,19 +179,15 @@ export default function ProfileScreen() {
         });
       });
 
-      promises.push(avatarPromise, bookingsPromise, wishesPromise, wishListsPromise, piggyBanksPromise);
-      setIsProfileLoaded(true);
+      promises.push(bookingsPromise, wishesPromise, wishListsPromise, piggyBanksPromise);
     }
+
+    Promise.all(promises).then(() => setIsProfileLoaded(true));
 
     const profilePromise = apiFetchData<Profile>({
       endpoint: API.profile.getProfile(+userId),
       token: authUser.token,
     }).then(setProfile);
-
-    const backgroundPromise = apiFetchImage({
-      endpoint: API.profile.getBackground(+userId),
-      token: authUser.token,
-    }).then(setBackground);
 
     const friendsPromise = apiFetchData<Friend[]>({
       endpoint: API.friends.getFriends(+userId),
@@ -234,7 +205,7 @@ export default function ProfileScreen() {
       });
     });
 
-    promises.push(profilePromise, backgroundPromise, friendsPromise);
+    promises.push(profilePromise, friendsPromise);
     await Promise.all(promises);
   };
 
@@ -269,15 +240,61 @@ export default function ProfileScreen() {
     : wishes;
 
   const shareWishList = () => {
-    console.log('Поделиться');
+    console.log('Поделиться вишлистом');
   };
 
-  const editWishList = () => {
-    console.log('Редактировать');
+  const editWishList = (wishListId: number) => {
+    router.push({ pathname: './wishListModal', params: { wishListId } });
   };
 
-  const deleteWishList = () => {
-    console.log('Удалить');
+  const deleteWishList = (wishListId: number) => {
+    apiFetchData({ endpoint: API.wishLists.delete(wishListId), method: 'DELETE', token: authUser.token })
+      .then(fetchMyWishLists)
+      .then(() => {
+        setCurrentWishListId(null);
+        scrollRef.current?.scrollTo({ x: 0, animated: true });
+      });
+  };
+
+  const shareWish = () => {
+    console.log('Поделиться желанием');
+  };
+
+  const editWish = (wishId: number) => {
+    router.push({ pathname: './wishModal', params: { wishId } });
+  };
+
+  const deleteWish = (wishId: number) => {
+    apiFetchData({ endpoint: API.wishes.delete(wishId), method: 'DELETE', token: authUser.token }).then(fetchMyWishes);
+  };
+
+  const getBookingAction = (wishId: number): Action => {
+    const booking = myBookings.find((item) => item.wish.wishId === wishId);
+
+    return {
+      label: booking ? 'Снять бронь' : 'Забронировать',
+      onPress: () =>
+        apiFetchData({
+          endpoint: booking ? API.booking.cancel(booking.bookingId) : API.booking.create,
+          method: booking ? 'DELETE' : 'POST',
+          body: booking ? undefined : { wishId, bookerId: authUser.userId },
+          token: authUser.token,
+        }).then(fetchMyBookings),
+    };
+  };
+
+  const sharePiggyBank = () => {
+    console.log('Поделиться копилкой');
+  };
+
+  const editPiggyBank = (piggyBankId: number) => {
+    router.push({ pathname: './piggyBankModal', params: { piggyBankId } });
+  };
+
+  const deletePiggyBank = (piggyBankId: number) => {
+    apiFetchData({ endpoint: API.wishes.delete(piggyBankId), method: 'DELETE', token: authUser.token }).then(
+      fetchMyPiggyBanks
+    );
   };
 
   return (
@@ -291,11 +308,7 @@ export default function ProfileScreen() {
             username={profile?.username}
             friendsAvatars={friends.slice(0, 3).map((friend) => friend.avatar)}
             friendsCount={friends.length}
-            tabs={[
-              'Желания',
-              'Копилки',
-              +userId === authUser.userId ? 'Я дарю' : isFriend(+userId) ? 'Идеи' : '',
-            ].filter(Boolean)}
+            tabs={['Желания', 'Копилки', isCurrentUser ? 'Я дарю' : isFriend(+userId) ? 'Идеи' : ''].filter(Boolean)}
             onTabChange={setCurrentTabIndex}
           />
         }
@@ -306,18 +319,22 @@ export default function ProfileScreen() {
         <ThemedView style={[styles.content, contentAnimatedStyle]}>
           {currentVisibleTabIndex === 0 && (
             <>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categories}>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                ref={scrollRef}
+                contentContainerStyle={styles.categories}
+              >
                 <View style={styles.wishList}>
                   <WishListTab
-                    name="Мои желания"
+                    name={`${isCurrentUser ? 'Мои' : 'Все'} желания`}
                     count={wishes.length}
                     isActive={!currentWishListId}
                     onPress={() => setCurrentWishListId(null)}
-                    enableActions={+userId === authUser.userId ? true : false}
-                    actions={[{ label: 'Поделиться', onPress: shareWishList }]}
+                    actions={isCurrentUser ? [{ label: 'Поделиться', onPress: shareWishList }] : []}
                   />
                 </View>
-                <View style={[styles.wishList, styles.addWishListButton]}>
+                <View style={[styles.wishList, styles.addWishListButton, { backgroundColor: theme.button }]}>
                   <Link asChild href={'./wishListModal'}>
                     <TouchableOpacity activeOpacity={0.7} style={styles.addWishListButtonTouchable}>
                       <Icon name="plus" />
@@ -331,12 +348,15 @@ export default function ProfileScreen() {
                       count={wishList.wishes.length}
                       isActive={currentWishListId === wishList.wishListId}
                       onPress={() => setCurrentWishListId(wishList.wishListId)}
-                      enableActions={+userId === authUser.userId ? true : false}
-                      actions={[
-                        { label: 'Редактировать', onPress: editWishList },
-                        { label: 'Поделиться', onPress: shareWishList },
-                        { label: 'Удалить', onPress: deleteWishList },
-                      ]}
+                      actions={
+                        isCurrentUser
+                          ? [
+                              { label: 'Редактировать', onPress: () => editWishList(wishList.wishListId) },
+                              { label: 'Поделиться', onPress: shareWishList },
+                              { label: 'Удалить', onPress: () => deleteWishList(wishList.wishListId) },
+                            ]
+                          : []
+                      }
                     />
                   </View>
                 ))}
@@ -355,24 +375,36 @@ export default function ProfileScreen() {
                         asChild
                         href={{ pathname: './wishes', params: { wishId: wish.wishId.toString() } }}
                         style={[
-                          styles.masonryItem,
-                          { marginRight: i % 2 === 0 ? 8 : 0, marginLeft: i % 2 !== 0 ? 8 : 0 },
+                          { marginTop: [0, 1].includes(i) ? 0 : 16 },
+                          { [i % 2 === 0 ? 'marginRight' : 'marginLeft']: 8 },
                         ]}
                       >
                         <Pressable>
                           <WishCard
-                            image={{ uri: wishes.find((item) => item.wishId === wish.wishId)?.image }}
+                            image={wishes.find((item) => item.wishId === wish.wishId)?.image}
                             name={wish.name}
                             price={wish.price}
                             currency={wish.currency}
-                            aspectRatio={0.8}
+                            actions={
+                              isCurrentUser
+                                ? [
+                                    { label: 'Редактировать', onPress: () => editWish(wish.wishId) },
+                                    { label: 'Поделиться', onPress: shareWish },
+                                    { label: 'Удалить', onPress: () => deleteWish(wish.wishId) },
+                                  ]
+                                : [
+                                    { label: 'Сохранить к себе', onPress: () => editWish(wish.wishId) },
+                                    isFriend(+userId) ? getBookingAction(wish.wishId) : null,
+                                    { label: 'Поделиться', onPress: shareWish },
+                                  ].filter((action) => !!action)
+                            }
                           />
                         </Pressable>
                       </Link>
                     );
                   }}
                 />
-              ) : +userId === authUser.userId ? (
+              ) : isCurrentUser ? (
                 <View style={styles.noWishesContainer}>
                   <ThemedText style={styles.noWishesMessage} type="bodyLarge">
                     Пока пусто...
@@ -415,7 +447,18 @@ export default function ProfileScreen() {
                           </View>
                         </View>
                         <View style={styles.piggyBankCard}>
-                          <WishCard image={{ uri: piggyBank.image }} />
+                          <WishCard
+                            image={piggyBank.image}
+                            actions={
+                              isCurrentUser
+                                ? [
+                                    { label: 'Редактировать', onPress: () => editPiggyBank(piggyBank.wishId) },
+                                    { label: 'Поделиться', onPress: sharePiggyBank },
+                                    { label: 'Удалить', onPress: () => deletePiggyBank(piggyBank.wishId) },
+                                  ]
+                                : [{ label: 'Поделиться', onPress: sharePiggyBank }]
+                            }
+                          />
                         </View>
                       </View>
                       <ProgressBar
@@ -426,7 +469,7 @@ export default function ProfileScreen() {
                     </Pressable>
                   </Link>
                 ))
-              ) : +userId === authUser.userId ? (
+              ) : isCurrentUser ? (
                 <View style={styles.noWishesContainer}>
                   <ThemedText style={styles.noWishesMessage} type="bodyLarge">
                     Здесь пока только эхо...
@@ -445,7 +488,7 @@ export default function ProfileScreen() {
             </View>
           )}
 
-          {+userId === authUser.userId &&
+          {isCurrentUser &&
             currentVisibleTabIndex === 2 &&
             (bookings.length ? (
               <MasonryList
@@ -459,19 +502,10 @@ export default function ProfileScreen() {
                     <Link
                       asChild
                       href={{ pathname: './wishes', params: { wishId: wish.wishId.toString() } }}
-                      style={[
-                        styles.masonryItem,
-                        { marginRight: i % 2 === 0 ? 8 : 0, marginLeft: i % 2 !== 0 ? 8 : 0 },
-                      ]}
+                      style={[{ [i % 2 === 0 ? 'marginRight' : 'marginLeft']: 8 }]}
                     >
                       <Pressable>
-                        <WishCard
-                          image={{ uri: wish.image }}
-                          name={wish.name}
-                          price={wish.price}
-                          currency={wish.currency}
-                          aspectRatio={0.8}
-                        />
+                        <WishCard image={wish.image} name={wish.name} price={wish.price} currency={wish.currency} />
                       </Pressable>
                     </Link>
                   );
@@ -480,7 +514,7 @@ export default function ProfileScreen() {
             ) : (
               <View style={styles.noWishesContainer}>
                 <ThemedText style={styles.noWishesMessage} type="bodyLarge">
-                  {+userId === authUser.userId
+                  {isCurrentUser
                     ? 'Забронируйте желание друга и оно появится здесь'
                     : 'Мы на грани вдохновения! Ждём, когда ваш друг загадает желания'}
                 </ThemedText>
@@ -517,7 +551,6 @@ const styles = StyleSheet.create({
   addWishListButton: {
     borderRadius: 20,
     overflow: 'hidden',
-    backgroundColor: Colors.black,
   },
   addWishListButtonTouchable: {
     flex: 1,
@@ -539,11 +572,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   list: {
-    marginHorizontal: 16,
-    paddingBottom: 70,
-  },
-  masonryItem: {
-    marginBottom: 24,
+    paddingHorizontal: 16,
+    paddingBottom: 130,
   },
   piggyBankList: {
     gap: 32,

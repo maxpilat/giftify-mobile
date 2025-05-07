@@ -1,7 +1,7 @@
 import { ThemedText } from '@/components/ThemedText';
 import { View, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { useTheme } from '@/hooks/useTheme';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Fragment } from 'react';
 import { useAnimatedStyle, withTiming, useSharedValue, runOnJS } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { PlatformButton } from '@/components/PlatformButton';
@@ -13,7 +13,6 @@ import { apiFetchData, apiFetchImage } from '@/lib/api';
 import { API } from '@/constants/api';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
-import React from 'react';
 import { ThemedView } from '@/components/ThemedView';
 import { FriendCard } from '@/components/FriendCard';
 
@@ -113,10 +112,10 @@ export default function FriendsScreen() {
             </ThemedText>
           ) : (
             visibleFriends.map((friend, index) => (
-              <React.Fragment key={friend.friendId}>
+              <Fragment key={friend.friendId}>
                 <FriendCard friend={friend} />
                 {index !== friends.length - 1 && <View style={styles.divider}></View>}
-              </React.Fragment>
+              </Fragment>
             ))
           )}
         </ThemedView>

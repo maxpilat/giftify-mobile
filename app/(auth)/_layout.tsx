@@ -1,3 +1,4 @@
+import { BackButton } from '@/components/BackButton';
 import { Icon } from '@/components/Icon';
 import { ThemedText } from '@/components/ThemedText';
 import { useTheme } from '@/hooks/useTheme';
@@ -17,12 +18,7 @@ export default function AuthLayout() {
       backgroundColor: theme.background,
     },
     headerTitle: '',
-    headerLeft: () => (
-      <TouchableOpacity onPress={() => router.back()} style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
-        <Icon name="left" size={18} color={theme.primary} />
-        <ThemedText style={{ color: theme.primary }}>Назад</ThemedText>
-      </TouchableOpacity>
-    ),
+    headerLeft: BackButton,
   });
 
   return (

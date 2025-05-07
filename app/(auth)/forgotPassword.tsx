@@ -74,6 +74,7 @@ export default function ForgotPasswordScreen() {
           }}
           keyboardType="email-address"
           inputMode="email"
+          autoCapitalize="none"
         />
         <PlatformButton style={styles.button} onPress={submit}>
           <ThemedText type="bodyLargeMedium" style={styles.buttonText}>

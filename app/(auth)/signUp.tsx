@@ -1,7 +1,7 @@
 import { StyleSheet, View } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { TextInput } from '@/components/TextInput';
-import React, { useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { PlatformButton } from '@/components/PlatformButton';
 import { Colors } from '@/constants/themes';
@@ -128,6 +128,7 @@ export default function SignUpScreen() {
             onChangeText={handleEmailChange}
             keyboardType="email-address"
             inputMode="email"
+            autoCapitalize="none"
           />
           <TextInput
             icon="lock"

@@ -1,7 +1,7 @@
-import { StyleSheet, View } from 'react-native';
+import { Alert, StyleSheet, View } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { TextInput } from '@/components/TextInput';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { PlatformButton } from '@/components/PlatformButton';
 import { Colors } from '@/constants/themes';
@@ -18,10 +18,11 @@ export default function SignInScreen() {
 
   const { signIn } = useAuth();
 
-  const submit = async () => {
+  const submit = () => {
     if (isValid()) {
-      await signIn(email, password);
-      router.replace('../(tabs)');
+      signIn(email, password)
+        .then(() => router.replace('../(tabs)'))
+        .catch(() => Alert.alert('Ошибка авторизации', 'Неверные почта или пароль', [{ text: 'Ок', style: 'cancel' }]));
     }
   };
 
@@ -57,6 +58,7 @@ export default function SignInScreen() {
             }}
             keyboardType="email-address"
             inputMode="email"
+            autoCapitalize="none"
           />
           <View style={styles.passwordContainer}>
             <TextInput

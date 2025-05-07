@@ -1,6 +1,7 @@
 export const Colors = {
   blue: '#0F53FF',
   lightBlue: '#CFDDFF',
+  darkBlue: '#1D2028',
   orange: '#FF740F',
   green: '#0FA002',
   red: '#A02C02',
@@ -17,11 +18,12 @@ export interface Theme {
   text: string;
   subtext: string;
   background: string;
-  tabIconDefault: string;
-  tabIconSelected: string;
+  subBackground: string;
   tabBarBorder: string;
   primary: string;
   secondary: string;
+  button: string;
+  tabBarTint: string;
 }
 
 export const Themes: { light: Theme; dark: Theme } = {
@@ -29,20 +31,22 @@ export const Themes: { light: Theme; dark: Theme } = {
     text: Colors.black,
     subtext: Colors.grey,
     background: Colors.white,
-    tabIconDefault: Colors.black,
-    tabIconSelected: Colors.orange,
+    subBackground: Colors.light,
     tabBarBorder: Colors.light,
     primary: Colors.blue,
     secondary: Colors.orange,
+    button: Colors.black,
+    tabBarTint: Colors.black,
   },
   dark: {
     text: Colors.white,
     subtext: Colors.white,
     background: Colors.black,
-    tabIconDefault: Colors.white,
-    tabIconSelected: Colors.orange,
+    subBackground: Colors.darkBlue,
     tabBarBorder: Colors.dark,
     primary: Colors.blue,
     secondary: Colors.orange,
+    button: Colors.darkBlue,
+    tabBarTint: Colors.grey,
   },
 };

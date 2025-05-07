@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { ImagePicker } from '@/components/ImagePicker';
 import { TextInput } from '@/components/TextInput';
-import { Currency } from '@/models';
+import { Currency, WishType } from '@/models';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { PlatformButton } from '@/components/PlatformButton';
 import { ThemedText } from '@/components/ThemedText';
@@ -28,8 +28,8 @@ type SwitchState = {
 
 export default function WishModalScreen() {
   const { user } = useAuth();
-  const { isSubmit, wishId } = useLocalSearchParams<SearchParams>();
-  const { wishes, wishLists, fetchWishes } = useProfile();
+  const { isSubmit, wishId: wishIdParam } = useLocalSearchParams<SearchParams>();
+  const { wishes, wishLists, fetchWishes, fetchWishLists } = useProfile();
 
   const [image, setImage] = useState<string>();
   const [name, setName] = useState<string>('');
@@ -42,12 +42,7 @@ export default function WishModalScreen() {
     link: false,
     image: false,
   });
-  const [switchStates, setSwitchStates] = useState<SwitchState[]>(
-    wishLists.map((wishList) => ({
-      id: wishList.wishListId,
-      enabled: false,
-    }))
-  );
+  const [switchStates, setSwitchStates] = useState<SwitchState[]>([]);
   const [currencies, setCurrencies] = useState<Currency[]>([]);
 
   useEffect(() => {
@@ -58,8 +53,28 @@ export default function WishModalScreen() {
   }, []);
 
   useEffect(() => {
-    if (wishId) {
-      const wish = wishes.find((wish) => wish.wishId === +wishId)!;
+    setSwitchStates(() =>
+      wishLists.map((wishList) => {
+        if (wishIdParam) {
+          const enabled = Boolean(wishList.wishes.find((wish) => wish.wishId === +wishIdParam));
+
+          return {
+            id: wishList.wishListId,
+            enabled,
+          };
+        }
+
+        return {
+          id: wishList.wishListId,
+          enabled: false,
+        };
+      })
+    );
+  }, [wishLists]);
+
+  useEffect(() => {
+    if (wishIdParam) {
+      const wish = wishes.find((wish) => wish.wishId === +wishIdParam)!;
       setImage(wish.image);
       setName(wish.name);
       setPrice(wish.price ? wish.price.toString() : '0');
@@ -67,7 +82,7 @@ export default function WishModalScreen() {
       setLink(wish.link || '');
       setDescription(wish.description || '');
     }
-  }, [wishId]);
+  }, [wishIdParam]);
 
   useEffect(() => {
     handleSubmit();
@@ -79,38 +94,60 @@ export default function WishModalScreen() {
     if (isValid()) {
       const payload = {
         wisherId: user.userId,
-        wishType: 'TYPE_WISH',
+        wishType: 'TYPE_WISH' as WishType,
         name,
         description,
         price: +price,
-        currency,
+        currencyId: currency?.currencyId,
         link,
       };
 
-      // console.log(payload);
-      // console.log(image?.slice(0, 10));
+      const binaryImage = base64ToBinaryArray(image!);
 
-      const buffer = base64ToBinaryArray(image!);
+      let wishId = wishIdParam ? +wishIdParam : null;
 
       if (wishId) {
-        (payload as any).wishId = +wishId;
+        (payload as any).wishId = wishId;
         await apiFetchData({
           endpoint: API.wishes.update,
           method: 'PUT',
           token: user.token,
-          body: { ...payload, image: buffer },
+          body: { ...payload, image: binaryImage },
         });
       } else {
         (payload as any).wisherId = user.userId;
-        await apiFetchData({
+        wishId = await apiFetchData<number>({
           endpoint: API.wishes.create,
           method: 'POST',
           token: user.token,
-          body: { ...payload, image: buffer },
+          body: { ...payload, image: binaryImage },
         });
       }
 
-      await fetchWishes();
+      await Promise.all(
+        switchStates.map((state) => {
+          if (
+            state.enabled &&
+            !wishLists
+              .find((wishList) => wishList.wishListId === state.id)
+              ?.wishes.find((wish) => wish.wishId === wishId)
+          ) {
+            return apiFetchData({
+              endpoint: API.wishes.addToWishList,
+              method: 'POST',
+              body: { wishId, wishListId: state.id },
+              token: user.token,
+            });
+          } else {
+            // Удалить желание из списка
+
+            return Promise.resolve();
+          }
+        })
+      );
+
+      await Promise.all([fetchWishes(), fetchWishLists()]);
+
       router.back();
     }
 
@@ -200,7 +237,7 @@ export default function WishModalScreen() {
         <PlatformButton
           style={styles.addWishListButton}
           hapticFeedback="none"
-          onPress={() => router.push('./wishListModal')}
+          onPress={() => router.push('../wishListModal')}
         >
           <ThemedText type="bodyLargeMedium" style={styles.addWishListButtonText}>
             Новый список
@@ -226,7 +263,9 @@ export default function WishModalScreen() {
 
 const styles = StyleSheet.create({
   container: {
-    padding: 16,
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 32,
     gap: 32,
   },
   fields: {

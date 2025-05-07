@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { StyleSheet, ImageBackground, View, TouchableOpacity, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ThemedView } from '@/components/ThemedView';
@@ -6,6 +6,7 @@ import { ThemedText } from '@/components/ThemedText';
 import MaskedView from '@react-native-masked-view/masked-view';
 import { SvgXml } from 'react-native-svg';
 import { useTheme } from '@/hooks/useTheme';
+import { ProfileBackground } from '@/models';
 
 const mask = `
   <svg width="280" height="130" viewBox="100 -0.5 280 161" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -15,7 +16,7 @@ const mask = `
 
 type Props = {
   avatar?: string;
-  background?: string;
+  background?: ProfileBackground;
   fullname: string;
   username?: string;
   friendsAvatars?: (string | undefined)[];
@@ -38,11 +39,21 @@ export function ProfileHeader({
 
   const [currentTabIndex, setCurrentTabIndex] = useState(0);
 
+  useEffect(() => {
+    // console.log(background);
+  }, [background]);
+
   return (
     <ImageBackground
-      source={background ? { uri: background } : require('@/assets/images/bg-01.jpeg')}
+      source={background?.backgroundType === 'TYPE_IMAGE' ? { uri: background.backgroundUri } : undefined}
       style={styles.background}
-      imageStyle={[styles.backgroundImage, { backgroundColor: theme.tabBarBorder }]}
+      imageStyle={[
+        styles.backgroundImage,
+        {
+          backgroundColor:
+            background?.backgroundType === 'TYPE_COLOR' ? background.backgroundColor : theme.subBackground,
+        },
+      ]}
     >
       <SafeAreaView edges={['top']}>
         <View style={styles.headerWrapper}>
@@ -121,8 +132,8 @@ const styles = StyleSheet.create({
   },
   headerWrapper: {
     paddingHorizontal: 16,
+    paddingBottom: 16,
     width: '100%',
-    paddingBottom: 20,
   },
   maskedView: {
     zIndex: 1,
@@ -137,7 +148,7 @@ const styles = StyleSheet.create({
   avatar: {
     width: 110,
     height: 110,
-    borderRadius: 55,
+    borderRadius: '100%',
     marginTop: 10,
     marginBottom: -5,
   },
@@ -167,7 +178,7 @@ const styles = StyleSheet.create({
   friendAvatar: {
     width: 30,
     height: 30,
-    borderRadius: 15,
+    borderRadius: '100%',
     borderWidth: 2,
   },
   tabs: {

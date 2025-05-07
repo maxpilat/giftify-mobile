@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { TextInput } from '@/components/TextInput';
@@ -23,7 +23,7 @@ export default function WishListModalScreen() {
 
   useEffect(() => {
     if (wishListId) {
-      const wishList = wishLists.find((wishList) => wishList.wishListId === +wishList)!;
+      const wishList = wishLists.find((wishList) => wishList.wishListId === +wishListId)!;
       setName(wishList.name);
     }
   }, [wishListId]);

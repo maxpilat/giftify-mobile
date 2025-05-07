@@ -1,4 +1,3 @@
-import React from 'react';
 import { View, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { useTheme } from '@/hooks/useTheme';
@@ -19,11 +18,11 @@ type Props = {
 export const FriendCard = ({ friend }: Props) => {
   const { theme } = useTheme();
   const { user } = useAuth();
-  const { friendRequests, fetchFriendRequests, isFriend, isReceiver } = useProfile();
+  const { fetchFriendRequests, isFriend, isReceiver } = useProfile();
 
   const cancelFriendRequest = () => {};
 
-  const sendFriendRequest = (friendId: number) => {
+  const sendFriendRequest = async (friendId: number) => {
     apiFetchData({
       endpoint: API.friends.sendRequest,
       method: 'POST',
@@ -34,7 +33,19 @@ export const FriendCard = ({ friend }: Props) => {
         isUserTwoAccept: false,
       },
       token: user.token,
-    }).then(fetchFriendRequests);
+    });
+
+    apiFetchData({
+      endpoint: API.friends.sendRequest,
+      method: 'POST',
+      body: {
+        userOneId: user.userId,
+        isUserOneAccept: true,
+        userTwoId: friendId,
+        isUserTwoAccept: false,
+      },
+      token: user.token,
+    });
   };
 
   const getFriendButton = (friendId: number) => {
@@ -97,7 +108,7 @@ const styles = StyleSheet.create({
   friendAvatar: {
     width: 70,
     height: 70,
-    borderRadius: 35,
+    borderRadius: '100%',
   },
   friendInfo: {
     flex: 1,
@@ -110,11 +121,11 @@ const styles = StyleSheet.create({
   },
   friendButton: {
     padding: 13,
-    borderRadius: 30,
+    borderRadius: '100%',
   },
   labelDivider: {
     width: 4,
     height: 4,
-    borderRadius: 2,
+    borderRadius: '100%',
   },
 });

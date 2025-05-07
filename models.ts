@@ -84,3 +84,18 @@ export interface SettingsData {
 }
 
 export type ServerThemeType = 'TYPE_LIGHT' | 'TYPE_DARK' | 'TYPE_SYSTEM';
+
+export type BackgroundType = 'TYPE_COLOR' | 'TYPE_IMAGE';
+
+export interface ServerProfileBackground {
+  backgroundType: BackgroundType;
+  backgroundImage?: number[];
+  backgroundColor?: string;
+}
+
+export interface ProfileBackground {
+  backgroundType: BackgroundType;
+  backgroundId?: number;
+  backgroundUri?: string;
+  backgroundColor?: string;
+}
