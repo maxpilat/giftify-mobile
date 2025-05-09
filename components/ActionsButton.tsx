@@ -42,7 +42,11 @@ export function ActionButton({ actions, size = 50, pressOpacity = 0.9, style }: 
 
   return (
     <TouchableOpacity
-      style={[styles.button, { width: size, height: size, backgroundColor: theme.button }, style]}
+      style={[
+        styles.button,
+        { width: size, height: size, borderRadius: size / 2, backgroundColor: theme.button },
+        style,
+      ]}
       onPress={handleActions}
       activeOpacity={pressOpacity}
     >
@@ -55,6 +59,5 @@ const styles = StyleSheet.create({
   button: {
     justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: '100%',
   },
 });

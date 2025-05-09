@@ -148,7 +148,7 @@ const styles = StyleSheet.create({
   avatar: {
     width: 110,
     height: 110,
-    borderRadius: '100%',
+    borderRadius: 55,
     marginTop: 10,
     marginBottom: -5,
   },
@@ -178,7 +178,7 @@ const styles = StyleSheet.create({
   friendAvatar: {
     width: 30,
     height: 30,
-    borderRadius: '100%',
+    borderRadius: 15,
     borderWidth: 2,
   },
   tabs: {

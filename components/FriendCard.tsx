@@ -108,7 +108,7 @@ const styles = StyleSheet.create({
   friendAvatar: {
     width: 70,
     height: 70,
-    borderRadius: '100%',
+    borderRadius: 35,
   },
   friendInfo: {
     flex: 1,
@@ -121,11 +121,11 @@ const styles = StyleSheet.create({
   },
   friendButton: {
     padding: 13,
-    borderRadius: '100%',
+    borderRadius: 25,
   },
   labelDivider: {
     width: 4,
     height: 4,
-    borderRadius: '100%',
+    borderRadius: 2,
   },
 });

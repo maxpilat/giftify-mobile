@@ -69,7 +69,7 @@ export default function ChangeProfileBackground() {
             <Pressable style={styles.background} onPress={() => handleSelectBackground(item)}>
               <Image style={styles.backgroundImage} source={{ uri: item.backgroundUri }} />
               {item.backgroundId === background.backgroundId && (
-                <View style={[styles.acceptIcon, { backgroundColor: Colors.black }]}>
+                <View style={styles.acceptIcon}>
                   <Icon name="accept" color={Colors.white} />
                 </View>
               )}
@@ -131,7 +131,8 @@ const styles = StyleSheet.create({
   },
   acceptIcon: {
     padding: 14,
-    borderRadius: '100%',
+    borderRadius: 26,
     position: 'absolute',
+    backgroundColor: Colors.black,
   },
 });

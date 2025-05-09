@@ -121,13 +121,13 @@ const styles = StyleSheet.create({
   outerCircle: {
     width: 36,
     height: 36,
-    borderRadius: '100%',
+    borderRadius: 18,
     borderWidth: 2,
     justifyContent: 'center',
     alignContent: 'center',
   },
   innerCircle: {
-    borderRadius: '100%',
+    borderRadius: 18,
     flex: 1,
     margin: 2,
   },
