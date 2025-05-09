@@ -20,6 +20,8 @@ export const apiFetchData = async <T = void>({
       headers.Authorization = `Bearer ${token}`;
     }
 
+    console.log(token);
+
     const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}${endpoint}`, {
       method,
       headers,
@@ -27,6 +29,7 @@ export const apiFetchData = async <T = void>({
     });
 
     if (!response.ok) {
+      console.log(response);
       const errorText = await response.text();
       throw new Error(`HTTP Error: ${response.status} - ${errorText}`);
     }

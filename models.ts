@@ -1,5 +1,3 @@
-import { ThemeType } from './constants/themes';
-
 export interface Wish {
   wishId: number;
   wisherId: number;

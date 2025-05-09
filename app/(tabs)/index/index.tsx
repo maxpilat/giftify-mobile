@@ -448,6 +448,7 @@ export default function ProfileScreen() {
                         </View>
                         <View style={styles.piggyBankCard}>
                           <WishCard
+                            aspectRatio={1}
                             image={piggyBank.image}
                             actions={
                               isCurrentUser
