@@ -1,5 +1,6 @@
-import { createContext, useContext, ReactNode, useState } from 'react';
+import { createContext, useContext, ReactNode, useState, useEffect } from 'react';
 import * as SecureStore from 'expo-secure-store';
+import * as Google from 'expo-auth-session/providers/google';
 import { API } from '@/constants/api';
 import { AuthData } from '@/models';
 import { apiFetchData } from '@/lib/api';
@@ -20,10 +21,43 @@ const AuthContext = createContext<{
   resetPassword: (email: string, newPassword: string) => Promise<void>;
   changeEmail: (newEmail: string) => Promise<void>;
   isAuth: () => boolean;
+  handleGoogleAuth: () => Promise<void>;
 } | null>(null);
 
 export const AuthProvider = ({ children, initialUser }: { children: ReactNode; initialUser?: AuthData }) => {
   const [user, setUser] = useState<AuthData | null>(initialUser || null);
+  const [_, googleResponse, startGoogleAuth] = Google.useAuthRequest({
+    clientId: process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID,
+    iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
+  });
+
+  useEffect(() => {
+    const authenticateGoogleUser = async () => {
+      if (googleResponse?.type === 'success' && googleResponse.authentication?.idToken) {
+        const idToken = googleResponse.authentication.idToken;
+
+        const {
+          id: userId,
+          email,
+          token,
+        } = await apiFetchData<{ id: number; email: string; token: string }>({
+          endpoint: API.auth.google,
+          method: 'POST',
+          body: { idToken },
+        });
+
+        const newUser = { userId, email, token };
+        setUser(newUser);
+        await SecureStore.setItemAsync('user', JSON.stringify(newUser));
+      }
+    };
+
+    authenticateGoogleUser();
+  }, [googleResponse]);
+
+  const handleGoogleAuth = async () => {
+    await startGoogleAuth();
+  };
 
   const signUp = async (userData: {
     name: string;
@@ -107,6 +141,7 @@ export const AuthProvider = ({ children, initialUser }: { children: ReactNode; i
         resetPassword,
         changeEmail,
         isAuth,
+        handleGoogleAuth,
       }}
     >
       {children}

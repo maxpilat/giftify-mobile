@@ -5,8 +5,11 @@ import { Colors } from '@/constants/themes';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, View, Text, Image, ImageBackground } from 'react-native';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function StartScreen() {
+  const { handleGoogleAuth } = useAuth();
+
   return (
     <ImageBackground source={require('@/assets/images/bg-01.jpeg')} style={styles.background}>
       <StatusBar style="light" />
@@ -21,7 +24,7 @@ export default function StartScreen() {
                 Продолжить с Apple
               </ThemedText>
             </PlatformButton>
-            <PlatformButton>
+            <PlatformButton onPress={handleGoogleAuth}>
               <Icon name="google" />
               <ThemedText type="bodyLargeMedium" style={styles.buttonText}>
                 Продолжить с Google

@@ -32,9 +32,8 @@ export default function SearchFriendsScreen() {
       setFilteredUsers(
         users.filter(
           (user) =>
-            (user.name.toLowerCase().includes(value.toLowerCase()) ||
-              user.surname.toLowerCase().includes(value.toLowerCase())) &&
-            user.friendId !== authUser.userId
+            user.name.toLowerCase().includes(value.toLowerCase()) ||
+            user.surname.toLowerCase().includes(value.toLowerCase())
         )
       );
     }

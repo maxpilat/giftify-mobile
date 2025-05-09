@@ -139,15 +139,17 @@ export default function WishModalScreen() {
               token: user.token,
             });
           } else {
-            // Удалить желание из списка
-
-            return Promise.resolve();
+            return apiFetchData({
+              endpoint: API.wishes.deleteFromWishList,
+              method: 'DELETE',
+              body: { wishId, wishListId: state.id },
+              token: user.token,
+            });
           }
         })
       );
 
       await Promise.all([fetchWishes(), fetchWishLists()]);
-
       router.back();
     }
 

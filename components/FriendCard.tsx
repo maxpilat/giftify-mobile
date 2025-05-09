@@ -20,9 +20,21 @@ export const FriendCard = ({ friend }: Props) => {
   const { user } = useAuth();
   const { fetchFriendRequests, isFriend, isReceiver } = useProfile();
 
-  const cancelFriendRequest = () => {};
+  const cancelFriendRequest = (friendId: number) => {
+    apiFetchData({
+      endpoint: API.friends.sendRequest,
+      method: 'POST',
+      body: {
+        userOneId: user.userId,
+        isUserOneAccept: false,
+        userTwoId: friendId,
+        isUserTwoAccept: false,
+      },
+      token: user.token,
+    }).then(fetchFriendRequests);
+  };
 
-  const sendFriendRequest = async (friendId: number) => {
+  const sendFriendRequest = (friendId: number) => {
     apiFetchData({
       endpoint: API.friends.sendRequest,
       method: 'POST',
@@ -33,19 +45,7 @@ export const FriendCard = ({ friend }: Props) => {
         isUserTwoAccept: false,
       },
       token: user.token,
-    });
-
-    apiFetchData({
-      endpoint: API.friends.sendRequest,
-      method: 'POST',
-      body: {
-        userOneId: user.userId,
-        isUserOneAccept: true,
-        userTwoId: friendId,
-        isUserTwoAccept: false,
-      },
-      token: user.token,
-    });
+    }).then(fetchFriendRequests);
   };
 
   const getFriendButton = (friendId: number) => {
@@ -54,7 +54,7 @@ export const FriendCard = ({ friend }: Props) => {
       return (
         <TouchableOpacity
           style={[styles.friendButton, { backgroundColor: Colors.lightBlue }]}
-          onPress={cancelFriendRequest}
+          onPress={() => cancelFriendRequest(friendId)}
         >
           <Icon name="accept" color={Colors.blue} />
         </TouchableOpacity>

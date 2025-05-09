@@ -1,0 +1,19 @@
+{
+  "build": {
+    "development": {
+      "distribution": "store",
+      "android": {
+        "buildType": "apk"
+      }
+    },
+    "production": {
+      "distribution": "store",
+      "android": {
+        "buildType": "apk"
+      },
+      "ios": {
+        "enterpriseProvisioning": "adhoc"
+      }
+    }
+  }
+}

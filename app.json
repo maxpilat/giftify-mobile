@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "",
+    "name": "Giftify",
     "slug": "Giftify",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -13,6 +13,7 @@
       "bundleIdentifier": "com.maxpilat.giftify"
     },
     "android": {
+      "package": "com.maxpilat.giftify",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/logo-light.png",
         "backgroundColor": "#ffffff"
@@ -38,6 +39,12 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "deabad7c-00b4-4537-b33c-d35cc015b44a"
+      }
     }
   }
 }

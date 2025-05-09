@@ -17,6 +17,7 @@ export const API = {
     getWish: (wishId: number) => `/api/wish/${wishId}`,
     getImage: (wishId: number) => `/api/wish/${wishId}/img`,
     delete: (wishId: number) => `/api/wish/${wishId}`,
+    deleteFromWishList: '/api/wish/delete-from-wish-list',
   },
   wishLists: {
     create: '/api/wish-list',

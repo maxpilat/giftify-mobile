@@ -24,7 +24,7 @@ export default function FriendsScreen() {
   const { theme } = useTheme();
   const { user: authUser } = useAuth();
   const { userId = authUser.userId } = useLocalSearchParams<SearchParams>();
-  const { friendRequests } = useProfile();
+  const { isSender } = useProfile();
 
   const [currentTabIndex, setCurrentTabIndex] = useState(0);
   const [currentVisibleTabIndex, setCurrentVisibleTabIndex] = useState(0);
@@ -62,16 +62,6 @@ export default function FriendsScreen() {
   useEffect(() => {
     if (userId) fetchData();
   }, [userId]);
-
-  const isSender = (friendId: number) => {
-    return friendRequests.find(
-      (request) =>
-        (request.userOneId === friendId && request.isUserOneAccept && !request.isUserTwoAccept) ||
-        (request.userTwoId === friendId && request.isUserTwoAccept && !request.isUserOneAccept)
-    )
-      ? true
-      : false;
-  };
 
   const visibleFriends = currentVisibleTabIndex === 0 ? friends : friends.filter((friend) => isSender(friend.friendId));
 

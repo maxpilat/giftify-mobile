@@ -36,6 +36,7 @@ const ProfileContext = createContext<{
   fetchPiggyBanks: () => Promise<Wish[]>;
   setIsLoaded: Dispatch<SetStateAction<boolean>>;
   isFriend: (friendId: number) => boolean;
+  isSender: (friendId: number) => boolean;
   isReceiver: (friendId: number) => boolean;
   fetchBackground: () => Promise<ProfileBackground>;
   fetchAllBackgrounds: () => Promise<ProfileBackground[]>;
@@ -183,6 +184,17 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
     [friendRequests]
   );
 
+  const isSender = useCallback(
+    (friendId: number) => {
+      return friendRequests.some(
+        (request) =>
+          (request.userOneId === friendId && request.isUserOneAccept && !request.isUserTwoAccept) ||
+          (request.userTwoId === friendId && request.isUserTwoAccept && !request.isUserOneAccept)
+      );
+    },
+    [friendRequests]
+  );
+
   const isReceiver = useCallback(
     (friendId: number) => {
       return friendRequests.some(
@@ -276,6 +288,7 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
       fetchPiggyBanks,
       setIsLoaded,
       isFriend,
+      isSender,
       isReceiver,
     }),
     [avatar, allBackgrounds, background, bookings, friendRequests, wishes, wishLists, piggyBanks, isLoaded]
