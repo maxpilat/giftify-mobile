@@ -27,8 +27,8 @@ const AuthContext = createContext<{
 export const AuthProvider = ({ children, initialUser }: { children: ReactNode; initialUser?: AuthData }) => {
   const [user, setUser] = useState<AuthData | null>(initialUser || null);
   const [_, googleResponse, startGoogleAuth] = Google.useAuthRequest({
-    clientId: process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID,
     iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
+    androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID,
   });
 
   useEffect(() => {
