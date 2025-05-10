@@ -99,7 +99,7 @@ export const FriendCard = ({ friend }: Props) => {
     <TouchableOpacity
       activeOpacity={0.7}
       style={styles.friend}
-      onPress={() => router.push({ pathname: '/(tabs)/profile/index/[userId]', params: { userId: friend.friendId } })}
+      onPress={() => router.push({ pathname: '/', params: { userId: friend.friendId } })}
     >
       <Image
         style={[styles.friendAvatar, { backgroundColor: theme.tabBarBorder }]}
