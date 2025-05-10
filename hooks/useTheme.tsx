@@ -59,7 +59,7 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
   const initThemeType = async () => {
     if (isAuth()) {
       const { themeType: storedThemeType } = await apiFetchData<SettingsData>({
-        endpoint: API.settings.getSettings(user.userId),
+        endpoint: API.settings.getSettings(user.id),
         token: user.token,
       });
 

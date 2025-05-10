@@ -6,15 +6,15 @@ import { AuthData } from '@/models';
 import { apiFetchData } from '@/lib/api';
 
 const AuthContext = createContext<{
-  user: { userId: number; email: string; token: string };
-  signIn: (email: string, password: string) => Promise<void>;
+  user: AuthData;
+  signIn: (email: string, password: string) => Promise<AuthData>;
   signUp: (userData: {
     name: string;
     surname: string;
     email: string;
     password: string;
     friendEmail?: string;
-  }) => Promise<void>;
+  }) => Promise<AuthData>;
   signOut: () => Promise<void>;
   deactivateAccount: () => Promise<void>;
   changePassword: (oldPassword: string, newPassword: string) => Promise<void>;
@@ -36,17 +36,13 @@ export const AuthProvider = ({ children, initialUser }: { children: ReactNode; i
       if (googleResponse?.type === 'success' && googleResponse.authentication?.idToken) {
         const idToken = googleResponse.authentication.idToken;
 
-        const {
-          id: userId,
-          email,
-          token,
-        } = await apiFetchData<{ id: number; email: string; token: string }>({
+        const { id, email, token } = await apiFetchData<AuthData>({
           endpoint: API.auth.google,
           method: 'POST',
           body: { idToken },
         });
 
-        const newUser = { userId, email, token };
+        const newUser = { id, email, token };
         setUser(newUser);
         await SecureStore.setItemAsync('user', JSON.stringify(newUser));
       }
@@ -66,30 +62,29 @@ export const AuthProvider = ({ children, initialUser }: { children: ReactNode; i
     password: string;
     friendEmail?: string;
   }) => {
-    const { id: userId, token } = await apiFetchData<{ id: number; token: string }>({
+    const newUser = await apiFetchData<AuthData>({
       endpoint: API.auth.signUp,
       method: 'POST',
       body: userData,
     });
 
-    const { password, friendEmail, ...filteredUserData } = userData;
-    const newUser = { ...filteredUserData, userId, token };
-
     setUser(newUser);
     await SecureStore.setItemAsync('user', JSON.stringify(newUser));
+
+    return newUser;
   };
 
   const signIn = async (email: string, password: string) => {
-    const { id: userId, token } = await apiFetchData<{ id: number; token: string }>({
+    const newUser = await apiFetchData<AuthData>({
       endpoint: API.auth.signIn,
       method: 'POST',
       body: { email, password },
     });
 
-    const newUser = { userId, email, token };
-
     setUser(newUser);
     await SecureStore.setItemAsync('user', JSON.stringify(newUser));
+
+    return newUser;
   };
 
   const signOut = async () => {
@@ -98,9 +93,11 @@ export const AuthProvider = ({ children, initialUser }: { children: ReactNode; i
   };
 
   const deactivateAccount = async () => {
-    setUser(null);
-    await apiFetchData({ endpoint: API.auth.deactivateAccount(user?.userId!), method: 'DELETE' });
-    await SecureStore.deleteItemAsync('user');
+    if (user) {
+      setUser(null);
+      await apiFetchData({ endpoint: API.auth.deactivateAccount(user.id), method: 'DELETE' });
+      await SecureStore.deleteItemAsync('user');
+    }
   };
 
   const changePassword = async (oldPassword: string, newPassword: string) => {
@@ -132,7 +129,7 @@ export const AuthProvider = ({ children, initialUser }: { children: ReactNode; i
   return (
     <AuthContext.Provider
       value={{
-        user: { userId: user?.userId!, email: user?.email!, token: user?.token! },
+        user: { id: user?.id!, email: user?.email!, token: user?.token! },
         signIn,
         signUp,
         signOut,

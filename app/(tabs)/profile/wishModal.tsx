@@ -93,7 +93,7 @@ export default function WishModalScreen() {
 
     if (isValid()) {
       const payload = {
-        wisherId: user.userId,
+        wisherId: user.id,
         wishType: 'TYPE_WISH' as WishType,
         name,
         description,
@@ -115,7 +115,7 @@ export default function WishModalScreen() {
           body: { ...payload, image: binaryImage },
         });
       } else {
-        (payload as any).wisherId = user.userId;
+        (payload as any).wisherId = user.id;
         wishId = await apiFetchData<number>({
           endpoint: API.wishes.create,
           method: 'POST',

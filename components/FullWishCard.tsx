@@ -50,13 +50,13 @@ export function FullWishCard({ wish, userId, onLayout }: Props) {
         apiFetchData({
           endpoint: booking ? API.booking.cancel(booking.bookingId) : API.booking.create,
           method: booking ? 'DELETE' : 'POST',
-          body: booking ? undefined : { wishId, bookerId: authUser.userId },
+          body: booking ? undefined : { wishId, bookerId: authUser.id },
           token: authUser.token,
         }).then(fetchMyBookings),
     };
   };
 
-  const isCurrentUser = +userId === authUser.userId;
+  const isCurrentUser = +userId === authUser.id;
 
   return (
     <View

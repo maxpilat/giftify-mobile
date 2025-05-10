@@ -3,7 +3,6 @@ import { ThemedText } from '@/components/ThemedText';
 import { useTheme } from '@/hooks/useTheme';
 import { Friend } from '@/models';
 import { getDaysUntilBirthday } from '@/utils/getDaysUntilBirthday';
-import { formatNewWishes, formatDays } from '@/utils/formatWord';
 import { Icon } from './Icon';
 import { useProfile } from '@/hooks/useProfile';
 import { apiFetchData } from '@/lib/api';
@@ -11,6 +10,7 @@ import { API } from '@/constants/api';
 import { useAuth } from '@/hooks/useAuth';
 import { Colors } from '@/constants/themes';
 import { Link, router } from 'expo-router';
+import { formatCountedPhrase } from '@/utils/formatCountedPhrase';
 
 type Props = {
   friend: Friend;
@@ -26,7 +26,7 @@ export const FriendCard = ({ friend }: Props) => {
       endpoint: API.friends.sendRequest,
       method: 'POST',
       body: {
-        userOneId: user.userId,
+        userOneId: user.id,
         isUserOneAccept: false,
         userTwoId: friendId,
         isUserTwoAccept,
@@ -56,7 +56,7 @@ export const FriendCard = ({ friend }: Props) => {
       endpoint: API.friends.sendRequest,
       method: 'POST',
       body: {
-        userOneId: user.userId,
+        userOneId: user.id,
         isUserOneAccept: true,
         userTwoId: friendId,
         isUserTwoAccept: isSender(friend.friendId) ? true : false,
@@ -84,6 +84,8 @@ export const FriendCard = ({ friend }: Props) => {
           <Icon name="accept" color={Colors.blue} />
         </TouchableOpacity>
       );
+    } else if (friendId === user.id) {
+      return null;
     }
     return (
       <TouchableOpacity
@@ -96,35 +98,47 @@ export const FriendCard = ({ friend }: Props) => {
   };
 
   return (
-    <TouchableOpacity
-      activeOpacity={0.7}
-      style={styles.friend}
-      onPress={() => router.push({ pathname: '/', params: { userId: friend.friendId } })}
-    >
-      <Image
-        style={[styles.friendAvatar, { backgroundColor: theme.tabBarBorder }]}
-        source={require('@/assets/images/avatar.png')}
-      />
-      <View style={styles.friendInfo}>
-        <ThemedText type="h5">{`${friend.name} ${friend.surname}`}</ThemedText>
-        <View style={styles.friendLabels}>
-          {friend.newWishesCount > 0 && (
-            <>
-              <ThemedText type="bodySmall">{formatNewWishes(friend.newWishesCount)}</ThemedText>
-              <View style={[styles.labelDivider, { backgroundColor: theme.secondary }]} />
-            </>
-          )}
-          {(() => {
-            if (!friend.birthDate) return;
-            const daysUntilBirthday = getDaysUntilBirthday(friend.birthDate);
-            return daysUntilBirthday > 10 ? (
-              <ThemedText type="bodySmall">{`${formatDays(daysUntilBirthday)} до дня рождения`}</ThemedText>
-            ) : null;
-          })()}
+    <Link asChild href={{ pathname: '/profile/[userId]', params: { userId: friend.friendId } }}>
+      <TouchableOpacity activeOpacity={0.7} style={styles.friend}>
+        <Image
+          style={[styles.friendAvatar, { backgroundColor: theme.tabBarBorder }]}
+          source={require('@/assets/images/avatar.png')}
+        />
+        <View style={styles.friendInfo}>
+          <ThemedText type="h5">{`${friend.name} ${friend.surname}`}</ThemedText>
+          <View style={styles.friendLabels}>
+            {friend.newWishesCount > 0 && (
+              <>
+                <ThemedText type="bodySmall">
+                  {formatCountedPhrase({
+                    number: friend.newWishesCount,
+                    singular: 'желание',
+                    few: 'желания',
+                    many: 'желаний',
+                    singularAdj: 'новое',
+                    pluralAdj: 'новых',
+                  })}
+                </ThemedText>
+                <View style={[styles.labelDivider, { backgroundColor: theme.secondary }]} />
+              </>
+            )}
+            {(() => {
+              if (!friend.birthDate) return;
+              const daysUntilBirthday = getDaysUntilBirthday(friend.birthDate);
+              return daysUntilBirthday > 10 ? (
+                <ThemedText type="bodySmall">{`${formatCountedPhrase({
+                  number: daysUntilBirthday,
+                  singular: 'день',
+                  few: 'дня',
+                  many: 'дней',
+                })} до дня рождения`}</ThemedText>
+              ) : null;
+            })()}
+          </View>
         </View>
-      </View>
-      {getFriendButton(friend.friendId)}
-    </TouchableOpacity>
+        {getFriendButton(friend.friendId)}
+      </TouchableOpacity>
+    </Link>
   );
 };
 

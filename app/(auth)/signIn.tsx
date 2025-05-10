@@ -21,7 +21,7 @@ export default function SignInScreen() {
   const submit = () => {
     if (isValid()) {
       signIn(email, password)
-        .then(() => router.replace('../(tabs)'))
+        .then(({ id: userId }) => router.replace({ pathname: '/profile/[userId]', params: { userId } }))
         .catch(() => Alert.alert('Ошибка авторизации', 'Неверные почта или пароль', [{ text: 'Ок', style: 'cancel' }]));
     }
   };

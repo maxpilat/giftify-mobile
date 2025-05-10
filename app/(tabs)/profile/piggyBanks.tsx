@@ -24,7 +24,7 @@ type SearchParams = {
 export default function PiggyBanksScreen() {
   const { theme } = useTheme();
   const { user: authUser } = useAuth();
-  const { userId = authUser.userId, piggyBankId = 0 } = useLocalSearchParams<SearchParams>();
+  const { userId = authUser.id, piggyBankId = 0 } = useLocalSearchParams<SearchParams>();
   const scrollViewRef = useRef<ScrollView>(null);
 
   const [piggyBanks, setPiggyBanks] = useState<Wish[]>([]);
@@ -38,7 +38,7 @@ export default function PiggyBanksScreen() {
   const { piggyBanks: myPiggyBanks } = useProfile();
 
   const fetchData = () => {
-    if (+userId === authUser.userId) {
+    if (+userId === authUser.id) {
       setPiggyBanks(myPiggyBanks);
     } else {
       apiFetchData<Wish[]>({ endpoint: API.profile.getPiggyBanks(+userId), token: authUser.token }).then((data) => {

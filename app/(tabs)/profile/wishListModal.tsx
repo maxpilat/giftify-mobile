@@ -48,7 +48,7 @@ export default function WishListModalScreen() {
           endpoint: API.wishLists.create,
           method: 'POST',
           token: user.token,
-          body: { creatorId: user.userId, name },
+          body: { creatorId: user.id, name },
         });
       }
 

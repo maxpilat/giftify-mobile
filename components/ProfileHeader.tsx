@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { StyleSheet, ImageBackground, View, TouchableOpacity, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ThemedView } from '@/components/ThemedView';
@@ -6,7 +6,9 @@ import { ThemedText } from '@/components/ThemedText';
 import MaskedView from '@react-native-masked-view/masked-view';
 import { SvgXml } from 'react-native-svg';
 import { useTheme } from '@/hooks/useTheme';
-import { ProfileBackground } from '@/models';
+import { Profile, ProfileBackground } from '@/models';
+import { formatCountedPhrase } from '@/utils/formatCountedPhrase';
+import { Link, router } from 'expo-router';
 
 const mask = `
   <svg width="280" height="130" viewBox="100 -0.5 280 161" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -15,33 +17,19 @@ const mask = `
 `;
 
 type Props = {
+  profile?: Profile;
   avatar?: string;
   background?: ProfileBackground;
-  fullname: string;
-  username?: string;
   friendsAvatars?: (string | undefined)[];
   friendsCount?: number;
   tabs: string[];
   onTabChange: (index: number) => void;
 };
 
-export function ProfileHeader({
-  fullname,
-  username,
-  avatar,
-  background,
-  friendsCount,
-  friendsAvatars,
-  tabs,
-  onTabChange,
-}: Props) {
+export function ProfileHeader({ profile, avatar, background, friendsCount, friendsAvatars, tabs, onTabChange }: Props) {
   const { theme } = useTheme();
 
   const [currentTabIndex, setCurrentTabIndex] = useState(0);
-
-  useEffect(() => {
-    // console.log(background);
-  }, [background]);
 
   return (
     <ImageBackground
@@ -74,23 +62,38 @@ export function ProfileHeader({
           </MaskedView>
           <ThemedView style={[styles.info, { borderColor: theme.background }]}>
             <ThemedText type="h2" style={styles.fullname} numberOfLines={1}>
-              {fullname}
+              {profile?.name + ' ' + profile?.surname}
             </ThemedText>
-            <View style={styles.details}>
-              {username && <ThemedText type="bodyLargeMedium">{username || ''}</ThemedText>}
-              <View style={styles.friends}>
-                <View style={styles.friendsAvatars}>
-                  {friendsAvatars?.map((friendAvatar, index) => (
-                    <Image
-                      key={index}
-                      source={friendAvatar ? { uri: friendAvatar } : require('../assets/images/avatar.png')}
-                      style={[styles.friendAvatar, index > 0 && { marginLeft: -13 }, { borderColor: theme.background }]}
-                    />
-                  ))}
-                </View>
-                <ThemedText>{friendsCount || 0} друзей</ThemedText>
+            {profile && (
+              <View style={styles.details}>
+                {profile?.username && <ThemedText type="bodyLargeMedium">{profile.username}</ThemedText>}
+                <Link asChild href={{ pathname: '/friends/[userId]', params: { userId: profile.userId } }}>
+                  <TouchableOpacity style={styles.friends}>
+                    <View style={styles.friendsAvatars}>
+                      {friendsAvatars?.map((friendAvatar, index) => (
+                        <Image
+                          key={index}
+                          source={friendAvatar ? { uri: friendAvatar } : require('../assets/images/avatar.png')}
+                          style={[
+                            styles.friendAvatar,
+                            index > 0 && { marginLeft: -13 },
+                            { borderColor: theme.background },
+                          ]}
+                        />
+                      ))}
+                    </View>
+                    <ThemedText>
+                      {formatCountedPhrase({
+                        number: friendsCount || 0,
+                        singular: 'друг',
+                        few: 'друга',
+                        many: 'друзей',
+                      })}
+                    </ThemedText>
+                  </TouchableOpacity>
+                </Link>
               </View>
-            </View>
+            )}
           </ThemedView>
 
           <ThemedView style={styles.tabs}>
@@ -157,6 +160,7 @@ const styles = StyleSheet.create({
     padding: 20,
     borderRadius: 40,
     borderWidth: 1,
+    minHeight: 115,
   },
   fullname: {
     textAlign: 'center',

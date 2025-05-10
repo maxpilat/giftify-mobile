@@ -16,14 +16,14 @@ type SearchParams = {
 
 export default function WishesScreen() {
   const { user: authUser } = useAuth();
-  const { userId = authUser.userId, wishId = 0 } = useLocalSearchParams<SearchParams>();
+  const { userId = authUser.id, wishId = 0 } = useLocalSearchParams<SearchParams>();
   const { wishes: myWishes } = useProfile();
   const scrollViewRef = useRef<ScrollView>(null);
   const processedItemsRef = useRef(new Set<number>());
 
   const [wishes, setWishes] = useState<Wish[]>([]);
 
-  const isCurrentUser = +userId === authUser.userId;
+  const isCurrentUser = +userId === authUser.id;
 
   useEffect(() => {
     if (userId) fetchData();

@@ -22,9 +22,7 @@ export default function SearchFriendsScreen() {
   const [filteredUsers, setFilteredUsers] = useState<Friend[]>([]);
 
   useEffect(() => {
-    apiFetchData<Friend[]>({ endpoint: API.friends.getAllUsers(authUser.userId), token: authUser.token }).then(
-      setUsers
-    );
+    apiFetchData<Friend[]>({ endpoint: API.friends.getAllUsers(authUser.id), token: authUser.token }).then(setUsers);
   }, []);
 
   const filterUsers = (value: string) => {

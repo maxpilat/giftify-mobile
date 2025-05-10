@@ -24,8 +24,8 @@ export default function ValidateEmailScreen() {
 
   const handleSubmit = async (value: string) => {
     if (value === code) {
-      await signUp(userData);
-      router.replace('../(tabs)');
+      const user = await signUp(userData);
+      router.replace({ pathname: '/profile/[userId]', params: { userId: user.id } });
     }
   };
 

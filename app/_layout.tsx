@@ -31,10 +31,11 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (!isLoaded) return;
-
-    if (isFirstLaunch) router.replace('./welcome');
-    else router.replace(initialUser ? './(tabs)' : './(auth)');
-
+    if (isFirstLaunch) router.replace('/welcome');
+    else
+      router.replace(
+        initialUser ? { pathname: '/(tabs)/profile/[userId]', params: { userId: initialUser.id } } : '/(auth)'
+      );
     setTimeout(() => SplashScreen.hideAsync(), 800);
   }, [isLoaded]);
 

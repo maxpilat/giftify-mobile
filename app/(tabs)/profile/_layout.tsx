@@ -38,7 +38,11 @@ export default function IndexLayout() {
 
   return (
     <Stack>
-      <Stack.Screen name="index" options={getProfileOptions()} />
+      <Stack.Screen
+        name="[userId]"
+        getId={() => `${Date.now()}-${Math.random().toString(36).slice(2)}`}
+        options={getProfileOptions()}
+      />
       <Stack.Screen name="wishes" options={{ title: 'Желания', headerLeft: BackButton }} />
       <Stack.Screen name="piggyBanks" options={{ title: 'Копилки', headerLeft: BackButton }} />
       <Stack.Screen
@@ -56,7 +60,7 @@ export default function IndexLayout() {
       <Stack.Screen
         name="piggyBankModal"
         options={({ route }) =>
-          getModalOptions((route.params as { wishListId?: string })?.wishListId ? 'Редактирование' : 'Новая копилка')
+          getModalOptions((route.params as { piggyBankId?: string })?.piggyBankId ? 'Редактирование' : 'Новая копилка')
         }
       />
     </Stack>

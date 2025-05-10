@@ -58,7 +58,7 @@ export default function SettingsScreen() {
 
   const fetchData = async () => {
     const settings = await apiFetchData<SettingsData>({
-      endpoint: API.settings.getSettings(user.userId),
+      endpoint: API.settings.getSettings(user.id),
       token: user.token,
     });
 

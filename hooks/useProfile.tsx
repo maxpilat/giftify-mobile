@@ -75,14 +75,14 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
   }, [themeTypeValue]);
 
   const fetchAvatar = useCallback(async () => {
-    const image = await apiFetchImage({ endpoint: API.profile.getAvatar(user.userId), token: user.token });
+    const image = await apiFetchImage({ endpoint: API.profile.getAvatar(user.id), token: user.token });
     setAvatar(image);
     return image;
   }, [user]);
 
   const fetchBookings = useCallback(async () => {
     const bookings = await apiFetchData<Booking[]>({
-      endpoint: API.profile.getBookings(user.userId),
+      endpoint: API.profile.getBookings(user.id),
       token: user.token,
     });
     setBookings(bookings);
@@ -108,7 +108,7 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
 
   const fetchFriendRequests = useCallback(async () => {
     const friendRequests = await apiFetchData<FriendRequest[]>({
-      endpoint: API.friends.getFriendRequests(user.userId),
+      endpoint: API.friends.getFriendRequests(user.id),
       token: user.token,
     });
 
@@ -118,7 +118,7 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
 
   const fetchFriends = useCallback(async () => {
     const friends = await apiFetchData<Friend[]>({
-      endpoint: API.friends.getFriends(user.userId),
+      endpoint: API.friends.getFriends(user.id),
       token: user.token,
     });
 
@@ -128,7 +128,7 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
 
   const fetchWishes = useCallback(async () => {
     const wishes = await apiFetchData<Wish[]>({
-      endpoint: API.profile.getWishes(user.userId),
+      endpoint: API.profile.getWishes(user.id),
       token: user.token,
     });
 
@@ -151,7 +151,7 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
 
   const fetchWishLists = useCallback(async () => {
     const wishLists = await apiFetchData<WishList[]>({
-      endpoint: API.profile.getWishLists(user.userId),
+      endpoint: API.profile.getWishLists(user.id),
       token: user.token,
     });
 
@@ -161,7 +161,7 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
 
   const fetchPiggyBanks = useCallback(async () => {
     const piggyBanks = await apiFetchData<Wish[]>({
-      endpoint: API.profile.getPiggyBanks(user.userId),
+      endpoint: API.profile.getPiggyBanks(user.id),
       token: user.token,
     });
 
@@ -189,7 +189,7 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
     (friendId: number) => {
       return friends.some((friend) => friend.friendId === friendId);
     },
-    [friendRequests]
+    [friends]
   );
 
   const isSender = useCallback(

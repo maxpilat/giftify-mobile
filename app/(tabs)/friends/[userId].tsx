@@ -23,7 +23,7 @@ type SearchParams = {
 export default function FriendsScreen() {
   const { theme } = useTheme();
   const { user: authUser } = useAuth();
-  const { userId = authUser.userId } = useLocalSearchParams<SearchParams>();
+  const { userId = authUser.id } = useLocalSearchParams<SearchParams>();
   const { friendRequests, fetchFriends: fetchMyFriends, fetchFriendRequests, isFriend, isSender } = useProfile();
 
   const [currentTabIndex, setCurrentTabIndex] = useState(0);
@@ -32,7 +32,7 @@ export default function FriendsScreen() {
   const [pendingFriends, setPendingFriends] = useState<Friend[]>([]);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const isCurrentUser = userId === authUser.userId;
+  const isCurrentUser = +userId === authUser.id;
   const visibleFriends = currentVisibleTabIndex === 0 ? friends : pendingFriends;
 
   const contentOpacity = useSharedValue(1);
@@ -96,7 +96,7 @@ export default function FriendsScreen() {
 
   const fetchPendingFriends = async () => {
     const pendingFriendsPromises = friendRequests
-      .map((request) => (request.userOneId === authUser.userId ? request.userTwoId : request.userOneId))
+      .map((request) => (request.userOneId === authUser.id ? request.userTwoId : request.userOneId))
       .filter((friendId) => !isFriend(friendId) && isSender(friendId))
       .map(async (friendId) => {
         const profile = await apiFetchData<Profile>({
@@ -131,48 +131,55 @@ export default function FriendsScreen() {
         refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />}
       >
         <ThemedText type="h1">Друзья</ThemedText>
-        <View style={styles.tabs}>
-          {['Список', 'Заявки'].map((tab, index) => (
-            <TouchableOpacity
-              key={index}
-              style={[styles.tab, currentTabIndex === index && { backgroundColor: theme.secondary }]}
-              onPress={() => setCurrentTabIndex(index)}
-            >
-              <ThemedText
-                type="bodyLargeMedium"
-                style={{ color: currentTabIndex === index ? theme.background : theme.text }}
+        <View style={styles.body}>
+          {isCurrentUser && (
+            <View style={styles.controls}>
+              <View style={styles.tabs}>
+                {['Список', 'Заявки'].map((tab, index) => (
+                  <TouchableOpacity
+                    key={index}
+                    style={[styles.tab, currentTabIndex === index && { backgroundColor: theme.secondary }]}
+                    onPress={() => setCurrentTabIndex(index)}
+                  >
+                    <ThemedText
+                      type="bodyLargeMedium"
+                      style={{ color: currentTabIndex === index ? theme.background : theme.text }}
+                    >
+                      {tab}
+                    </ThemedText>
+                  </TouchableOpacity>
+                ))}
+              </View>
+              <PlatformButton
+                style={styles.button}
+                hapticFeedback="none"
+                onPress={() => router.push('/friends/searchFriends')}
               >
-                {tab}
-              </ThemedText>
-            </TouchableOpacity>
-          ))}
-        </View>
-        <PlatformButton
-          style={styles.button}
-          hapticFeedback="none"
-          onPress={() => router.push('/friends/searchFriends')}
-        >
-          <ThemedText type="bodyLargeMedium" style={styles.buttonText}>
-            Найти друзей
-          </ThemedText>
-          <Icon name="search" color={Colors.white} />
-        </PlatformButton>
-        <ThemedView style={[styles.friends, contentAnimatedStyle]}>
-          {!visibleFriends.length ? (
-            <ThemedText type="bodyLarge" style={styles.noFriendsMessage}>
-              Пока пусто...
-            </ThemedText>
-          ) : (
-            visibleFriends.map((friend, index) => (
-              <Fragment key={friend.friendId}>
-                <FriendCard friend={friend} />
-                {index !== friends.length - 1 && (
-                  <View style={[styles.divider, { backgroundColor: theme.tabBarBorder }]}></View>
-                )}
-              </Fragment>
-            ))
+                <ThemedText type="bodyLargeMedium" style={styles.buttonText}>
+                  Найти друзей
+                </ThemedText>
+                <Icon name="search" color={Colors.white} />
+              </PlatformButton>
+            </View>
           )}
-        </ThemedView>
+
+          <ThemedView style={[styles.friends, contentAnimatedStyle]}>
+            {!visibleFriends.length ? (
+              <ThemedText type="bodyLarge" style={styles.noFriendsMessage}>
+                Пока пусто...
+              </ThemedText>
+            ) : (
+              visibleFriends.map((friend, index) => (
+                <Fragment key={friend.friendId}>
+                  <FriendCard friend={friend} />
+                  {index !== friends.length - 1 && (
+                    <View style={[styles.divider, { backgroundColor: theme.tabBarBorder }]}></View>
+                  )}
+                </Fragment>
+              ))
+            )}
+          </ThemedView>
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -183,12 +190,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     height: '100%',
   },
+  body: {
+    marginTop: 24,
+    gap: 16,
+  },
+  controls: {
+    gap: 16,
+  },
   tabs: {
     flexDirection: 'row',
     borderRadius: 40,
     padding: 5,
-    marginTop: 24,
-    width: '100%',
   },
   tab: {
     flex: 1,
@@ -196,15 +208,11 @@ const styles = StyleSheet.create({
     borderRadius: 40,
     alignItems: 'center',
   },
-  button: {
-    marginTop: 16,
-  },
+  button: {},
   buttonText: {
     color: Colors.white,
   },
-  friends: {
-    marginTop: 24,
-  },
+  friends: {},
   divider: {
     height: 1,
     marginLeft: 80,

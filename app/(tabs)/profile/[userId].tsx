@@ -20,13 +20,14 @@ import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useProfile';
 import { Action } from '@/components/ActionsButton';
 import { binaryArrayToBase64 } from '@/utils/convertImage';
+import { getDefaultBackground } from '@/utils/profileBackground';
 
 type SearchParams = {
   userId?: string;
 };
 
 export default function ProfileScreen() {
-  const { theme } = useTheme();
+  const { theme, themeType, systemThemeType } = useTheme();
   const { user: authUser } = useAuth();
   const {
     avatar: myAvatar,
@@ -45,7 +46,7 @@ export default function ProfileScreen() {
     setIsLoaded: setIsProfileLoaded,
     isFriend,
   } = useProfile();
-  const { userId = authUser.userId } = useLocalSearchParams<SearchParams>();
+  const { userId = authUser.id } = useLocalSearchParams<SearchParams>();
 
   const [currentTabIndex, setCurrentTabIndex] = useState(0);
   const [currentVisibleTabIndex, setCurrentVisibleTabIndex] = useState(0);
@@ -80,7 +81,7 @@ export default function ProfileScreen() {
     transform: [{ scale: addItemButtonOpacity.value }],
   }));
 
-  const isCurrentUser = +userId === authUser.userId;
+  const isCurrentUser = +userId === authUser.id;
 
   useEffect(() => {
     if (isCurrentUser && isProfileLoaded) {
@@ -114,10 +115,16 @@ export default function ProfileScreen() {
       apiFetchData<ServerProfileBackground>({
         endpoint: API.profile.getBackground(+userId),
         token: authUser.token,
-      }).then((data) => {
-        const backgroundUri = data.backgroundImage ? binaryArrayToBase64(data.backgroundImage) : undefined;
-        const background: ProfileBackground = { ...data, backgroundUri };
-        setBackground(background);
+      }).then((serverBackground) => {
+        if (!serverBackground.backgroundImage && !serverBackground.backgroundColor) {
+          setBackground(getDefaultBackground(themeType === 'system' ? systemThemeType : themeType));
+        } else {
+          const backgroundUri = serverBackground.backgroundImage
+            ? binaryArrayToBase64(serverBackground.backgroundImage)
+            : undefined;
+          const background: ProfileBackground = { ...serverBackground, backgroundUri };
+          setBackground(background);
+        }
       });
 
       const bookingsPromise = apiFetchData<Booking[]>({
@@ -277,7 +284,7 @@ export default function ProfileScreen() {
         apiFetchData({
           endpoint: booking ? API.booking.cancel(booking.bookingId) : API.booking.create,
           method: booking ? 'DELETE' : 'POST',
-          body: booking ? undefined : { wishId, bookerId: authUser.userId },
+          body: booking ? undefined : { wishId, bookerId: authUser.id },
           token: authUser.token,
         }).then(fetchMyBookings),
     };
@@ -302,10 +309,9 @@ export default function ProfileScreen() {
       <ParallaxScrollView
         header={
           <ProfileHeader
+            profile={profile}
             avatar={avatar}
             background={background}
-            fullname={`${profile?.name || ''} ${profile?.surname || ''}`}
-            username={profile?.username}
             friendsAvatars={friends.slice(0, 3).map((friend) => friend.avatar)}
             friendsCount={friends.length}
             tabs={['Желания', 'Копилки', isCurrentUser ? 'Я дарю' : isFriend(+userId) ? 'Идеи' : ''].filter(Boolean)}
@@ -334,13 +340,16 @@ export default function ProfileScreen() {
                     actions={isCurrentUser ? [{ label: 'Поделиться', onPress: shareWishList }] : []}
                   />
                 </View>
-                <View style={[styles.wishList, styles.addWishListButton, { backgroundColor: theme.button }]}>
-                  <Link asChild href={'./wishListModal'}>
-                    <TouchableOpacity activeOpacity={0.7} style={styles.addWishListButtonTouchable}>
-                      <Icon name="plus" />
-                    </TouchableOpacity>
-                  </Link>
-                </View>
+                {isCurrentUser && (
+                  <View style={[styles.wishList, styles.addWishListButton, { backgroundColor: theme.button }]}>
+                    <Link asChild href={'./wishListModal'}>
+                      <TouchableOpacity activeOpacity={0.7} style={styles.addWishListButtonTouchable}>
+                        <Icon name="plus" />
+                      </TouchableOpacity>
+                    </Link>
+                  </View>
+                )}
+
                 {wishLists.map((wishList) => (
                   <View key={wishList.wishListId} style={styles.wishList}>
                     <WishListTab
@@ -489,8 +498,7 @@ export default function ProfileScreen() {
             </View>
           )}
 
-          {isCurrentUser &&
-            currentVisibleTabIndex === 2 &&
+          {currentVisibleTabIndex === 2 &&
             (bookings.length ? (
               <MasonryList
                 data={bookings}
@@ -524,11 +532,13 @@ export default function ProfileScreen() {
         </ThemedView>
       </ParallaxScrollView>
 
-      <Animated.View style={[styles.addItemButton, { backgroundColor: theme.primary }, addItemButtonAnimatedStyle]}>
-        <Pressable onPress={addItem} style={styles.addItemButtonPressable}>
-          <Icon name="plus" />
-        </Pressable>
-      </Animated.View>
+      {isCurrentUser && (
+        <Animated.View style={[styles.addItemButton, { backgroundColor: theme.primary }, addItemButtonAnimatedStyle]}>
+          <Pressable onPress={addItem} style={styles.addItemButtonPressable}>
+            <Icon name="plus" />
+          </Pressable>
+        </Animated.View>
+      )}
     </View>
   );
 }

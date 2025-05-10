@@ -13,12 +13,12 @@ import { apiFetchData } from '@/lib/api';
 
 type SearchParams = {
   isSubmit?: 'true' | 'false';
-  wishId?: string;
+  piggyBankId?: string;
 };
 
 export default function WishModalScreen() {
   const { user } = useAuth();
-  const { isSubmit, wishId } = useLocalSearchParams<SearchParams>();
+  const { isSubmit, piggyBankId } = useLocalSearchParams<SearchParams>();
   const { piggyBanks, fetchPiggyBanks } = useProfile();
 
   const [image, setImage] = useState<string>();
@@ -42,8 +42,8 @@ export default function WishModalScreen() {
   }, []);
 
   useEffect(() => {
-    if (wishId) {
-      const piggyBank = piggyBanks.find((piggyBank) => piggyBank.wishId === +wishId)!;
+    if (piggyBankId) {
+      const piggyBank = piggyBanks.find((piggyBank) => piggyBank.wishId === +piggyBankId)!;
       setImage(piggyBank.image!);
       setName(piggyBank.name);
       setDeposit(piggyBank.deposit ? piggyBank.deposit.toString() : '0');
@@ -51,7 +51,7 @@ export default function WishModalScreen() {
       piggyBank.currency && setCurrency(piggyBank.currency);
       setDescription(piggyBank.description || '');
     }
-  }, [wishId]);
+  }, [piggyBankId]);
 
   useEffect(() => {
     handleSubmit();
@@ -62,7 +62,7 @@ export default function WishModalScreen() {
 
     if (isValid()) {
       const payload = {
-        wisherId: user.userId,
+        wisherId: user.id,
         wishType: 'TYPE_PIGGY_BANK' as WishType,
         name,
         description,
@@ -73,8 +73,8 @@ export default function WishModalScreen() {
 
       const buffer = base64ToBinaryArray(image!);
 
-      if (wishId) {
-        (payload as any).wishId = +wishId;
+      if (piggyBankId) {
+        (payload as any).wishId = +piggyBankId;
         await apiFetchData({
           endpoint: API.wishes.update,
           method: 'PUT',
@@ -82,7 +82,7 @@ export default function WishModalScreen() {
           body: { ...payload, image: buffer },
         });
       } else {
-        (payload as any).wisherId = user.userId;
+        (payload as any).wisherId = user.id;
         await apiFetchData({
           endpoint: API.wishes.create,
           method: 'POST',

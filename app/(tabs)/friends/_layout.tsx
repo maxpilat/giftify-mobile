@@ -22,7 +22,7 @@ export default function FriendsLayout() {
   return (
     <Stack>
       <Stack.Screen
-        name="index"
+        name="[userId]"
         options={{ headerShown: false, contentStyle: { backgroundColor: theme.background } }}
       />
       <Stack.Screen name="searchFriends" options={getSearchFriendsScreenOptions()} />
