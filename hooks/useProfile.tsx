@@ -10,7 +10,7 @@ import {
   useMemo,
 } from 'react';
 import { API } from '@/constants/api';
-import { Booking, FriendRequest, ProfileBackground, Wish, WishList } from '@/models';
+import { Booking, Friend, FriendRequest, ProfileBackground, Wish, WishList } from '@/models';
 import { useAuth } from '../hooks/useAuth';
 import { apiFetchData, apiFetchImage } from '@/lib/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -24,6 +24,7 @@ const ProfileContext = createContext<{
   background: ProfileBackground;
   bookings: Booking[];
   friendRequests: FriendRequest[];
+  friends: Friend[];
   wishes: Wish[];
   wishLists: WishList[];
   piggyBanks: Wish[];
@@ -31,6 +32,7 @@ const ProfileContext = createContext<{
   fetchAvatar: () => Promise<string>;
   fetchBookings: () => Promise<Booking[]>;
   fetchFriendRequests: () => Promise<FriendRequest[]>;
+  fetchFriends: () => Promise<Friend[]>;
   fetchWishes: () => Promise<Wish[]>;
   fetchWishLists: () => Promise<WishList[]>;
   fetchPiggyBanks: () => Promise<Wish[]>;
@@ -53,6 +55,7 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
   const [avatar, setAvatar] = useState<string>();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [friendRequests, setFriendRequests] = useState<FriendRequest[]>([]);
+  const [friends, setFriends] = useState<Friend[]>([]);
   const [wishes, setWishes] = useState<Wish[]>([]);
   const [wishLists, setWishLists] = useState<WishList[]>([]);
   const [piggyBanks, setPiggyBanks] = useState<Wish[]>([]);
@@ -111,6 +114,16 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
 
     setFriendRequests(friendRequests);
     return friendRequests;
+  }, [user]);
+
+  const fetchFriends = useCallback(async () => {
+    const friends = await apiFetchData<Friend[]>({
+      endpoint: API.friends.getFriends(user.userId),
+      token: user.token,
+    });
+
+    setFriends(friends);
+    return friends;
   }, [user]);
 
   const fetchWishes = useCallback(async () => {
@@ -174,12 +187,7 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
 
   const isFriend = useCallback(
     (friendId: number) => {
-      return friendRequests.some(
-        (request) =>
-          (request.userOneId === friendId || request.userTwoId === friendId) &&
-          request.isUserOneAccept &&
-          request.isUserTwoAccept
-      );
+      return friends.some((friend) => friend.friendId === friendId);
     },
     [friendRequests]
   );
@@ -272,6 +280,7 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
       background,
       bookings,
       friendRequests,
+      friends,
       wishes,
       wishLists,
       piggyBanks,
@@ -283,6 +292,7 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
       changeBackground,
       fetchBookings,
       fetchFriendRequests,
+      fetchFriends,
       fetchWishes,
       fetchWishLists,
       fetchPiggyBanks,

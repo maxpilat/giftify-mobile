@@ -1,10 +1,7 @@
 import { BackButton } from '@/components/BackButton';
-import { Icon } from '@/components/Icon';
-import { ThemedText } from '@/components/ThemedText';
 import { useTheme } from '@/hooks/useTheme';
 import { NativeStackNavigationOptions } from '@react-navigation/native-stack';
-import { router, Stack } from 'expo-router';
-import { TouchableOpacity } from 'react-native';
+import { Stack } from 'expo-router';
 
 export default function AuthLayout() {
   const { theme } = useTheme();

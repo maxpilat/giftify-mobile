@@ -49,7 +49,7 @@ export default function SettingsScreen() {
 
   const onRefresh = useCallback(() => {
     setIsRefreshing(true);
-    fetchData().then(() => setIsRefreshing(false));
+    fetchData().finally(() => setIsRefreshing(false));
   }, []);
 
   useEffect(() => {

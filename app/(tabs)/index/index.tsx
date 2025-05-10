@@ -547,7 +547,7 @@ const styles = StyleSheet.create({
     paddingRight: 10,
   },
   wishList: {
-    marginRight: 6,
+    marginRight: 8,
   },
   addWishListButton: {
     borderRadius: 20,

@@ -3,7 +3,6 @@ import { useTheme } from '@/hooks/useTheme';
 import { router, Stack } from 'expo-router';
 import { TouchableOpacity } from 'react-native';
 import type { NativeStackNavigationOptions } from '@react-navigation/native-stack';
-import { ProfileProvider } from '@/hooks/useProfile';
 import { BackButton } from '@/components/BackButton';
 
 export default function IndexLayout() {

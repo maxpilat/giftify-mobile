@@ -1,15 +1,16 @@
-import { View, Image, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Image, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { useTheme } from '@/hooks/useTheme';
 import { Friend } from '@/models';
 import { getDaysUntilBirthday } from '@/utils/getDaysUntilBirthday';
 import { formatNewWishes, formatDays } from '@/utils/formatWord';
-import { Colors } from 'react-native/Libraries/NewAppScreen';
 import { Icon } from './Icon';
 import { useProfile } from '@/hooks/useProfile';
 import { apiFetchData } from '@/lib/api';
 import { API } from '@/constants/api';
 import { useAuth } from '@/hooks/useAuth';
+import { Colors } from '@/constants/themes';
+import { Link, router } from 'expo-router';
 
 type Props = {
   friend: Friend;
@@ -18,23 +19,39 @@ type Props = {
 export const FriendCard = ({ friend }: Props) => {
   const { theme } = useTheme();
   const { user } = useAuth();
-  const { fetchFriendRequests, isFriend, isReceiver } = useProfile();
+  const { fetchFriendRequests, fetchFriends, isFriend, isReceiver, isSender } = useProfile();
 
-  const cancelFriendRequest = (friendId: number) => {
-    apiFetchData({
+  const rejectFriendRequest = async (friendId: number, isUserTwoAccept: boolean) => {
+    await apiFetchData({
       endpoint: API.friends.sendRequest,
       method: 'POST',
       body: {
         userOneId: user.userId,
         isUserOneAccept: false,
         userTwoId: friendId,
-        isUserTwoAccept: false,
+        isUserTwoAccept,
       },
       token: user.token,
-    }).then(fetchFriendRequests);
+    });
+    return await Promise.all([fetchFriendRequests(), fetchFriends()]);
   };
 
-  const sendFriendRequest = (friendId: number) => {
+  const handleRejectFriendRequest = (friendId: number) => {
+    if (!isFriend(friendId)) {
+      return rejectFriendRequest(friendId, false);
+    }
+
+    Alert.alert('Подтвердите', 'Вы уверены, что хотите удалить пользователя из друзей?', [
+      { text: 'Отмена', style: 'cancel' },
+      {
+        text: 'Удалить из друзей',
+        style: 'destructive',
+        onPress: () => rejectFriendRequest(friendId, true),
+      },
+    ]);
+  };
+
+  const acceptFriendRequest = (friendId: number) => {
     apiFetchData({
       endpoint: API.friends.sendRequest,
       method: 'POST',
@@ -42,27 +59,36 @@ export const FriendCard = ({ friend }: Props) => {
         userOneId: user.userId,
         isUserOneAccept: true,
         userTwoId: friendId,
-        isUserTwoAccept: false,
+        isUserTwoAccept: isSender(friend.friendId) ? true : false,
       },
       token: user.token,
-    }).then(fetchFriendRequests);
+    }).then(() => Promise.all([fetchFriendRequests(), fetchFriends()]));
   };
 
   const getFriendButton = (friendId: number) => {
-    if (isFriend(friendId)) return null;
-    else if (isReceiver(friendId))
+    if (isFriend(friendId)) {
+      return (
+        <TouchableOpacity
+          style={[styles.friendButton, { backgroundColor: theme.button }]}
+          onPress={() => handleRejectFriendRequest(friendId)}
+        >
+          <Icon name="accept" color={Colors.white} />
+        </TouchableOpacity>
+      );
+    } else if (isReceiver(friendId)) {
       return (
         <TouchableOpacity
           style={[styles.friendButton, { backgroundColor: Colors.lightBlue }]}
-          onPress={() => cancelFriendRequest(friendId)}
+          onPress={() => handleRejectFriendRequest(friendId)}
         >
           <Icon name="accept" color={Colors.blue} />
         </TouchableOpacity>
       );
+    }
     return (
       <TouchableOpacity
-        style={[styles.friendButton, { backgroundColor: Colors.black }]}
-        onPress={() => sendFriendRequest(friendId)}
+        style={[styles.friendButton, { backgroundColor: theme.button }]}
+        onPress={() => acceptFriendRequest(friendId)}
       >
         <Icon name="plus" color={Colors.white} />
       </TouchableOpacity>
@@ -70,7 +96,11 @@ export const FriendCard = ({ friend }: Props) => {
   };
 
   return (
-    <View style={styles.friend}>
+    <TouchableOpacity
+      activeOpacity={0.7}
+      style={styles.friend}
+      onPress={() => router.push({ pathname: '/(tabs)/profile/index/[userId]', params: { userId: friend.friendId } })}
+    >
       <Image
         style={[styles.friendAvatar, { backgroundColor: theme.tabBarBorder }]}
         source={require('@/assets/images/avatar.png')}
@@ -94,7 +124,7 @@ export const FriendCard = ({ friend }: Props) => {
         </View>
       </View>
       {getFriendButton(friend.friendId)}
-    </View>
+    </TouchableOpacity>
   );
 };
 

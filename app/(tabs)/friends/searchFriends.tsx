@@ -12,8 +12,10 @@ import { Friend } from '@/models';
 import { apiFetchData } from '@/lib/api';
 import { API } from '@/constants/api';
 import { useAuth } from '@/hooks/useAuth';
+import { useTheme } from '@/hooks/useTheme';
 
 export default function SearchFriendsScreen() {
+  const { theme } = useTheme();
   const { user: authUser } = useAuth();
 
   const [users, setUsers] = useState<Friend[]>([]);
@@ -53,6 +55,7 @@ export default function SearchFriendsScreen() {
         onChangeText={filterUsers}
         keyboardType="default"
         inputMode="search"
+        returnKeyType="search"
       />
       <PlatformButton hapticFeedback="none">
         <ThemedText type="bodyLargeMedium" style={styles.buttonText}>
@@ -64,7 +67,9 @@ export default function SearchFriendsScreen() {
         {filteredUsers.map((user, index) => (
           <Fragment key={user.friendId}>
             <FriendCard friend={user} />
-            {index !== filteredUsers.length - 1 && <View style={styles.divider}></View>}
+            {index !== filteredUsers.length - 1 && (
+              <View style={[styles.divider, { backgroundColor: theme.tabBarBorder }]}></View>
+            )}
           </Fragment>
         ))}
       </ThemedView>
@@ -82,7 +87,6 @@ const styles = StyleSheet.create({
     color: Colors.white,
   },
   divider: {
-    backgroundColor: Colors.light,
     height: 1,
     marginLeft: 80,
   },
