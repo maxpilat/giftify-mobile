@@ -4,7 +4,7 @@ import { ExternalLink } from './ExternalLink';
 import { Icon } from './Icon';
 import { PlatformButton } from './PlatformButton';
 import { ThemedText } from './ThemedText';
-import { Booking, Wish } from '@/models';
+import { Wish } from '@/models';
 import { useTheme } from '@/hooks/useTheme';
 import { useAuth } from '@/hooks/useAuth';
 import { router } from 'expo-router';
@@ -38,6 +38,7 @@ export function FullWishCard({ wish, userId, onLayout }: Props) {
   const [isCollapsed, setIsCollapsed] = useState(true);
 
   const isCurrentUser = +userId === authUser.id;
+  const booking = myBookings.find((item) => item.wish.wishId === wish.wishId);
 
   const shareWish = () => {
     console.log('Поделиться желанием');
@@ -65,18 +66,19 @@ export function FullWishCard({ wish, userId, onLayout }: Props) {
     ]);
   };
 
-  const getBookingAction = (): Action => {
-    const booking = myBookings.find((item) => item.wish.wishId === wish.wishId);
+  const handleBookWish = () => {
+    apiFetchData({
+      endpoint: booking ? API.booking.cancel(booking.bookingId) : API.booking.create,
+      method: booking ? 'DELETE' : 'POST',
+      body: booking ? undefined : { wishId: wish.wishId, bookerId: authUser.id },
+      token: authUser.token,
+    }).then(fetchMyBookings);
+  };
 
+  const getBookingAction = (): Action => {
     return {
       label: booking ? 'Снять бронь' : 'Забронировать',
-      onPress: () =>
-        apiFetchData({
-          endpoint: booking ? API.booking.cancel(booking.bookingId) : API.booking.create,
-          method: booking ? 'DELETE' : 'POST',
-          body: booking ? undefined : { wishId: wish.wishId, bookerId: authUser.id },
-          token: authUser.token,
-        }).then(fetchMyBookings),
+      onPress: handleBookWish,
     };
   };
 
@@ -93,7 +95,7 @@ export function FullWishCard({ wish, userId, onLayout }: Props) {
           price: wish.price,
           currencyId: wish.currency?.currencyId,
           link: wish.link,
-          image: base64ToBinaryArray(wish.image || ''),
+          image: base64ToBinaryArray(wish.image),
         },
         token: authUser.token,
       }).then(fetchMyWishes);
@@ -118,15 +120,6 @@ export function FullWishCard({ wish, userId, onLayout }: Props) {
     ]);
   };
 
-  const handleBookWish = (booking?: Booking) => {
-    apiFetchData({
-      endpoint: booking ? API.booking.cancel(booking.bookingId) : API.booking.create,
-      method: booking ? 'DELETE' : 'POST',
-      body: booking ? undefined : { wishId: wish.wishId, bookerId: authUser.id },
-      token: authUser.token,
-    }).then(fetchMyBookings);
-  };
-
   const getWishButton = () => {
     if (isCurrentUser) {
       return (
@@ -141,7 +134,7 @@ export function FullWishCard({ wish, userId, onLayout }: Props) {
 
       return (
         <PlatformButton
-          onPress={() => handleBookWish(booking)}
+          onPress={handleBookWish}
           hapticFeedback="Heavy"
           style={[{ paddingVertical: 9 }, booking && { backgroundColor: Colors.red }]}
         >
