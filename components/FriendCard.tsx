@@ -2,14 +2,14 @@ import { View, Image, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { useTheme } from '@/hooks/useTheme';
 import { Friend } from '@/models';
-import { getDaysUntilBirthday } from '@/utils/getDaysUntilBirthday';
+import { getDaysUntilBirthday } from '@/utils/getDaysUntil';
 import { Icon } from './Icon';
-import { useProfile } from '@/hooks/useProfile';
+import { useProfile } from '@/hooks/useStore';
 import { apiFetchData } from '@/lib/api';
 import { API } from '@/constants/api';
 import { useAuth } from '@/hooks/useAuth';
 import { Colors } from '@/constants/themes';
-import { Link, router } from 'expo-router';
+import { Link } from 'expo-router';
 import { formatCountedPhrase } from '@/utils/formatCountedPhrase';
 
 type Props = {
@@ -21,8 +21,8 @@ export const FriendCard = ({ friend }: Props) => {
   const { user } = useAuth();
   const { fetchFriendRequests, fetchFriends, isFriend, isReceiver, isSender } = useProfile();
 
-  const rejectFriendRequest = async (friendId: number, isUserTwoAccept: boolean) => {
-    await apiFetchData({
+  const rejectFriendRequest = (friendId: number, isUserTwoAccept: boolean) => {
+    apiFetchData({
       endpoint: API.friends.sendRequest,
       method: 'POST',
       body: {
@@ -32,13 +32,15 @@ export const FriendCard = ({ friend }: Props) => {
         isUserTwoAccept,
       },
       token: user.token,
-    });
-    return await Promise.all([fetchFriendRequests(), fetchFriends()]);
+    })
+      .then(fetchFriends)
+      .then(fetchFriendRequests);
   };
 
   const handleRejectFriendRequest = (friendId: number) => {
     if (!isFriend(friendId)) {
-      return rejectFriendRequest(friendId, false);
+      rejectFriendRequest(friendId, false);
+      return;
     }
 
     Alert.alert('Подтвердите', 'Вы уверены, что хотите удалить пользователя из друзей?', [
@@ -62,38 +64,78 @@ export const FriendCard = ({ friend }: Props) => {
         isUserTwoAccept: isSender(friend.friendId) ? true : false,
       },
       token: user.token,
-    }).then(() => Promise.all([fetchFriendRequests(), fetchFriends()]));
+    })
+      .then(fetchFriends)
+      .then(fetchFriendRequests);
   };
 
-  const getFriendButton = (friendId: number) => {
-    if (isFriend(friendId)) {
+  const getFriendButton = () => {
+    if (isFriend(friend.friendId)) {
       return (
         <TouchableOpacity
           style={[styles.friendButton, { backgroundColor: theme.button }]}
-          onPress={() => handleRejectFriendRequest(friendId)}
+          onPress={() => handleRejectFriendRequest(friend.friendId)}
         >
           <Icon name="accept" color={Colors.white} />
         </TouchableOpacity>
       );
-    } else if (isReceiver(friendId)) {
+    } else if (isReceiver(friend.friendId)) {
       return (
         <TouchableOpacity
           style={[styles.friendButton, { backgroundColor: Colors.lightBlue }]}
-          onPress={() => handleRejectFriendRequest(friendId)}
+          onPress={() => handleRejectFriendRequest(friend.friendId)}
         >
           <Icon name="accept" color={Colors.blue} />
         </TouchableOpacity>
       );
-    } else if (friendId === user.id) {
+    } else if (friend.friendId === user.id) {
       return null;
     }
     return (
       <TouchableOpacity
         style={[styles.friendButton, { backgroundColor: theme.button }]}
-        onPress={() => acceptFriendRequest(friendId)}
+        onPress={() => acceptFriendRequest(friend.friendId)}
       >
         <Icon name="plus" color={Colors.white} />
       </TouchableOpacity>
+    );
+  };
+
+  const getExtraInfo = () => {
+    const newWishesLabel = friend.newWishesCount ? (
+      <ThemedText type="bodySmall">
+        {formatCountedPhrase({
+          number: friend.newWishesCount,
+          singular: 'желание',
+          few: 'желания',
+          many: 'желаний',
+          singularAdj: 'новое',
+          pluralAdj: 'новых',
+        })}
+      </ThemedText>
+    ) : null;
+
+    const birthDateLabel = friend.birthDate ? (
+      getDaysUntilBirthday(friend.birthDate) === 0 ? (
+        <ThemedText type="bodySmall">сегодня день рождения 🎉</ThemedText>
+      ) : getDaysUntilBirthday(friend.birthDate) < 10 ? (
+        <ThemedText type="bodySmall">{`${formatCountedPhrase({
+          number: getDaysUntilBirthday(friend.birthDate),
+          singular: 'день',
+          few: 'дня',
+          many: 'дней',
+        })} до дня рождения`}</ThemedText>
+      ) : null
+    ) : null;
+
+    return (
+      <View style={styles.friendLabels}>
+        {newWishesLabel}
+        {newWishesLabel && birthDateLabel ? (
+          <View style={[styles.labelDivider, { backgroundColor: theme.secondary }]} />
+        ) : null}
+        {birthDateLabel}
+      </View>
     );
   };
 
@@ -106,37 +148,9 @@ export const FriendCard = ({ friend }: Props) => {
         />
         <View style={styles.friendInfo}>
           <ThemedText type="h5">{`${friend.name} ${friend.surname}`}</ThemedText>
-          <View style={styles.friendLabels}>
-            {friend.newWishesCount > 0 && (
-              <>
-                <ThemedText type="bodySmall">
-                  {formatCountedPhrase({
-                    number: friend.newWishesCount,
-                    singular: 'желание',
-                    few: 'желания',
-                    many: 'желаний',
-                    singularAdj: 'новое',
-                    pluralAdj: 'новых',
-                  })}
-                </ThemedText>
-                <View style={[styles.labelDivider, { backgroundColor: theme.secondary }]} />
-              </>
-            )}
-            {(() => {
-              if (!friend.birthDate) return;
-              const daysUntilBirthday = getDaysUntilBirthday(friend.birthDate);
-              return daysUntilBirthday > 10 ? (
-                <ThemedText type="bodySmall">{`${formatCountedPhrase({
-                  number: daysUntilBirthday,
-                  singular: 'день',
-                  few: 'дня',
-                  many: 'дней',
-                })} до дня рождения`}</ThemedText>
-              ) : null;
-            })()}
-          </View>
+          {getExtraInfo()}
         </View>
-        {getFriendButton(friend.friendId)}
+        {getFriendButton()}
       </TouchableOpacity>
     </Link>
   );
@@ -145,7 +159,7 @@ export const FriendCard = ({ friend }: Props) => {
 const styles = StyleSheet.create({
   friend: {
     flexDirection: 'row',
-    gap: 24,
+    gap: 16,
     paddingVertical: 6,
     alignItems: 'center',
   },

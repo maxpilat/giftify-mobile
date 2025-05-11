@@ -12,9 +12,10 @@ import { Icon } from '@/components/Icon';
 import { Switch } from '@/components/Switch';
 import { API } from '@/constants/api';
 import { useAuth } from '@/hooks/useAuth';
-import { useProfile } from '@/hooks/useProfile';
+import { useProfile } from '@/hooks/useStore';
 import { base64ToBinaryArray } from '@/utils/convertImage';
 import { apiFetchData } from '@/lib/api';
+import { useTheme } from '@/hooks/useTheme';
 
 type SearchParams = {
   isSubmit?: 'true' | 'false';
@@ -27,6 +28,7 @@ type SwitchState = {
 };
 
 export default function WishModalScreen() {
+  const { theme } = useTheme();
   const { user } = useAuth();
   const { isSubmit, wishId: wishIdParam } = useLocalSearchParams<SearchParams>();
   const { wishes, wishLists, fetchWishes, fetchWishLists } = useProfile();
@@ -126,19 +128,17 @@ export default function WishModalScreen() {
 
       await Promise.all(
         switchStates.map((state) => {
-          if (
-            state.enabled &&
-            !wishLists
-              .find((wishList) => wishList.wishListId === state.id)
-              ?.wishes.find((wish) => wish.wishId === wishId)
-          ) {
+          const wishList = wishLists.find((item) => item.wishListId === state.id)!;
+          const isWishInWishList = wishList.wishes.some((wish) => wish.wishId === wishId);
+
+          if (state.enabled && !isWishInWishList) {
             return apiFetchData({
               endpoint: API.wishes.addToWishList,
               method: 'POST',
               body: { wishId, wishListId: state.id },
               token: user.token,
             });
-          } else {
+          } else if (!state.enabled && isWishInWishList) {
             return apiFetchData({
               endpoint: API.wishes.deleteFromWishList,
               method: 'DELETE',
@@ -149,8 +149,10 @@ export default function WishModalScreen() {
         })
       );
 
-      await Promise.all([fetchWishes(), fetchWishLists()]);
       router.back();
+
+      fetchWishes();
+      fetchWishLists();
     }
 
     router.setParams({ isSubmit: 'false' });
@@ -237,9 +239,9 @@ export default function WishModalScreen() {
         </View>
 
         <PlatformButton
-          style={styles.addWishListButton}
+          style={[styles.addWishListButton, { backgroundColor: theme.button }]}
           hapticFeedback="none"
-          onPress={() => router.push('../wishListModal')}
+          onPress={() => router.push('/profile/wishListModal')}
         >
           <ThemedText type="bodyLargeMedium" style={styles.addWishListButtonText}>
             Новый список
@@ -276,7 +278,6 @@ const styles = StyleSheet.create({
   addWishListButton: {
     flexDirection: 'row',
     gap: 8,
-    backgroundColor: Colors.black,
   },
   addWishListButtonText: {
     color: Colors.white,

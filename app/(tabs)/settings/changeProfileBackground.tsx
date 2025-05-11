@@ -5,7 +5,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { router } from 'expo-router';
 import { useEffect } from 'react';
 import { FlatList, StyleSheet, TouchableOpacity, View, Image, ScrollView, Pressable } from 'react-native';
-import { useProfile } from '@/hooks/useProfile';
+import { useProfile } from '@/hooks/useStore';
 import { ProfileBackground } from '@/models';
 import { getDefaultBackground } from '@/utils/profileBackground';
 import { launchImageLibraryAsync } from 'expo-image-picker';

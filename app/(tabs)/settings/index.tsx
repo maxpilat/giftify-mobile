@@ -9,7 +9,7 @@ import {
   Alert,
   RefreshControl,
 } from 'react-native';
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Gender, SettingsData } from '@/models';
 import { TextInput } from '@/components/TextInput';
 import { useTheme } from '@/hooks/useTheme';
@@ -24,14 +24,13 @@ import { useAuth } from '@/hooks/useAuth';
 import { router } from 'expo-router';
 import { apiFetchData } from '@/lib/api';
 import { API } from '@/constants/api';
-import { useProfile } from '@/hooks/useProfile';
+import { useProfile } from '@/hooks/useStore';
 
 export default function SettingsScreen() {
   const { theme } = useTheme();
   const { user, signOut, deactivateAccount } = useAuth();
   const { avatar: myAvatar } = useProfile();
 
-  const [avatar, setAvatar] = useState<string | null>(myAvatar || null);
   const [name, setName] = useState<string>('');
   const [surname, setSurname] = useState<string>('');
   const [username, setUsername] = useState<string>();
@@ -47,10 +46,10 @@ export default function SettingsScreen() {
 
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const onRefresh = useCallback(() => {
+  const onRefresh = () => {
     setIsRefreshing(true);
     fetchData().finally(() => setIsRefreshing(false));
-  }, []);
+  };
 
   useEffect(() => {
     fetchData();
@@ -145,8 +144,8 @@ export default function SettingsScreen() {
         text: 'Выйти',
         style: 'destructive',
         onPress: async () => {
-          await signOut();
           router.replace('/(auth)');
+          await signOut();
         },
       },
     ]);
@@ -172,12 +171,11 @@ export default function SettingsScreen() {
         style={styles.scrollView}
         refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />}
       >
-        <ThemedText type="h1">Настройки</ThemedText>
         <View style={styles.content}>
           <View style={styles.body}>
             <View style={styles.mainInfo}>
               <Image
-                source={avatar ? { uri: avatar } : require('@/assets/images/avatar.png')}
+                source={myAvatar ? { uri: myAvatar } : require('@/assets/images/avatar.png')}
                 style={[styles.avatar, { backgroundColor: theme.tabBarBorder }]}
               />
               <View style={styles.fullnameContainer}>
@@ -208,6 +206,7 @@ export default function SettingsScreen() {
               value={username}
               onChangeText={handleUsernameChange}
               returnKeyType="done"
+              autoCapitalize="none"
             />
 
             <View style={styles.actionsSection}>
@@ -329,8 +328,8 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingBottom: 90,
+    marginTop: 16,
     gap: 32,
-    marginTop: 24,
   },
   body: {
     gap: 24,

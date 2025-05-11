@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { View, StyleSheet, Image } from 'react-native';
+import { View, StyleSheet, Image, Dimensions } from 'react-native';
 import MaskedView from '@react-native-masked-view/masked-view';
 import { SvgXml } from 'react-native-svg';
 import { ThemedView } from '@/components/ThemedView';
@@ -15,6 +15,8 @@ const mask = `
   </svg>
 `;
 
+const screenWidth = Dimensions.get('window').width;
+
 type Props = {
   image?: string;
   name?: string;
@@ -27,7 +29,7 @@ type Props = {
 export function WishCard({ image, name, price, currency, aspectRatio, actions = [] }: Props) {
   const { theme } = useTheme();
 
-  const [computedAspectRatio, setComputedAspectRatio] = useState<number>(aspectRatio ?? 1);
+  const [computedAspectRatio, setComputedAspectRatio] = useState<number>(aspectRatio || 1);
 
   const opacity = useSharedValue(0);
 
@@ -47,10 +49,6 @@ export function WishCard({ image, name, price, currency, aspectRatio, actions = 
     opacity: opacity.value,
   }));
 
-  useEffect(() => {
-    console.log(computedAspectRatio);
-  }, [computedAspectRatio]);
-
   return (
     <View style={styles.container}>
       <Animated.Image
@@ -62,9 +60,11 @@ export function WishCard({ image, name, price, currency, aspectRatio, actions = 
       {name && (
         <View style={styles.wishInfo}>
           <ThemedText type="h3">{name}</ThemedText>
-          <ThemedText type="bodyLarge" style={{ color: theme.subtext }}>
-            {price} {currency?.symbol}
-          </ThemedText>
+          {price && (
+            <ThemedText type="bodyLarge" style={{ color: theme.subtext }}>
+              {price} {currency?.symbol}
+            </ThemedText>
+          )}
         </View>
       )}
 
@@ -85,6 +85,7 @@ const styles = StyleSheet.create({
   },
   image: {
     borderRadius: 25,
+    minHeight: screenWidth / 2 - 40,
   },
   maskedView: {
     width: 88,

@@ -5,13 +5,13 @@ import TabBarBackground from '@/components/TabBarBackground';
 import TabBarBackgroundIOS from '@/components/TabBarBackground.ios';
 import { useTheme } from '@/hooks/useTheme';
 import { Icon } from '@/components/Icon';
-import { ProfileProvider } from '@/hooks/useProfile';
+import { StoreProvider } from '@/hooks/useStore';
 
 export default function TabLayout() {
   const { theme } = useTheme();
 
   return (
-    <ProfileProvider>
+    <StoreProvider>
       <Tabs
         screenOptions={{
           tabBarInactiveTintColor: theme.tabBarTint,
@@ -62,6 +62,6 @@ export default function TabLayout() {
           }}
         />
       </Tabs>
-    </ProfileProvider>
+    </StoreProvider>
   );
 }

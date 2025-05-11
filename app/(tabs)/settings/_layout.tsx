@@ -24,7 +24,25 @@ export default function SettingsLayout() {
     <Stack>
       <Stack.Screen
         name="index"
-        options={{ headerShown: false, contentStyle: { backgroundColor: theme.background } }}
+        options={{
+          title: 'Настройки',
+          headerTitleStyle: {
+            fontFamily: 'stolzl-medium',
+            color: theme.text,
+          },
+          headerLargeTitle: true,
+          headerLargeTitleShadowVisible: false,
+          headerLargeTitleStyle: {
+            fontFamily: 'stolzl-medium',
+            color: theme.text,
+          },
+          headerStyle: {
+            backgroundColor: theme.background,
+          },
+          contentStyle: {
+            backgroundColor: theme.background,
+          },
+        }}
       />
       <Stack.Screen name="changeEmail" options={getScreenOptions()} />
       <Stack.Screen name="validateEmail" options={getScreenOptions()} />
@@ -41,7 +59,10 @@ export default function SettingsLayout() {
       />
       <Stack.Screen
         name="changeTheme"
-        options={{ ...getScreenOptions(), headerTitle: () => <ThemedText>Смена темы</ThemedText> }}
+        options={{
+          ...getScreenOptions(),
+          headerTitle: () => <ThemedText type="bodyLargeMedium">Смена темы</ThemedText>,
+        }}
       />
       <Stack.Screen
         name="pickCustomColors"
@@ -49,14 +70,14 @@ export default function SettingsLayout() {
           ...getScreenOptions(),
           presentation: 'modal',
           headerLeft: () => null,
-          headerTitle: () => <ThemedText>Выберите цвет</ThemedText>,
+          headerTitle: () => <ThemedText type="bodyLargeMedium">Выберите цвет</ThemedText>,
         }}
       />
       <Stack.Screen
         name="changeProfileBackground"
         options={{
           ...getScreenOptions(),
-          headerTitle: () => <ThemedText>Фон профиля</ThemedText>,
+          headerTitle: () => <ThemedText type="bodyLargeMedium">Фон профиля</ThemedText>,
         }}
       />
       <Stack.Screen
@@ -65,7 +86,7 @@ export default function SettingsLayout() {
           ...getScreenOptions(),
           presentation: 'modal',
           headerLeft: () => null,
-          headerTitle: () => <ThemedText>Выберите цвет</ThemedText>,
+          headerTitle: () => <ThemedText type="bodyLargeMedium">Выберите цвет</ThemedText>,
         }}
       />
     </Stack>

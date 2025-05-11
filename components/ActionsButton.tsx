@@ -12,14 +12,17 @@ type Props = {
   actions: Action[];
   size?: number;
   pressOpacity?: number;
+  disabled?: boolean;
   style?: StyleProp<ViewStyle>;
 };
 
-export function ActionButton({ actions, size = 50, pressOpacity = 0.9, style }: Props) {
+export function ActionButton({ actions, size = 50, pressOpacity = 0.9, disabled, style }: Props) {
   const { showActionSheetWithOptions } = useActionSheet();
   const { theme } = useTheme();
 
   const handleActions = () => {
+    if (disabled) return;
+
     const options = actions.map((action) => action.label);
     options.push('Отмена');
     const cancelButtonIndex = options.length - 1;

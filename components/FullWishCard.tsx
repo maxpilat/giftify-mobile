@@ -1,18 +1,20 @@
-import { StyleSheet, View, Image, TouchableOpacity } from 'react-native';
-import { Colors } from 'react-native/Libraries/NewAppScreen';
+import { StyleSheet, View, Image, TouchableOpacity, Alert } from 'react-native';
 import { Action, ActionButton } from './ActionsButton';
 import { ExternalLink } from './ExternalLink';
 import { Icon } from './Icon';
 import { PlatformButton } from './PlatformButton';
 import { ThemedText } from './ThemedText';
-import { Wish } from '@/models';
+import { Booking, Wish } from '@/models';
 import { useTheme } from '@/hooks/useTheme';
 import { useAuth } from '@/hooks/useAuth';
 import { router } from 'expo-router';
 import { API } from '@/constants/api';
 import { apiFetchData } from '@/lib/api';
-import { useProfile } from '@/hooks/useProfile';
+import { useProfile } from '@/hooks/useStore';
 import { useState } from 'react';
+import { base64ToBinaryArray } from '@/utils/convertImage';
+import { Colors } from '@/constants/themes';
+import { getDaysUntilBookingExpires } from '@/utils/getDaysUntil';
 
 const IMAGE_HEIGHT = 450;
 
@@ -25,24 +27,46 @@ type Props = {
 export function FullWishCard({ wish, userId, onLayout }: Props) {
   const { theme } = useTheme();
   const { user: authUser } = useAuth();
-  const { bookings: myBookings, fetchBookings: fetchMyBookings, fetchWishes: fetchMyWishes, isFriend } = useProfile();
+  const {
+    bookings: myBookings,
+    fetchBookings: fetchMyBookings,
+    fetchWishes: fetchMyWishes,
+    fetchWishLists: fetchMyWishLists,
+    isFriend,
+  } = useProfile();
 
   const [isCollapsed, setIsCollapsed] = useState(true);
+
+  const isCurrentUser = +userId === authUser.id;
 
   const shareWish = () => {
     console.log('Поделиться желанием');
   };
 
-  const editWish = (wishId: number) => {
-    router.push({ pathname: './wishModal', params: { wishId } });
+  const editWish = () => {
+    router.push({ pathname: '/profile/wishModal', params: { wishId: wish.wishId } });
   };
 
-  const deleteWish = (wishId: number) => {
-    apiFetchData({ endpoint: API.wishes.delete(wishId), method: 'DELETE', token: authUser.token }).then(fetchMyWishes);
+  const deleteWish = () => {
+    Alert.alert('Подтвердите', 'Вы уверены, что хотите удалить желание?', [
+      { text: 'Отмена', style: 'cancel' },
+      {
+        text: 'Удалить желание',
+        style: 'destructive',
+        onPress: () => {
+          apiFetchData({ endpoint: API.wishes.delete(wish.wishId), method: 'DELETE', token: authUser.token }).then(
+            () => {
+              fetchMyWishes().then((wishes) => wishes.length === 0 && router.back());
+              fetchMyWishLists();
+            }
+          );
+        },
+      },
+    ]);
   };
 
-  const getBookingAction = (wishId: number): Action => {
-    const booking = myBookings.find((item) => item.wish.wishId === wishId);
+  const getBookingAction = (): Action => {
+    const booking = myBookings.find((item) => item.wish.wishId === wish.wishId);
 
     return {
       label: booking ? 'Снять бронь' : 'Забронировать',
@@ -50,13 +74,100 @@ export function FullWishCard({ wish, userId, onLayout }: Props) {
         apiFetchData({
           endpoint: booking ? API.booking.cancel(booking.bookingId) : API.booking.create,
           method: booking ? 'DELETE' : 'POST',
-          body: booking ? undefined : { wishId, bookerId: authUser.id },
+          body: booking ? undefined : { wishId: wish.wishId, bookerId: authUser.id },
           token: authUser.token,
         }).then(fetchMyBookings),
     };
   };
 
-  const isCurrentUser = +userId === authUser.id;
+  const saveWish = () => {
+    if (wish.image) {
+      apiFetchData({
+        endpoint: API.wishes.create,
+        method: 'POST',
+        body: {
+          wisherId: authUser.id,
+          wishType: 'TYPE_WISH',
+          name: wish.name,
+          description: wish.description,
+          price: wish.price,
+          currencyId: wish.currency?.currencyId,
+          link: wish.link,
+          image: base64ToBinaryArray(wish.image || ''),
+        },
+        token: authUser.token,
+      }).then(fetchMyWishes);
+    }
+  };
+
+  const fulfillWish = () => {
+    Alert.alert('Подтвердите', 'После этого действия желание пропадёт из вашего профиля', [
+      { text: 'Отмена', style: 'cancel' },
+      {
+        text: 'Ок',
+        style: 'default',
+        onPress: () => {
+          apiFetchData({ endpoint: API.wishes.delete(wish.wishId), method: 'DELETE', token: authUser.token }).then(
+            () => {
+              fetchMyWishes().then((wishes) => wishes.length === 0 && router.back());
+              fetchMyWishLists();
+            }
+          );
+        },
+      },
+    ]);
+  };
+
+  const handleBookWish = (booking?: Booking) => {
+    apiFetchData({
+      endpoint: booking ? API.booking.cancel(booking.bookingId) : API.booking.create,
+      method: booking ? 'DELETE' : 'POST',
+      body: booking ? undefined : { wishId: wish.wishId, bookerId: authUser.id },
+      token: authUser.token,
+    }).then(fetchMyBookings);
+  };
+
+  const getWishButton = () => {
+    if (isCurrentUser) {
+      return (
+        <PlatformButton onPress={fulfillWish} hapticFeedback="Heavy">
+          <ThemedText type="bodyLargeMedium" style={{ color: Colors.white }}>
+            Исполнено
+          </ThemedText>
+        </PlatformButton>
+      );
+    } else {
+      const booking = myBookings.find((item) => item.wish.wishId === wish.wishId);
+
+      return (
+        <PlatformButton
+          onPress={() => handleBookWish(booking)}
+          hapticFeedback="Heavy"
+          style={[{ paddingVertical: 9 }, booking && { backgroundColor: Colors.red }]}
+        >
+          {!booking ? (
+            <View style={{ alignItems: 'center' }}>
+              <ThemedText type="bodyLargeMedium" style={{ color: Colors.white }}>
+                Забронировать
+              </ThemedText>
+              <ThemedText type="labelSmall" style={{ color: Colors.white }}>
+                Пользователь ничего не узнает
+              </ThemedText>
+            </View>
+          ) : (
+            <View style={{ alignItems: 'center' }}>
+              <ThemedText type="bodyLargeMedium" style={{ color: Colors.white }}>
+                Отменить бронь
+              </ThemedText>
+              <ThemedText type="labelSmall" style={{ color: Colors.white }}>
+                Бронь снимется через {getDaysUntilBookingExpires(booking.booked)} дней
+              </ThemedText>
+            </View>
+          )}
+        </PlatformButton>
+      );
+    }
+  };
 
   return (
     <View
@@ -69,7 +180,7 @@ export function FullWishCard({ wish, userId, onLayout }: Props) {
         <View style={styles.textContainer}>
           <ThemedText type="h2">{wish.name}</ThemedText>
           <View style={styles.price}>
-            {Number(wish.price) > 0 && <ThemedText>{`${wish.price} ${wish.currency?.symbol}`}</ThemedText>}
+            {Number(wish.price) > 0 && <ThemedText type="h5">{`${wish.price} ${wish.currency?.symbol}`}</ThemedText>}
             {wish.link && (
               <ExternalLink href={wish.link}>
                 <View style={styles.externalLinkContainer}>
@@ -84,25 +195,20 @@ export function FullWishCard({ wish, userId, onLayout }: Props) {
         </View>
 
         <View style={styles.actionContainer}>
-          <View style={styles.hapticButtonContainer}>
-            <PlatformButton onPress={() => console.log('Исполнено')} hapticFeedback="Heavy">
-              <ThemedText type="bodyLargeMedium" style={{ color: Colors.white }}>
-                Исполнено
-              </ThemedText>
-            </PlatformButton>
-          </View>
+          <View style={styles.hapticButtonContainer}>{getWishButton()}</View>
           <ActionButton
+            disabled={!wish.image}
             size={60}
             actions={
               isCurrentUser
                 ? [
-                    { label: 'Редактировать', onPress: () => editWish(wish.wishId) },
+                    { label: 'Редактировать', onPress: editWish },
                     { label: 'Поделиться', onPress: shareWish },
-                    { label: 'Удалить', onPress: () => deleteWish(wish.wishId) },
+                    { label: 'Удалить', onPress: deleteWish },
                   ]
                 : [
-                    { label: 'Сохранить к себе', onPress: () => editWish(wish.wishId) },
-                    isFriend(+userId) ? getBookingAction(wish.wishId) : null,
+                    { label: 'Сохранить к себе', onPress: saveWish },
+                    isFriend(+userId) ? getBookingAction() : null,
                     { label: 'Поделиться', onPress: shareWish },
                   ].filter((action) => !!action)
             }
@@ -142,6 +248,7 @@ const styles = StyleSheet.create({
   price: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
   },
   externalLinkContainer: {
     flexDirection: 'row',

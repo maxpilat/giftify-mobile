@@ -12,18 +12,37 @@ export default function FriendsLayout() {
     headerStyle: {
       backgroundColor: theme.background,
     },
+    headerTitle: () => <ThemedText type="bodyLargeMedium">Найти друзей</ThemedText>,
+    headerLeft: BackButton,
     contentStyle: {
       backgroundColor: theme.background,
     },
-    headerTitle: () => <ThemedText>Найти друзей</ThemedText>,
-    headerLeft: BackButton,
   });
 
   return (
     <Stack>
       <Stack.Screen
         name="[userId]"
-        options={{ headerShown: false, contentStyle: { backgroundColor: theme.background } }}
+        options={{
+          title: 'Друзья',
+          headerTitleStyle: {
+            fontFamily: 'stolzl-medium',
+            color: theme.text,
+          },
+          headerLargeTitle: true,
+          headerLargeTitleShadowVisible: false,
+          headerLargeTitleStyle: {
+            fontFamily: 'stolzl-medium',
+            color: theme.text,
+          },
+          headerStyle: {
+            backgroundColor: theme.background,
+          },
+          headerBackVisible: false,
+          contentStyle: {
+            backgroundColor: theme.background,
+          },
+        }}
       />
       <Stack.Screen name="searchFriends" options={getSearchFriendsScreenOptions()} />
     </Stack>

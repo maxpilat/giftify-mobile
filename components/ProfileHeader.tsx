@@ -160,7 +160,7 @@ const styles = StyleSheet.create({
     padding: 20,
     borderRadius: 40,
     borderWidth: 1,
-    minHeight: 115,
+    minHeight: 110,
   },
   fullname: {
     textAlign: 'center',

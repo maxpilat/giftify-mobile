@@ -4,9 +4,9 @@ import { Themes, Colors, Theme, ThemeType } from '@/constants/themes';
 import { apiFetchData } from '@/lib/api';
 import { API } from '@/constants/api';
 import { useAuth } from '@/hooks/useAuth';
-import { SettingsData, ServerThemeType } from '@/models';
+import { SettingsData, ApiThemeType } from '@/models';
 
-export const serverThemeToClient = (serverTheme: ServerThemeType): ThemeType | 'system' => {
+export const serverThemeToClient = (serverTheme: ApiThemeType): ThemeType | 'system' => {
   switch (serverTheme) {
     case 'TYPE_LIGHT':
       return 'light';
@@ -17,7 +17,7 @@ export const serverThemeToClient = (serverTheme: ServerThemeType): ThemeType | '
   }
 };
 
-export const clientThemeToServer = (theme: ThemeType | 'system'): ServerThemeType => {
+export const clientThemeToServer = (theme: ThemeType | 'system'): ApiThemeType => {
   switch (theme) {
     case 'light':
       return 'TYPE_LIGHT';

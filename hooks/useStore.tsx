@@ -11,14 +11,14 @@ import {
 } from 'react';
 import { API } from '@/constants/api';
 import { Booking, Friend, FriendRequest, ProfileBackground, Wish, WishList } from '@/models';
-import { useAuth } from '../hooks/useAuth';
+import { useAuth } from './useAuth';
 import { apiFetchData, apiFetchImage } from '@/lib/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { base64ToBinaryArray, uriToBase64 } from '@/utils/convertImage';
 import { getDefaultBackground, loadDefaultBackgrounds } from '@/utils/profileBackground';
 import { useTheme } from '@/hooks/useTheme';
 
-const ProfileContext = createContext<{
+const StoreContext = createContext<{
   avatar?: string;
   allBackgrounds: ProfileBackground[];
   background: ProfileBackground;
@@ -46,7 +46,7 @@ const ProfileContext = createContext<{
   changeBackground: (background: ProfileBackground) => Promise<void>;
 } | null>(null);
 
-export const ProfileProvider = ({ children }: { children: ReactNode }) => {
+export const StoreProvider = ({ children }: { children: ReactNode }) => {
   const { themeType, systemThemeType } = useTheme();
   const themeTypeValue = themeType === 'system' ? systemThemeType : themeType;
 
@@ -76,6 +76,7 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
 
   const fetchAvatar = useCallback(async () => {
     const image = await apiFetchImage({ endpoint: API.profile.getAvatar(user.id), token: user.token });
+
     setAvatar(image);
     return image;
   }, [user]);
@@ -85,25 +86,31 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
       endpoint: API.profile.getBookings(user.id),
       token: user.token,
     });
+
     setBookings(bookings);
 
-    await Promise.all(
-      bookings.map(async (booking) => {
-        const image = await apiFetchImage({
-          endpoint: API.wishes.getImage(booking.wish.wishId),
-          token: user.token,
-        });
-        setBookings((prev) =>
-          prev.map((prevBooking) =>
-            prevBooking.wish.wishId === booking.wish.wishId
-              ? { ...prevBooking, wish: { ...prevBooking.wish, image } }
-              : prevBooking
-          )
-        );
-      })
+    const imagesMap = new Map(
+      await Promise.all(
+        bookings.map(async (booking) => {
+          const image = await apiFetchImage({
+            endpoint: API.wishes.getImage(booking.wish.wishId),
+            token: user.token,
+          });
+          return [booking.wish.wishId, image] as const;
+        })
+      )
     );
 
-    return bookings;
+    const updatedBookings = bookings.map((booking) => ({
+      ...booking,
+      wish: {
+        ...booking.wish,
+        image: imagesMap.get(booking.wish.wishId),
+      },
+    }));
+
+    setBookings(updatedBookings);
+    return updatedBookings;
   }, [user]);
 
   const fetchFriendRequests = useCallback(async () => {
@@ -123,7 +130,26 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
     });
 
     setFriends(friends);
-    return friends;
+
+    const avatarsMap = new Map(
+      await Promise.all(
+        friends.map(async (friend) => {
+          const image = await apiFetchImage({
+            endpoint: API.profile.getAvatar(friend.friendId),
+            token: user.token,
+          });
+          return [friend.friendId, image] as const;
+        })
+      )
+    );
+
+    const updatedFriends = friends.map((friend) => ({
+      ...friend,
+      avatar: avatarsMap.get(friend.friendId),
+    }));
+
+    setFriends(updatedFriends);
+    return updatedFriends;
   }, [user]);
 
   const fetchWishes = useCallback(async () => {
@@ -134,19 +160,25 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
 
     setWishes(wishes);
 
-    await Promise.all(
-      wishes.map(async (wish) => {
-        const image = await apiFetchImage({
-          endpoint: API.wishes.getImage(wish.wishId),
-          token: user.token,
-        });
-        setWishes((prev) =>
-          prev.map((prevWish) => (prevWish.wishId === wish.wishId ? { ...prevWish, image } : prevWish))
-        );
-      })
+    const imagesMap = new Map(
+      await Promise.all(
+        wishes.map(async (wish) => {
+          const image = await apiFetchImage({
+            endpoint: API.wishes.getImage(wish.wishId),
+            token: user.token,
+          });
+          return [wish.wishId, image] as const;
+        })
+      )
     );
 
-    return wishes;
+    const updatedWishes = wishes.map((wish) => ({
+      ...wish,
+      image: imagesMap.get(wish.wishId),
+    }));
+
+    setWishes(updatedWishes);
+    return updatedWishes;
   }, [user]);
 
   const fetchWishLists = useCallback(async () => {
@@ -167,22 +199,25 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
 
     setPiggyBanks(piggyBanks);
 
-    await Promise.all(
-      piggyBanks.map(async (piggyBank) => {
-        const image = await apiFetchImage({
-          endpoint: API.wishes.getImage(piggyBank.wishId),
-          token: user.token,
-        });
-
-        setPiggyBanks((prev) =>
-          prev.map((prevPiggyBank) =>
-            prevPiggyBank.wishId === piggyBank.wishId ? { ...prevPiggyBank, image } : prevPiggyBank
-          )
-        );
-      })
+    const imagesMap = new Map(
+      await Promise.all(
+        piggyBanks.map(async (piggyBank) => {
+          const image = await apiFetchImage({
+            endpoint: API.wishes.getImage(piggyBank.wishId),
+            token: user.token,
+          });
+          return [piggyBank.wishId, image] as const;
+        })
+      )
     );
 
-    return piggyBanks;
+    const updatedPiggyBanks = piggyBanks.map((piggyBank) => ({
+      ...piggyBank,
+      image: imagesMap.get(piggyBank.wishId),
+    }));
+
+    setPiggyBanks(updatedPiggyBanks);
+    return updatedPiggyBanks;
   }, [user]);
 
   const isFriend = useCallback(
@@ -304,11 +339,11 @@ export const ProfileProvider = ({ children }: { children: ReactNode }) => {
     [avatar, allBackgrounds, background, bookings, friendRequests, wishes, wishLists, piggyBanks, isLoaded]
   );
 
-  return <ProfileContext.Provider value={providerValue}>{children}</ProfileContext.Provider>;
+  return <StoreContext.Provider value={providerValue}>{children}</StoreContext.Provider>;
 };
 
 export const useProfile = () => {
-  const context = useContext(ProfileContext);
+  const context = useContext(StoreContext);
 
   if (!context) {
     throw new Error('useProfile must be used within a ProfileProvider');

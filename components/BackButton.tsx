@@ -2,11 +2,10 @@ import { TouchableOpacity } from 'react-native';
 import { Icon } from '@/components/Icon';
 import { ThemedText } from '@/components/ThemedText';
 import { useTheme } from '@/hooks/useTheme';
-import { useRouter } from 'expo-router';
+import { router } from 'expo-router';
 
 export function BackButton() {
   const { theme } = useTheme();
-  const router = useRouter();
 
   return (
     <TouchableOpacity onPress={router.back} style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>

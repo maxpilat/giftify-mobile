@@ -1,9 +1,8 @@
 import { ThemedText } from '@/components/ThemedText';
-import { View, StyleSheet, TouchableOpacity, ScrollView, RefreshControl } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, ScrollView, RefreshControl, SafeAreaView } from 'react-native';
 import { useTheme } from '@/hooks/useTheme';
-import { useEffect, useState, Fragment, useCallback } from 'react';
+import { useEffect, useState, Fragment } from 'react';
 import { useAnimatedStyle, withTiming, useSharedValue, runOnJS } from 'react-native-reanimated';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { PlatformButton } from '@/components/PlatformButton';
 import { Colors } from '@/constants/themes';
 import { Icon } from '@/components/Icon';
@@ -12,7 +11,7 @@ import { Friend, Profile } from '@/models';
 import { apiFetchData, apiFetchImage } from '@/lib/api';
 import { API } from '@/constants/api';
 import { useAuth } from '@/hooks/useAuth';
-import { useProfile } from '@/hooks/useProfile';
+import { useProfile } from '@/hooks/useStore';
 import { ThemedView } from '@/components/ThemedView';
 import { FriendCard } from '@/components/FriendCard';
 
@@ -56,14 +55,14 @@ export default function FriendsScreen() {
     contentOpacity.value = withTiming(1, { duration: 300 });
   }, [currentVisibleTabIndex]);
 
-  const onRefresh = useCallback(() => {
+  const onRefresh = () => {
     setIsRefreshing(true);
     fetchData().finally(() => {
       if (!isCurrentUser) {
         setIsRefreshing(false);
       }
     });
-  }, []);
+  };
 
   const fetchData = async () => {
     const promises: Promise<any>[] = [fetchFriends()];
@@ -125,12 +124,11 @@ export default function FriendsScreen() {
   };
 
   return (
-    <SafeAreaView>
+    <SafeAreaView style={styles.container}>
       <ScrollView
-        style={styles.container}
+        style={styles.scrollView}
         refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />}
       >
-        <ThemedText type="h1">Друзья</ThemedText>
         <View style={styles.body}>
           {isCurrentUser && (
             <View style={styles.controls}>
@@ -187,11 +185,13 @@ export default function FriendsScreen() {
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
+  },
+  scrollView: {
     paddingHorizontal: 16,
-    height: '100%',
   },
   body: {
-    marginTop: 24,
+    marginTop: 16,
     gap: 16,
   },
   controls: {

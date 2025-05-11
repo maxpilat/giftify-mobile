@@ -10,7 +10,7 @@ import { useLocalSearchParams } from 'expo-router';
 import { API } from '@/constants/api';
 import { ProgressBar } from '@/components/ProgressBar';
 import { useAuth } from '@/hooks/useAuth';
-import { useProfile } from '@/hooks/useProfile';
+import { useProfile } from '@/hooks/useStore';
 import { Wish } from '@/models';
 import { apiFetchData, apiFetchImage } from '@/lib/api';
 
@@ -63,59 +63,57 @@ export default function PiggyBanksScreen() {
   }, [userId]);
 
   return (
-    <ThemedView>
-      <ScrollView ref={scrollViewRef} contentContainerStyle={styles.scrollViewContainer}>
-        {piggyBanks.map((piggyBank) => (
-          <View
-            key={piggyBank.wishId}
-            style={styles.wishContainer}
-            onLayout={(event) => handleItemLayout(piggyBank.wishId, event.nativeEvent.layout.y)}
-          >
-            <Image source={{ uri: piggyBank.image }} style={[styles.image, { height: IMAGE_HEIGHT }]} />
-            <View style={styles.infoContainer}>
-              <View style={styles.textContainer}>
-                <ThemedText type="h1">{piggyBank.name}</ThemedText>
-                <View style={styles.price}>
-                  <ThemedText type="bodyLarge" style={styles.priceLabel}>
-                    Стоимость:
-                  </ThemedText>
-                  <ThemedText type="h5">
-                    {piggyBank.price} {piggyBank.currency?.symbol}
-                  </ThemedText>
-                </View>
-              </View>
-
-              <ProgressBar
-                currentAmount={piggyBank.deposit}
-                targetAmount={piggyBank.price}
-                currency={piggyBank.currency}
-              />
-
-              <View style={styles.actionContainer}>
-                <View style={styles.hapticButtonContainer}>
-                  <PlatformButton onPress={() => console.log('Исполнено')} hapticFeedback="Heavy">
-                    <ThemedText type="bodyLargeMedium" style={{ color: Colors.white }}>
-                      Пополнить
-                    </ThemedText>
-                  </PlatformButton>
-                </View>
-                <ActionButton size={60} actions={[{ label: 'Поделиться', onPress: () => console.log('Поделиться') }]} />
-              </View>
-
-              <View style={styles.descriptionContainer}>
-                <ThemedText type="bodyLarge" numberOfLines={3} ellipsizeMode="tail">
-                  EMO – это небольшой, но продвинутый настольный робот-компаньон, который обладает искусственным
-                  интеллектом и может демонстрировать эмоции и на
+    <ScrollView ref={scrollViewRef} contentContainerStyle={styles.scrollViewContainer}>
+      {piggyBanks.map((piggyBank) => (
+        <View
+          key={piggyBank.wishId}
+          style={styles.wishContainer}
+          onLayout={(event) => handleItemLayout(piggyBank.wishId, event.nativeEvent.layout.y)}
+        >
+          <Image source={{ uri: piggyBank.image }} style={[styles.image, { height: IMAGE_HEIGHT }]} />
+          <View style={styles.infoContainer}>
+            <View style={styles.textContainer}>
+              <ThemedText type="h1">{piggyBank.name}</ThemedText>
+              <View style={styles.price}>
+                <ThemedText type="bodyLarge" style={styles.priceLabel}>
+                  Стоимость:
                 </ThemedText>
-                <ThemedText type="bodyLargeMedium" style={[styles.detailsLink, { color: theme.primary }]}>
-                  Подробнее
+                <ThemedText type="h5">
+                  {piggyBank.price} {piggyBank.currency?.symbol}
                 </ThemedText>
               </View>
             </View>
+
+            <ProgressBar
+              currentAmount={piggyBank.deposit}
+              targetAmount={piggyBank.price}
+              currency={piggyBank.currency}
+            />
+
+            <View style={styles.actionContainer}>
+              <View style={styles.hapticButtonContainer}>
+                <PlatformButton onPress={() => console.log('Исполнено')} hapticFeedback="Heavy">
+                  <ThemedText type="bodyLargeMedium" style={{ color: Colors.white }}>
+                    Пополнить
+                  </ThemedText>
+                </PlatformButton>
+              </View>
+              <ActionButton size={60} actions={[{ label: 'Поделиться', onPress: () => console.log('Поделиться') }]} />
+            </View>
+
+            <View style={styles.descriptionContainer}>
+              <ThemedText type="bodyLarge" numberOfLines={3} ellipsizeMode="tail">
+                EMO – это небольшой, но продвинутый настольный робот-компаньон, который обладает искусственным
+                интеллектом и может демонстрировать эмоции и на
+              </ThemedText>
+              <ThemedText type="bodyLargeMedium" style={[styles.detailsLink, { color: theme.primary }]}>
+                Подробнее
+              </ThemedText>
+            </View>
           </View>
-        ))}
-      </ScrollView>
-    </ThemedView>
+        </View>
+      ))}
+    </ScrollView>
   );
 }
 

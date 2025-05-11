@@ -96,7 +96,13 @@ export function TextInput<T>({
   }, [options]);
 
   return (
-    <Pressable style={[styles.container, containerStyle]} onPress={() => inputRef.current?.focus()}>
+    <Pressable
+      style={[styles.container, containerStyle]}
+      onPress={(event) => {
+        inputConfig.onPress?.(event);
+        inputRef.current?.focus();
+      }}
+    >
       <View
         style={[
           styles.inputContainer,

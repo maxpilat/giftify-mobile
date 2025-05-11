@@ -2,7 +2,7 @@ import { PlatformButton } from '@/components/PlatformButton';
 import { TextInput } from '@/components/TextInput';
 import { ThemedText } from '@/components/ThemedText';
 import { Colors } from '@/constants/themes';
-import { useProfile } from '@/hooks/useProfile';
+import { useProfile } from '@/hooks/useStore';
 import { useTheme } from '@/hooks/useTheme';
 import { ProfileBackground } from '@/models';
 import { getDefaultBackground } from '@/utils/profileBackground';
