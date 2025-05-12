@@ -381,6 +381,10 @@ export default function ProfileScreen() {
       }).then(fetchMyWishes);
     }
   };
+  
+  const getBooking = (bookingId: number) => {
+    return myBookings.find(booking => booking.bookingId === bookingId);
+  }
 
   return (
     <View style={styles.wrapper}>
@@ -468,10 +472,7 @@ export default function ProfileScreen() {
                       >
                         <Pressable>
                           <WishCard
-                            image={wishes.find((item) => item.wishId === wish.wishId)?.image}
-                            name={wish.name}
-                            price={wish.price}
-                            currency={wish.currency}
+                            wish={{ ...wish, image: wishes.find((item) => item.wishId === wish.wishId)?.image } as Wish}
                             actions={
                               isCurrentUser
                                 ? [
@@ -485,6 +486,7 @@ export default function ProfileScreen() {
                                     { label: 'Поделиться', onPress: shareWish },
                                   ].filter((action) => !!action)
                             }
+                            booking={!isCurrentUser && getBooking(wish.activeBookingId) wish.activeBookingId ===  ? {avatar: } : undefined}
                           />
                         </Pressable>
                       </Link>
@@ -535,8 +537,8 @@ export default function ProfileScreen() {
                         </View>
                         <View style={styles.piggyBankCard}>
                           <WishCard
-                            aspectRatio={1}
-                            image={piggyBank.image}
+                            imageAspectRatio={1}
+                            wish={piggyBank}
                             actions={
                               isCurrentUser
                                 ? [
@@ -592,7 +594,7 @@ export default function ProfileScreen() {
                       style={[{ [i % 2 === 0 ? 'marginRight' : 'marginLeft']: 8 }]}
                     >
                       <Pressable>
-                        <WishCard image={wish.image} name={wish.name} price={wish.price} currency={wish.currency} />
+                        <WishCard wish={wish} />
                       </Pressable>
                     </Link>
                   );

@@ -7,7 +7,9 @@ import { Action, ActionButton } from '@/components/ActionsButton';
 import Animated, { useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
 import { ThemedText } from '@/components/ThemedText';
 import { useTheme } from '@/hooks/useTheme';
-import { Currency } from '@/models';
+import { Wish } from '@/models';
+import { useProfile } from '@/hooks/useStore';
+import { useAuth } from '@/hooks/useAuth';
 
 const mask = `
   <svg width="88" height="86" viewBox="0 0 88 86" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -18,32 +20,36 @@ const mask = `
 const screenWidth = Dimensions.get('window').width;
 
 type Props = {
-  image?: string;
-  name?: string;
-  price?: number;
-  currency?: Currency;
-  aspectRatio?: number;
+  wish: Wish;
+  imageAspectRatio?: number;
   actions?: Action[];
+  isMyProfile?: boolean;
+  booking?: {
+    booked: string;
+    name: string;
+    surname: string;
+    avatar: string;
+  };
 };
 
-export function WishCard({ image, name, price, currency, aspectRatio, actions = [] }: Props) {
+export function WishCard({ wish, imageAspectRatio, actions = [], isMyProfile, booking }: Props) {
   const { theme } = useTheme();
 
-  const [computedAspectRatio, setComputedAspectRatio] = useState<number>(aspectRatio || 1);
+  const [computedAspectRatio, setComputedAspectRatio] = useState<number>(imageAspectRatio || 1);
 
   const opacity = useSharedValue(0);
 
   useEffect(() => {
-    if (image) {
-      if (!aspectRatio) {
-        Image.getSize(image, (width, height) => {
+    if (wish.image) {
+      if (!imageAspectRatio) {
+        Image.getSize(wish.image, (width, height) => {
           setComputedAspectRatio(Math.min(width / height, 1));
         });
       }
 
       opacity.value = withTiming(1, { duration: 300 });
     }
-  }, [image]);
+  }, [wish.image]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     opacity: opacity.value,
@@ -51,18 +57,27 @@ export function WishCard({ image, name, price, currency, aspectRatio, actions = 
 
   return (
     <View style={styles.container}>
-      <Animated.Image
-        source={{ uri: image }}
-        style={[styles.image, { aspectRatio: computedAspectRatio }, animatedStyle]}
-        resizeMode={'cover'}
-      />
+      <Animated.View style={[styles.imageContainer, animatedStyle]}>
+        {booking && !isMyProfile && (
+          <View>
+            <Image source={{ uri: booking?.avatar }} />
+            <ThemedText type="labelLarge"></ThemedText>
+          </View>
+        )}
 
-      {name && (
+        <Image
+          source={{ uri: wish.image }}
+          style={[styles.image, { aspectRatio: computedAspectRatio }]}
+          resizeMode={'cover'}
+        />
+      </Animated.View>
+
+      {wish.name && (
         <View style={styles.wishInfo}>
-          <ThemedText type="h3">{name}</ThemedText>
-          {price && (
+          <ThemedText type="h3">{wish.name}</ThemedText>
+          {wish.price && (
             <ThemedText type="bodyLarge" style={{ color: theme.subtext }}>
-              {price} {currency?.symbol}
+              {wish.price} {wish.currency?.symbol}
             </ThemedText>
           )}
         </View>
@@ -83,6 +98,7 @@ const styles = StyleSheet.create({
   container: {
     position: 'relative',
   },
+  imageContainer: {},
   image: {
     borderRadius: 25,
     minHeight: screenWidth / 2 - 40,
