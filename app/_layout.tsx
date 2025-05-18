@@ -25,10 +25,10 @@ export default function RootLayout() {
   const isLoaded = isFontsLoaded && isFirstLaunch !== null && isAuthLoaded && deepLink !== undefined;
 
   useEffect(() => {
-    // SecureStore.deleteItemAsync('hasLaunched').then(() => {
-    checkFirstLaunch();
-    loadAuthData();
-    // });
+    SecureStore.deleteItemAsync('hasLaunched').then(() => {
+      checkFirstLaunch();
+      loadAuthData();
+    });
 
     Linking.getInitialURL().then(setDeepLink);
   }, []);

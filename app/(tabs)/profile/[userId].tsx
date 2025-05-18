@@ -7,7 +7,7 @@ import { WishCard } from '@/components/WishCard';
 import { WishListTab } from '@/components/WishListTab';
 import { Icon } from '@/components/Icon';
 import { ThemedView } from '@/components/ThemedView';
-import { Link, router, useFocusEffect, useLocalSearchParams, usePathname } from 'expo-router';
+import { Link, router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useTheme } from '@/hooks/useTheme';
 import Animated, { runOnJS, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { ThemedText } from '@/components/ThemedText';
@@ -25,6 +25,7 @@ import * as Linking from 'expo-linking';
 
 type SearchParams = {
   userId?: string;
+  wishListId?: string;
 };
 
 export default function ProfileScreen() {
@@ -49,8 +50,7 @@ export default function ProfileScreen() {
     setIsLoaded: setIsProfileLoaded,
     isFriend,
   } = useProfile();
-  const { userId = authUser.id } = useLocalSearchParams<SearchParams>();
-  const pathname = usePathname();
+  const { userId = authUser.id, wishListId } = useLocalSearchParams<SearchParams>();
 
   const [currentTabIndex, setCurrentTabIndex] = useState(0);
   const [currentVisibleTabIndex, setCurrentVisibleTabIndex] = useState(0);
@@ -87,6 +87,10 @@ export default function ProfileScreen() {
   const isCurrentUser = +userId === authUser.id;
 
   useEffect(() => {
+    if (wishListId && wishLists.length) setCurrentWishListId(+wishListId);
+  }, [wishListId]);
+
+  useEffect(() => {
     if (isCurrentUser && isProfileLoaded) {
       setAvatar(myAvatar);
       setBackground(myBackground);
@@ -105,7 +109,7 @@ export default function ProfileScreen() {
       fetchMyBackground();
       const bookingsPromise = fetchMyBookings();
       const wishesPromise = fetchMyWishes();
-      const wishListsPromise = fetchMyWishLists();
+      const wishListsPromise = fetchMyWishLists().then(() => wishListId && setCurrentWishListId(+wishListId));
       const piggyBanksPromise = fetchMyPiggyBanks();
       const friendsPromise = fetchMyFriends();
 
@@ -160,7 +164,9 @@ export default function ProfileScreen() {
       const wishListsPromise = apiFetchData<WishList[]>({
         endpoint: API.profile.getWishLists(+userId),
         token: authUser.token,
-      }).then(setWishLists);
+      })
+        .then(setWishLists)
+        .then(() => wishListId && setCurrentWishListId(+wishListId));
 
       const piggyBanksPromise = apiFetchData<Wish[]>({
         endpoint: API.profile.getPiggyBanks(+userId),
@@ -254,12 +260,14 @@ export default function ProfileScreen() {
     }
   };
 
-  const wishListData = currentWishListId
-    ? wishLists.find((wishList) => wishList.wishListId === currentWishListId)!.wishes
-    : wishes;
+  const wishListData = wishLists.find(({ wishListId }) => wishListId === currentWishListId)?.wishes ?? wishes;
 
   const shareWishList = () => {
-    console.log('Поделиться вишлистом');
+    const deepLink = Linking.createURL(`/profile/${userId}`, {
+      queryParams: { wishListId: currentWishListId?.toString() },
+    });
+
+    Share.share({ url: deepLink });
   };
 
   const editWishList = (wishListId: number) => {
