@@ -11,14 +11,15 @@ import { FullWishCard } from '@/components/FullWishCard';
 type SearchParams = {
   userId?: string;
   wishId?: string;
+  isMyBookings?: string;
 };
 
 export default function WishesScreen() {
   const { user: authUser } = useAuth();
-  const { userId = authUser.id, wishId = 0 } = useLocalSearchParams<SearchParams>();
-  const { wishes: myWishes, fetchWishes: fetchMyWishes } = useProfile();
+  const { userId = authUser.id, wishId = 0, isMyBookings } = useLocalSearchParams<SearchParams>();
+  const { wishes: myWishes, fetchWishes: fetchMyWishes, bookings: myBookings } = useProfile();
   const scrollViewRef = useRef<ScrollView>(null);
-  const processedItemsRef = useRef(new Set<number>());
+  const itemsRef = useRef(new Map<number, number>());
 
   const [wishes, setWishes] = useState<Wish[]>([]);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -29,29 +30,44 @@ export default function WishesScreen() {
   };
 
   const isCurrentUser = +userId === authUser.id;
-  const visibleWishes = isCurrentUser ? myWishes : wishes;
+  const visibleWishes = isMyBookings ? myBookings.map((booking) => booking.wish) : isCurrentUser ? myWishes : wishes;
 
   useEffect(() => {
     if (userId && !isCurrentUser) fetchData();
   }, [userId]);
 
+  useEffect(() => {
+    if (itemsRef.current.size) {
+      scrollViewRef.current!.scrollTo({ y: itemsRef.current.get(+wishId), animated: false });
+    }
+  }, [wishId]);
+
   const fetchData = async () => {
     if (!isCurrentUser) {
-      const wishes = await apiFetchData<Wish[]>({
+      apiFetchData<Wish[]>({
         endpoint: API.profile.getWishes(+userId),
         token: authUser.token,
-      });
+      }).then(async (data) => {
+        setWishes(data);
 
-      setWishes(wishes);
-
-      wishes.forEach(async (wish) => {
-        const image = await apiFetchImage({
-          endpoint: API.wishes.getImage(wish.wishId),
-          token: authUser.token,
-        });
-        setWishes((prev) =>
-          prev.map((prevWish) => (prevWish.wishId === wish.wishId ? { ...prevWish, image } : prevWish))
+        const imagesMap = new Map(
+          await Promise.all(
+            data.map(async (wish) => {
+              const image = await apiFetchImage({
+                endpoint: API.wishes.getImage(wish.wishId),
+                token: authUser.token,
+              });
+              return [wish.wishId, image] as const;
+            })
+          )
         );
+
+        const updatedWishes = data.map((wish) => ({
+          ...wish,
+          image: imagesMap.get(wish.wishId),
+        }));
+
+        setWishes(updatedWishes);
       });
     } else {
       fetchMyWishes();
@@ -59,10 +75,10 @@ export default function WishesScreen() {
   };
 
   const handleItemLayout = (itemId: number, pageY: number) => {
-    if (scrollViewRef.current && !processedItemsRef.current.has(itemId) && +wishId === itemId) {
-      processedItemsRef.current.add(itemId);
+    if (!itemsRef.current.has(itemId) && scrollViewRef.current && +wishId === itemId) {
       scrollViewRef.current.scrollTo({ y: pageY, animated: false });
     }
+    itemsRef.current.set(itemId, pageY);
   };
 
   return (
@@ -72,7 +88,7 @@ export default function WishesScreen() {
       refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />}
     >
       {visibleWishes.map((wish) => (
-        <FullWishCard key={wish.wishId} wish={wish} userId={+userId} onLayout={handleItemLayout} />
+        <FullWishCard key={wish.wishId} wish={wish} onLayout={handleItemLayout} />
       ))}
     </ScrollView>
   );

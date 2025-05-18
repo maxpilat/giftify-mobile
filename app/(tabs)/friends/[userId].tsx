@@ -141,7 +141,7 @@ export default function FriendsScreen() {
                   >
                     <ThemedText
                       type="bodyLargeMedium"
-                      style={{ color: currentTabIndex === index ? theme.background : theme.text }}
+                      style={{ color: currentTabIndex === index ? Colors.white : theme.text }}
                     >
                       {tab}
                     </ThemedText>
@@ -218,6 +218,7 @@ const styles = StyleSheet.create({
     marginLeft: 80,
   },
   noFriendsMessage: {
+    marginTop: 10,
     textAlign: 'center',
     color: Colors.grey,
   },

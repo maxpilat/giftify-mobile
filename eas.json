@@ -1,18 +1,12 @@
 {
   "build": {
     "development": {
-      "distribution": "store",
-      "android": {
-        "buildType": "apk"
-      }
-    },
-    "production": {
-      "distribution": "store",
+      "distribution": "internal",
       "android": {
         "buildType": "apk"
       },
       "ios": {
-        "enterpriseProvisioning": "adhoc"
+        "simulator": true
       }
     }
   }

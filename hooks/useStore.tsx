@@ -44,6 +44,7 @@ const StoreContext = createContext<{
   fetchAllBackgrounds: () => Promise<ProfileBackground[]>;
   addBackgroundImage: (backgroundUri: string) => Promise<ProfileBackground>;
   changeBackground: (background: ProfileBackground) => Promise<void>;
+  changeAvatar: (avatar: string) => Promise<void>;
 } | null>(null);
 
 export const StoreProvider = ({ children }: { children: ReactNode }) => {
@@ -89,28 +90,51 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
 
     setBookings(bookings);
 
-    const imagesMap = new Map(
-      await Promise.all(
-        bookings.map(async (booking) => {
-          const image = await apiFetchImage({
-            endpoint: API.wishes.getImage(booking.wish.wishId),
-            token: user.token,
-          });
-          return [booking.wish.wishId, image] as const;
-        })
-      )
-    );
+    Promise.all(
+      bookings.map(async (booking) => {
+        const image = await apiFetchImage({
+          endpoint: API.wishes.getImage(booking.wish.wishId),
+          token: user.token,
+        });
+        return [booking.bookingId, image] as const;
+      })
+    )
+      .then((entries) => new Map(entries))
+      .then((imagesMap) => {
+        setBookings((prevBookings) =>
+          prevBookings.map((booking) => ({
+            ...booking,
+            wish: { ...booking.wish, image: imagesMap.get(booking.bookingId) },
+          }))
+        );
+      });
 
-    const updatedBookings = bookings.map((booking) => ({
-      ...booking,
-      wish: {
-        ...booking.wish,
-        image: imagesMap.get(booking.wish.wishId),
-      },
-    }));
+    Promise.all(
+      bookings.map(async (booking) => {
+        const avatar = await apiFetchImage({
+          endpoint: API.profile.getAvatar(booking.wish.wisherProfileData.userId),
+          token: user.token,
+        });
+        return [booking.bookingId, avatar] as const;
+      })
+    )
+      .then((entries) => new Map(entries))
+      .then((avatarsMap) => {
+        setBookings((prevBookings) =>
+          prevBookings.map((booking) => ({
+            ...booking,
+            wish: {
+              ...booking.wish,
+              wisherProfileData: {
+                ...booking.wish.wisherProfileData,
+                avatar: avatarsMap.get(booking.bookingId),
+              },
+            },
+          }))
+        );
+      });
 
-    setBookings(updatedBookings);
-    return updatedBookings;
+    return bookings;
   }, [user]);
 
   const fetchFriendRequests = useCallback(async () => {
@@ -131,25 +155,26 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
 
     setFriends(friends);
 
-    const avatarsMap = new Map(
-      await Promise.all(
-        friends.map(async (friend) => {
-          const image = await apiFetchImage({
-            endpoint: API.profile.getAvatar(friend.friendId),
-            token: user.token,
-          });
-          return [friend.friendId, image] as const;
-        })
-      )
-    );
+    Promise.all(
+      friends.map(async (friend) => {
+        const image = await apiFetchImage({
+          endpoint: API.profile.getAvatar(friend.friendId),
+          token: user.token,
+        });
+        return [friend.friendId, image] as const;
+      })
+    )
+      .then((entries) => new Map(entries))
+      .then((avatarsMap) => {
+        setFriends((prevFriends) =>
+          prevFriends.map((friend) => ({
+            ...friend,
+            avatar: avatarsMap.get(friend.friendId),
+          }))
+        );
+      });
 
-    const updatedFriends = friends.map((friend) => ({
-      ...friend,
-      avatar: avatarsMap.get(friend.friendId),
-    }));
-
-    setFriends(updatedFriends);
-    return updatedFriends;
+    return friends;
   }, [user]);
 
   const fetchWishes = useCallback(async () => {
@@ -160,25 +185,26 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
 
     setWishes(wishes);
 
-    const imagesMap = new Map(
-      await Promise.all(
-        wishes.map(async (wish) => {
-          const image = await apiFetchImage({
-            endpoint: API.wishes.getImage(wish.wishId),
-            token: user.token,
-          });
-          return [wish.wishId, image] as const;
-        })
-      )
-    );
+    Promise.all(
+      wishes.map(async (wish) => {
+        const image = await apiFetchImage({
+          endpoint: API.wishes.getImage(wish.wishId),
+          token: user.token,
+        });
+        return [wish.wishId, image] as const;
+      })
+    )
+      .then((entries) => new Map(entries))
+      .then((imagesMap) => {
+        setWishes((prevWishes) =>
+          prevWishes.map((wish) => ({
+            ...wish,
+            image: imagesMap.get(wish.wishId),
+          }))
+        );
+      });
 
-    const updatedWishes = wishes.map((wish) => ({
-      ...wish,
-      image: imagesMap.get(wish.wishId),
-    }));
-
-    setWishes(updatedWishes);
-    return updatedWishes;
+    return wishes;
   }, [user]);
 
   const fetchWishLists = useCallback(async () => {
@@ -199,25 +225,26 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
 
     setPiggyBanks(piggyBanks);
 
-    const imagesMap = new Map(
-      await Promise.all(
-        piggyBanks.map(async (piggyBank) => {
-          const image = await apiFetchImage({
-            endpoint: API.wishes.getImage(piggyBank.wishId),
-            token: user.token,
-          });
-          return [piggyBank.wishId, image] as const;
-        })
-      )
-    );
+    Promise.all(
+      piggyBanks.map(async (piggyBank) => {
+        const image = await apiFetchImage({
+          endpoint: API.wishes.getImage(piggyBank.wishId),
+          token: user.token,
+        });
+        return [piggyBank.wishId, image] as const;
+      })
+    )
+      .then((entries) => new Map(entries))
+      .then((imagesMap) => {
+        setPiggyBanks((prevPiggyBanks) =>
+          prevPiggyBanks.map((piggyBank) => ({
+            ...piggyBank,
+            image: imagesMap.get(piggyBank.wishId),
+          }))
+        );
+      });
 
-    const updatedPiggyBanks = piggyBanks.map((piggyBank) => ({
-      ...piggyBank,
-      image: imagesMap.get(piggyBank.wishId),
-    }));
-
-    setPiggyBanks(updatedPiggyBanks);
-    return updatedPiggyBanks;
+    return wishes;
   }, [user]);
 
   const isFriend = useCallback(
@@ -308,6 +335,23 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
     [allBackgrounds]
   );
 
+  const changeAvatar = useCallback(
+    async (avatarUri: string) => {
+      setAvatar(avatarUri);
+
+      await apiFetchData({
+        endpoint: API.settings.updateAvatar,
+        method: 'PUT',
+        body: {
+          email: user.email,
+          newAvatar: base64ToBinaryArray(await uriToBase64(avatarUri)),
+        },
+        token: user.token,
+      });
+    },
+    [user]
+  );
+
   const providerValue = useMemo(
     () => ({
       avatar,
@@ -325,6 +369,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
       fetchAllBackgrounds,
       addBackgroundImage,
       changeBackground,
+      changeAvatar,
       fetchBookings,
       fetchFriendRequests,
       fetchFriends,

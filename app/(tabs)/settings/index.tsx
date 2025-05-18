@@ -25,11 +25,12 @@ import { router } from 'expo-router';
 import { apiFetchData } from '@/lib/api';
 import { API } from '@/constants/api';
 import { useProfile } from '@/hooks/useStore';
+import { launchImageLibraryAsync } from 'expo-image-picker';
 
 export default function SettingsScreen() {
   const { theme } = useTheme();
   const { user, signOut, deactivateAccount } = useAuth();
-  const { avatar: myAvatar } = useProfile();
+  const { avatar: myAvatar, changeAvatar } = useProfile();
 
   const [name, setName] = useState<string>('');
   const [surname, setSurname] = useState<string>('');
@@ -78,6 +79,19 @@ export default function SettingsScreen() {
       body: { email: user.email, newName: value, newSurname: surname },
       token: user.token,
     });
+  };
+
+  const pickAvatar = async () => {
+    const result = await launchImageLibraryAsync({
+      mediaTypes: 'images',
+      allowsEditing: false,
+      quality: 1,
+    });
+
+    if (!result.canceled && result.assets?.[0]?.uri) {
+      const uri = result.assets[0].uri;
+      changeAvatar(uri);
+    }
   };
 
   const handleSurnameChange = (value: string) => {
@@ -174,10 +188,12 @@ export default function SettingsScreen() {
         <View style={styles.content}>
           <View style={styles.body}>
             <View style={styles.mainInfo}>
-              <Image
-                source={myAvatar ? { uri: myAvatar } : require('@/assets/images/avatar.png')}
-                style={[styles.avatar, { backgroundColor: theme.tabBarBorder }]}
-              />
+              <TouchableOpacity activeOpacity={0.7} onPress={pickAvatar}>
+                <Image
+                  source={myAvatar ? { uri: myAvatar } : require('@/assets/images/avatar.png')}
+                  style={[styles.avatar, { backgroundColor: theme.tabBarBorder }]}
+                />
+              </TouchableOpacity>
               <View style={styles.fullnameContainer}>
                 <TextInput
                   icon="user"
@@ -336,12 +352,13 @@ const styles = StyleSheet.create({
   },
   mainInfo: {
     flexDirection: 'row',
+    alignItems: 'center',
     gap: 20,
   },
   avatar: {
-    width: 110,
-    height: 110,
-    borderRadius: 55,
+    width: 124,
+    height: 124,
+    borderRadius: 62,
   },
   fullnameContainer: {
     flex: 1,

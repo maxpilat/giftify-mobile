@@ -1,20 +1,12 @@
-import { useEffect, useRef, useState } from 'react';
-import { ScrollView, Image, StyleSheet, View } from 'react-native';
-import { ThemedView } from '@/components/ThemedView';
-import { ThemedText } from '@/components/ThemedText';
-import { ActionButton } from '@/components/ActionsButton';
-import { useTheme } from '@/hooks/useTheme';
-import { PlatformButton } from '@/components/PlatformButton';
-import { Colors } from '@/constants/themes';
+import { use, useEffect, useRef, useState } from 'react';
+import { RefreshControl, ScrollView, StyleSheet } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { API } from '@/constants/api';
-import { ProgressBar } from '@/components/ProgressBar';
-import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useStore';
+import { useAuth } from '@/hooks/useAuth';
 import { Wish } from '@/models';
 import { apiFetchData, apiFetchImage } from '@/lib/api';
-
-const IMAGE_HEIGHT = 450;
+import { FullPiggyBankCard } from '@/components/FullPiggyBankCard';
 
 type SearchParams = {
   userId?: string;
@@ -22,96 +14,80 @@ type SearchParams = {
 };
 
 export default function PiggyBanksScreen() {
-  const { theme } = useTheme();
   const { user: authUser } = useAuth();
   const { userId = authUser.id, piggyBankId = 0 } = useLocalSearchParams<SearchParams>();
+  const { piggyBanks: myPiggyBanks, fetchPiggyBanks: fetchMyPiggyBanks } = useProfile();
   const scrollViewRef = useRef<ScrollView>(null);
+  const itemsRef = useRef(new Map<number, number>());
 
   const [piggyBanks, setPiggyBanks] = useState<Wish[]>([]);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const handleItemLayout = (id: number, pageY: number) => {
-    if (+piggyBankId === id && scrollViewRef.current) {
-      scrollViewRef.current.scrollTo({ y: pageY, animated: false });
-    }
+  const onRefresh = () => {
+    setIsRefreshing(true);
+    fetchData().then(() => setIsRefreshing(false));
   };
 
-  const { piggyBanks: myPiggyBanks } = useProfile();
-
-  const fetchData = () => {
-    if (+userId === authUser.id) {
-      setPiggyBanks(myPiggyBanks);
-    } else {
-      apiFetchData<Wish[]>({ endpoint: API.profile.getPiggyBanks(+userId), token: authUser.token }).then((data) => {
-        setPiggyBanks(data);
-        data.forEach(async (piggyBank) => {
-          const image: string = await apiFetchImage({
-            endpoint: API.wishes.getImage(piggyBank.wishId),
-            token: authUser.token,
-          });
-          setPiggyBanks((prev) =>
-            prev.map((prevPiggyBank) =>
-              prevPiggyBank.wishId === piggyBank.wishId ? { ...prevPiggyBank, image } : prevPiggyBank
-            )
-          );
-        });
-      });
-    }
-  };
+  const isCurrentUser = +userId === authUser.id;
+  const visiblePiggyBanks = isCurrentUser ? myPiggyBanks : piggyBanks;
 
   useEffect(() => {
-    fetchData();
+    if (userId && !isCurrentUser) fetchData();
   }, [userId]);
 
+  useEffect(() => {
+    if (itemsRef.current.size) {
+      scrollViewRef.current!.scrollTo({ y: itemsRef.current.get(+piggyBankId), animated: false });
+    }
+  }, [piggyBankId]);
+
+  const fetchData = async () => {
+    if (!isCurrentUser) {
+      apiFetchData<Wish[]>({
+        endpoint: API.profile.getPiggyBanks(+userId),
+        token: authUser.token,
+      }).then(async (data) => {
+        setPiggyBanks(data);
+
+        const imagesMap = new Map(
+          await Promise.all(
+            data.map(async (piggyBank) => {
+              const image = await apiFetchImage({
+                endpoint: API.wishes.getImage(piggyBank.wishId),
+                token: authUser.token,
+              });
+              return [piggyBank.wishId, image] as const;
+            })
+          )
+        );
+
+        const updatedPiggyBanks = data.map((piggyBank) => ({
+          ...piggyBank,
+          image: imagesMap.get(piggyBank.wishId),
+        }));
+
+        setPiggyBanks(updatedPiggyBanks);
+      });
+    } else {
+      fetchMyPiggyBanks();
+    }
+  };
+
+  const handleItemLayout = (itemId: number, pageY: number) => {
+    if (!itemsRef.current.has(itemId) && scrollViewRef.current && +piggyBankId === itemId) {
+      scrollViewRef.current.scrollTo({ y: pageY, animated: false });
+    }
+    itemsRef.current.set(itemId, pageY);
+  };
+
   return (
-    <ScrollView ref={scrollViewRef} contentContainerStyle={styles.scrollViewContainer}>
-      {piggyBanks.map((piggyBank) => (
-        <View
-          key={piggyBank.wishId}
-          style={styles.wishContainer}
-          onLayout={(event) => handleItemLayout(piggyBank.wishId, event.nativeEvent.layout.y)}
-        >
-          <Image source={{ uri: piggyBank.image }} style={[styles.image, { height: IMAGE_HEIGHT }]} />
-          <View style={styles.infoContainer}>
-            <View style={styles.textContainer}>
-              <ThemedText type="h1">{piggyBank.name}</ThemedText>
-              <View style={styles.price}>
-                <ThemedText type="bodyLarge" style={styles.priceLabel}>
-                  Стоимость:
-                </ThemedText>
-                <ThemedText type="h5">
-                  {piggyBank.price} {piggyBank.currency?.symbol}
-                </ThemedText>
-              </View>
-            </View>
-
-            <ProgressBar
-              currentAmount={piggyBank.deposit}
-              targetAmount={piggyBank.price}
-              currency={piggyBank.currency}
-            />
-
-            <View style={styles.actionContainer}>
-              <View style={styles.hapticButtonContainer}>
-                <PlatformButton onPress={() => console.log('Исполнено')} hapticFeedback="Heavy">
-                  <ThemedText type="bodyLargeMedium" style={{ color: Colors.white }}>
-                    Пополнить
-                  </ThemedText>
-                </PlatformButton>
-              </View>
-              <ActionButton size={60} actions={[{ label: 'Поделиться', onPress: () => console.log('Поделиться') }]} />
-            </View>
-
-            <View style={styles.descriptionContainer}>
-              <ThemedText type="bodyLarge" numberOfLines={3} ellipsizeMode="tail">
-                EMO – это небольшой, но продвинутый настольный робот-компаньон, который обладает искусственным
-                интеллектом и может демонстрировать эмоции и на
-              </ThemedText>
-              <ThemedText type="bodyLargeMedium" style={[styles.detailsLink, { color: theme.primary }]}>
-                Подробнее
-              </ThemedText>
-            </View>
-          </View>
-        </View>
+    <ScrollView
+      ref={scrollViewRef}
+      contentContainerStyle={styles.scrollViewContainer}
+      refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />}
+    >
+      {visiblePiggyBanks.map((piggyBank) => (
+        <FullPiggyBankCard key={piggyBank.wishId} piggyBank={piggyBank} onLayout={handleItemLayout} />
       ))}
     </ScrollView>
   );
@@ -119,55 +95,7 @@ export default function PiggyBanksScreen() {
 
 const styles = StyleSheet.create({
   scrollViewContainer: {
-    gap: 56,
+    gap: 42,
     paddingBottom: 130,
-  },
-  wishContainer: {
-    gap: 24,
-  },
-  image: {
-    width: '100%',
-  },
-  infoContainer: {
-    paddingHorizontal: 24,
-    gap: 24,
-  },
-  textContainer: {
-    gap: 14,
-  },
-  price: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flexWrap: 'wrap',
-  },
-  priceLabel: {
-    color: Colors.grey,
-    paddingRight: 10,
-  },
-  externalLink: {
-    color: 'red',
-  },
-  externalLinkContainer: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  externalLinkText: {
-    textAlign: 'right',
-  },
-  externalLinkIcon: {
-    marginTop: 3,
-  },
-  actionContainer: {
-    flexDirection: 'row',
-    gap: 14,
-  },
-  hapticButtonContainer: {
-    flex: 1,
-  },
-  descriptionContainer: {
-    gap: 10,
-  },
-  detailsLink: {
-    textAlign: 'right',
   },
 });

@@ -1,12 +1,13 @@
 import { useFonts } from 'expo-font';
-import { router, Stack } from 'expo-router';
-import * as SplashScreen from 'expo-splash-screen';
-import * as SecureStore from 'expo-secure-store';
+import { Href, router, Stack } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ThemeProvider } from '@/hooks/useTheme';
 import { ActionSheetProvider } from '@expo/react-native-action-sheet';
 import { AuthProvider } from '@/hooks/useAuth';
 import { AuthData } from '@/models';
+import * as Linking from 'expo-linking';
+import * as SplashScreen from 'expo-splash-screen';
+import * as SecureStore from 'expo-secure-store';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -19,23 +20,30 @@ export default function RootLayout() {
   const [isFirstLaunch, setIsFirstLaunch] = useState<boolean | null>(null);
   const [isAuthLoaded, setIsAuthLoaded] = useState(false);
   const [initialUser, setInitialUser] = useState<AuthData>();
+  const [deepLink, setDeepLink] = useState<string | null>();
 
-  const isLoaded = isFontsLoaded && isFirstLaunch !== null && isAuthLoaded;
+  const isLoaded = isFontsLoaded && isFirstLaunch !== null && isAuthLoaded && deepLink !== undefined;
 
   useEffect(() => {
     // SecureStore.deleteItemAsync('hasLaunched').then(() => {
     checkFirstLaunch();
     loadAuthData();
     // });
+
+    Linking.getInitialURL().then(setDeepLink);
   }, []);
 
   useEffect(() => {
     if (!isLoaded) return;
+
     if (isFirstLaunch) router.replace('/welcome');
-    else
-      router.replace(
-        initialUser ? { pathname: '/(tabs)/profile/[userId]', params: { userId: initialUser.id } } : '/(auth)'
-      );
+    else if (initialUser) {
+      router.replace({ pathname: '/(tabs)/profile/[userId]', params: { userId: initialUser.id } });
+      if (deepLink) router.push(deepLink as Href);
+    } else {
+      router.replace('/(auth)');
+    }
+
     setTimeout(() => SplashScreen.hideAsync(), 800);
   }, [isLoaded]);
 

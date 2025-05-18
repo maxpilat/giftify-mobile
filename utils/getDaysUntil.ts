@@ -15,8 +15,8 @@ export function getDaysUntilBirthday(birthDate: string): number {
   return Math.ceil((targetDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
 }
 
-export function getDaysUntilBookingExpires(createdDate: string): number {
-  const [year, month, day] = createdDate.split('-').map(Number);
+export function getDaysUntilBookingExpires(bookedDate: string): number {
+  const [year, month, day] = bookedDate.split('-').map(Number);
 
   const creationDate = new Date(year, month - 1, day);
   const today = new Date();

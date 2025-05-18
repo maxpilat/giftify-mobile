@@ -8,7 +8,13 @@ import { SvgXml } from 'react-native-svg';
 import { useTheme } from '@/hooks/useTheme';
 import { Profile, ProfileBackground } from '@/models';
 import { formatCountedPhrase } from '@/utils/formatCountedPhrase';
-import { Link, router } from 'expo-router';
+import { Link } from 'expo-router';
+import { Colors } from '@/constants/themes';
+import { useProfile } from '@/hooks/useStore';
+import { Icon } from '@/components/Icon';
+import { apiFetchData } from '@/lib/api';
+import { API } from '@/constants/api';
+import { useAuth } from '@/hooks/useAuth';
 
 const mask = `
   <svg width="280" height="130" viewBox="100 -0.5 280 161" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -28,8 +34,63 @@ type Props = {
 
 export function ProfileHeader({ profile, avatar, background, friendsCount, friendsAvatars, tabs, onTabChange }: Props) {
   const { theme } = useTheme();
+  const { user: authUser } = useAuth();
+  const { fetchFriendRequests, fetchFriends, isFriend, isReceiver, isSender } = useProfile();
 
   const [currentTabIndex, setCurrentTabIndex] = useState(0);
+
+  const acceptFriendRequest = () => {
+    apiFetchData({
+      endpoint: API.friends.sendRequest,
+      method: 'POST',
+      body: {
+        userOneId: authUser.id,
+        isUserOneAccept: true,
+        userTwoId: profile!.userId,
+        isUserTwoAccept: isSender(profile!.userId) ? true : false,
+      },
+      token: authUser.token,
+    })
+      .then(fetchFriends)
+      .then(fetchFriendRequests);
+  };
+
+  const rejectFriendRequest = () => {
+    apiFetchData({
+      endpoint: API.friends.sendRequest,
+      method: 'POST',
+      body: {
+        userOneId: authUser.id,
+        isUserOneAccept: false,
+        userTwoId: profile?.userId,
+        isUserTwoAccept: false,
+      },
+      token: authUser.token,
+    })
+      .then(fetchFriends)
+      .then(fetchFriendRequests);
+  };
+
+  const getFriendButton = () => {
+    if (!profile || profile.userId === authUser.id || isFriend(profile.userId)) return null;
+
+    if (isReceiver(profile.userId)) {
+      return (
+        <TouchableOpacity
+          style={[styles.friendButton, { backgroundColor: Colors.lightBlue }]}
+          onPress={rejectFriendRequest}
+        >
+          <Icon name="accept" color={Colors.blue} />
+        </TouchableOpacity>
+      );
+    }
+
+    return (
+      <TouchableOpacity style={[styles.friendButton, { backgroundColor: theme.primary }]} onPress={acceptFriendRequest}>
+        <Icon name="plus" color={Colors.white} />
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <ImageBackground
@@ -66,22 +127,29 @@ export function ProfileHeader({ profile, avatar, background, friendsCount, frien
             </ThemedText>
             {profile && (
               <View style={styles.details}>
-                {profile?.username && <ThemedText type="bodyLargeMedium">{profile.username}</ThemedText>}
+                {profile?.username && (
+                  <ThemedText type="bodyLargeMedium">
+                    {profile.username.length > 10 ? `${profile.username.slice(0, 9)}...` : profile.username}
+                  </ThemedText>
+                )}
                 <Link asChild href={{ pathname: '/friends/[userId]', params: { userId: profile.userId } }}>
                   <TouchableOpacity style={styles.friends}>
-                    <View style={styles.friendsAvatars}>
-                      {friendsAvatars?.map((friendAvatar, index) => (
-                        <Image
-                          key={index}
-                          source={friendAvatar ? { uri: friendAvatar } : require('../assets/images/avatar.png')}
-                          style={[
-                            styles.friendAvatar,
-                            index > 0 && { marginLeft: -13 },
-                            { borderColor: theme.background },
-                          ]}
-                        />
-                      ))}
-                    </View>
+                    {friendsAvatars && friendsAvatars.length > 0 && (
+                      <View style={styles.friendsAvatars}>
+                        {friendsAvatars.map((friendAvatar, index) => (
+                          <Image
+                            key={index}
+                            source={friendAvatar ? { uri: friendAvatar } : require('../assets/images/avatar.png')}
+                            style={[
+                              styles.friendAvatar,
+                              index > 0 && { marginLeft: -13 },
+                              { borderColor: theme.background },
+                            ]}
+                          />
+                        ))}
+                      </View>
+                    )}
+
                     <ThemedText>
                       {formatCountedPhrase({
                         number: friendsCount || 0,
@@ -92,6 +160,7 @@ export function ProfileHeader({ profile, avatar, background, friendsCount, frien
                     </ThemedText>
                   </TouchableOpacity>
                 </Link>
+                {getFriendButton()}
               </View>
             )}
           </ThemedView>
@@ -108,7 +177,7 @@ export function ProfileHeader({ profile, avatar, background, friendsCount, frien
               >
                 <ThemedText
                   type="bodyLargeMedium"
-                  style={{ color: currentTabIndex === index ? theme.background : theme.text }}
+                  style={{ color: currentTabIndex === index ? Colors.white : theme.text }}
                 >
                   {tab}
                 </ThemedText>
@@ -197,5 +266,9 @@ const styles = StyleSheet.create({
     padding: 8,
     borderRadius: 40,
     alignItems: 'center',
+  },
+  friendButton: {
+    padding: 13,
+    borderRadius: 25,
   },
 });

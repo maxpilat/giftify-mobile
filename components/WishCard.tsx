@@ -4,12 +4,12 @@ import MaskedView from '@react-native-masked-view/masked-view';
 import { SvgXml } from 'react-native-svg';
 import { ThemedView } from '@/components/ThemedView';
 import { Action, ActionButton } from '@/components/ActionsButton';
-import Animated, { useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
 import { ThemedText } from '@/components/ThemedText';
 import { useTheme } from '@/hooks/useTheme';
 import { Wish } from '@/models';
-import { useProfile } from '@/hooks/useStore';
-import { useAuth } from '@/hooks/useAuth';
+import { getDaysUntilBookingExpires } from '@/utils/getDaysUntil';
+import { Colors } from '@/constants/themes';
+import { Icon } from '@/components/Icon';
 
 const mask = `
   <svg width="88" height="86" viewBox="0 0 88 86" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -23,21 +23,31 @@ type Props = {
   wish: Wish;
   imageAspectRatio?: number;
   actions?: Action[];
-  isMyProfile?: boolean;
-  booking?: {
+  showInfo?: boolean;
+  showBooking?: boolean;
+  booker?: {
     booked: string;
+    avatar?: string;
+  };
+  wisher?: {
     name: string;
     surname: string;
-    avatar: string;
+    avatar?: string;
   };
 };
 
-export function WishCard({ wish, imageAspectRatio, actions = [], isMyProfile, booking }: Props) {
+export function WishCard({
+  wish,
+  imageAspectRatio,
+  actions = [],
+  showInfo = true,
+  booker,
+  wisher,
+  showBooking = booker || wisher ? true : false,
+}: Props) {
   const { theme } = useTheme();
 
   const [computedAspectRatio, setComputedAspectRatio] = useState<number>(imageAspectRatio || 1);
-
-  const opacity = useSharedValue(0);
 
   useEffect(() => {
     if (wish.image) {
@@ -46,23 +56,31 @@ export function WishCard({ wish, imageAspectRatio, actions = [], isMyProfile, bo
           setComputedAspectRatio(Math.min(width / height, 1));
         });
       }
-
-      opacity.value = withTiming(1, { duration: 300 });
     }
   }, [wish.image]);
 
-  const animatedStyle = useAnimatedStyle(() => ({
-    opacity: opacity.value,
-  }));
-
   return (
     <View style={styles.container}>
-      <Animated.View style={[styles.imageContainer, animatedStyle]}>
-        {booking && !isMyProfile && (
-          <View>
-            <Image source={{ uri: booking?.avatar }} />
-            <ThemedText type="labelLarge"></ThemedText>
-          </View>
+      <View style={styles.imageContainer}>
+        {wish.image && (
+          <>
+            {booker && (
+              <View style={styles.imageOverlay}>
+                <Image style={styles.bookerAvatar} source={{ uri: booker.avatar }} />
+                <ThemedText type="labelLarge" style={styles.bookingLabel}>
+                  Бронь снимется через {getDaysUntilBookingExpires(booker.booked)} дней
+                </ThemedText>
+              </View>
+            )}
+            {showBooking && !booker && !wisher && (
+              <View style={styles.imageOverlay}>
+                <Icon name={'lock'} color={Colors.white} size={50} />
+                <ThemedText type="labelLarge" style={styles.bookingLabel}>
+                  Кто-то уже забронировал желание
+                </ThemedText>
+              </View>
+            )}
+          </>
         )}
 
         <Image
@@ -70,15 +88,23 @@ export function WishCard({ wish, imageAspectRatio, actions = [], isMyProfile, bo
           style={[styles.image, { aspectRatio: computedAspectRatio }]}
           resizeMode={'cover'}
         />
-      </Animated.View>
+      </View>
 
-      {wish.name && (
+      {showInfo && (
         <View style={styles.wishInfo}>
           <ThemedText type="h3">{wish.name}</ThemedText>
           {wish.price && (
             <ThemedText type="bodyLarge" style={{ color: theme.subtext }}>
               {wish.price} {wish.currency?.symbol}
             </ThemedText>
+          )}
+          {wisher && (
+            <View style={styles.wisherContainer}>
+              <Image style={styles.wisherAvatar} source={{ uri: wisher.avatar }} />
+              <ThemedText type="labelLarge">
+                {wisher.name} {wisher.surname}
+              </ThemedText>
+            </View>
           )}
         </View>
       )}
@@ -98,9 +124,31 @@ const styles = StyleSheet.create({
   container: {
     position: 'relative',
   },
-  imageContainer: {},
-  image: {
+  imageContainer: {
+    justifyContent: 'center',
+    overflow: 'hidden',
     borderRadius: 25,
+  },
+  imageOverlay: {
+    position: 'absolute',
+    height: '100%',
+    zIndex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    backgroundColor: 'rgba(17, 19, 24, 0.6)',
+    gap: 5,
+  },
+  bookerAvatar: {
+    width: 50,
+    height: 50,
+  },
+  bookingLabel: {
+    textAlign: 'center',
+    color: Colors.white,
+  },
+  image: {
     minHeight: screenWidth / 2 - 40,
   },
   maskedView: {
@@ -118,13 +166,20 @@ const styles = StyleSheet.create({
     top: 0,
     right: 0,
   },
-  info: {
-    marginTop: 5,
-  },
   wish: {
     marginBottom: 24,
   },
   wishInfo: {
     marginTop: 10,
+    gap: 4,
+  },
+  wisherContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  wisherAvatar: {
+    width: 32,
+    height: 32,
   },
 });

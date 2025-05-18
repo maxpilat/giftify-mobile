@@ -50,7 +50,7 @@ export default function PickCustomColorsScreen() {
               setTabIndex(index);
             }}
           >
-            <ThemedText type="bodyLargeMedium" style={{ color: tabIndex === index ? theme.background : theme.text }}>
+            <ThemedText type="bodyLargeMedium" style={{ color: tabIndex === index ? Colors.white : theme.text }}>
               {tab}
             </ThemedText>
           </TouchableOpacity>

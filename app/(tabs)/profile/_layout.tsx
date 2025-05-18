@@ -57,7 +57,12 @@ export default function IndexLayout() {
         dangerouslySingular={() => `${Date.now()}-${Math.random().toString(36).slice(2)}`}
         options={getProfileScreenOptions()}
       />
-      <Stack.Screen name="wishes" options={getFeedScreenOptions('Желания')} />
+      <Stack.Screen
+        name="wishes"
+        options={({ route }) =>
+          getFeedScreenOptions((route.params as { isMyBookings?: string })?.isMyBookings ? 'Я дарю' : 'Желания')
+        }
+      />
       <Stack.Screen name="piggyBanks" options={getFeedScreenOptions('Копилки')} />
       <Stack.Screen
         name="wishModal"
@@ -80,6 +85,12 @@ export default function IndexLayout() {
             (route.params as { piggyBankId?: string })?.piggyBankId ? 'Редактирование' : 'Новая копилка'
           )
         }
+      />
+      <Stack.Screen
+        name="piggyBankDepositModal"
+        options={{
+          ...getModalScreenOptions(''),
+        }}
       />
     </Stack>
   );

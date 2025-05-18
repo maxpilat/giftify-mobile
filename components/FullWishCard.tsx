@@ -1,4 +1,4 @@
-import { StyleSheet, View, Image, TouchableOpacity, Alert } from 'react-native';
+import { StyleSheet, View, Image, TouchableOpacity, Alert, Share } from 'react-native';
 import { Action, ActionButton } from './ActionsButton';
 import { ExternalLink } from './ExternalLink';
 import { Icon } from './Icon';
@@ -7,7 +7,7 @@ import { ThemedText } from './ThemedText';
 import { Wish } from '@/models';
 import { useTheme } from '@/hooks/useTheme';
 import { useAuth } from '@/hooks/useAuth';
-import { router } from 'expo-router';
+import { router, usePathname } from 'expo-router';
 import { API } from '@/constants/api';
 import { apiFetchData } from '@/lib/api';
 import { useProfile } from '@/hooks/useStore';
@@ -15,16 +15,16 @@ import { useState } from 'react';
 import { base64ToBinaryArray } from '@/utils/convertImage';
 import { Colors } from '@/constants/themes';
 import { getDaysUntilBookingExpires } from '@/utils/getDaysUntil';
+import * as Linking from 'expo-linking';
 
 const IMAGE_HEIGHT = 450;
 
 type Props = {
   wish: Wish;
-  userId: number;
   onLayout?: (itemId: number, pageY: number) => void;
 };
 
-export function FullWishCard({ wish, userId, onLayout }: Props) {
+export function FullWishCard({ wish, onLayout }: Props) {
   const { theme } = useTheme();
   const { user: authUser } = useAuth();
   const {
@@ -32,16 +32,23 @@ export function FullWishCard({ wish, userId, onLayout }: Props) {
     fetchBookings: fetchMyBookings,
     fetchWishes: fetchMyWishes,
     fetchWishLists: fetchMyWishLists,
-    isFriend,
+    isFriend: isFriendFunction,
   } = useProfile();
+  const pathname = usePathname();
 
   const [isCollapsed, setIsCollapsed] = useState(true);
+  const [descriptionNumLines, setDescriptionNumLines] = useState(0);
 
-  const isCurrentUser = +userId === authUser.id;
   const booking = myBookings.find((item) => item.wish.wishId === wish.wishId);
+  const isCurrentUser = wish.wisherProfileData.userId === authUser.id;
+  const isFriend = isFriendFunction(wish.wisherProfileData.userId);
 
   const shareWish = () => {
-    console.log('Поделиться желанием');
+    const deepLink = Linking.createURL(pathname, {
+      queryParams: { userId: wish.wisherProfileData.userId.toString(), piggyBankId: wish.wishId.toString() },
+    });
+
+    Share.share({ url: deepLink });
   };
 
   const editWish = () => {
@@ -121,7 +128,7 @@ export function FullWishCard({ wish, userId, onLayout }: Props) {
   };
 
   const getWishButton = () => {
-    if (isCurrentUser) {
+    if (wish.wisherProfileData.userId === authUser.id) {
       return (
         <PlatformButton onPress={fulfillWish} hapticFeedback="Heavy">
           <ThemedText type="bodyLargeMedium" style={{ color: Colors.white }}>
@@ -168,7 +175,22 @@ export function FullWishCard({ wish, userId, onLayout }: Props) {
       style={styles.wishContainer}
       onLayout={onLayout && ((event) => onLayout(wish.wishId, event.nativeEvent.layout.y))}
     >
-      <Image source={{ uri: wish.image }} style={[styles.image, { height: IMAGE_HEIGHT }]} />
+      <View>
+        <Image source={{ uri: wish.image }} style={[styles.image, { height: IMAGE_HEIGHT }]} />
+        {!(isCurrentUser || isFriend) && (
+          <View style={styles.innerActionButton}>
+            <ActionButton
+              disabled={!wish.image}
+              size={60}
+              actions={[
+                { label: 'Сохранить к себе', onPress: saveWish },
+                { label: 'Поделиться', onPress: shareWish },
+              ]}
+            />
+          </View>
+        )}
+      </View>
+
       <View style={styles.infoContainer}>
         <View style={styles.textContainer}>
           <ThemedText type="h2">{wish.name}</ThemedText>
@@ -187,37 +209,46 @@ export function FullWishCard({ wish, userId, onLayout }: Props) {
           </View>
         </View>
 
-        <View style={styles.actionContainer}>
-          <View style={styles.hapticButtonContainer}>{getWishButton()}</View>
-          <ActionButton
-            disabled={!wish.image}
-            size={60}
-            actions={
-              isCurrentUser
-                ? [
-                    { label: 'Редактировать', onPress: editWish },
-                    { label: 'Поделиться', onPress: shareWish },
-                    { label: 'Удалить', onPress: deleteWish },
-                  ]
-                : [
-                    { label: 'Сохранить к себе', onPress: saveWish },
-                    isFriend(+userId) ? getBookingAction() : null,
-                    { label: 'Поделиться', onPress: shareWish },
-                  ].filter((action) => !!action)
-            }
-          />
+        {(isCurrentUser || isFriend) && (
+          <View style={styles.actionContainer}>
+            <View style={styles.hapticButtonContainer}>{getWishButton()}</View>
+            <ActionButton
+              disabled={!wish.image}
+              size={60}
+              actions={
+                wish.wisherProfileData.userId === authUser.id
+                  ? [
+                      { label: 'Редактировать', onPress: editWish },
+                      { label: 'Поделиться', onPress: shareWish },
+                      { label: 'Удалить', onPress: deleteWish },
+                    ]
+                  : ([
+                      { label: 'Сохранить к себе', onPress: saveWish },
+                      isFriend ? getBookingAction() : null,
+                      { label: 'Поделиться', onPress: shareWish },
+                    ].filter(Boolean) as Action[])
+              }
+            />
+          </View>
+        )}
+
+        <View style={{ position: 'absolute', opacity: 0, width: '100%' }}>
+          <ThemedText type="bodyLarge" onTextLayout={(event) => setDescriptionNumLines(event.nativeEvent.lines.length)}>
+            {wish.description}
+          </ThemedText>
         </View>
 
         <View style={styles.descriptionContainer}>
           <ThemedText type="bodyLarge" numberOfLines={isCollapsed ? 3 : undefined}>
-            EMO – это небольшой, но продвинутый настольный робот-компаньон, который обладает искусственным интеллектом и
-            может демонстрировать эмоции и на
+            {wish.description}
           </ThemedText>
-          <TouchableOpacity onPress={() => setIsCollapsed((prev) => !prev)}>
-            <ThemedText type="bodyLargeMedium" style={[styles.detailsLink, { color: theme.primary }]}>
-              {isCollapsed ? 'Подробнее' : 'Свернуть'}
-            </ThemedText>
-          </TouchableOpacity>
+          {descriptionNumLines > 3 && (
+            <TouchableOpacity onPress={() => setIsCollapsed((prev) => !prev)}>
+              <ThemedText type="bodyLargeMedium" style={[styles.detailsLink, { color: theme.primary }]}>
+                {isCollapsed ? 'Подробнее' : 'Свернуть'}
+              </ThemedText>
+            </TouchableOpacity>
+          )}
         </View>
       </View>
     </View>
@@ -265,5 +296,11 @@ const styles = StyleSheet.create({
   },
   detailsLink: {
     textAlign: 'right',
+  },
+  innerActionButton: {
+    position: 'absolute',
+    right: 0,
+    bottom: 0,
+    padding: 10,
   },
 });
