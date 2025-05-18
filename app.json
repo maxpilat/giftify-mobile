@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Giftify",
+    "name": "giftify",
     "slug": "Giftify",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -13,11 +13,11 @@
       "bundleIdentifier": "com.maxpilat.giftify"
     },
     "android": {
-      "package": "com.maxpilat.giftify",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/logo-light.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.maxpilat.giftify"
     },
     "web": {
       "bundler": "metro",
@@ -32,7 +32,7 @@
           "image": "./assets/images/logo-light.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff"
+          "backgroundColor": "black"
         }
       ],
       "expo-secure-store"
@@ -45,6 +45,7 @@
       "eas": {
         "projectId": "deabad7c-00b4-4537-b33c-d35cc015b44a"
       }
-    }
+    },
+    "owner": "maxpilat"
   }
 }

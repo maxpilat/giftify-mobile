@@ -4,6 +4,7 @@ import * as Google from 'expo-auth-session/providers/google';
 import { API } from '@/constants/api';
 import { AuthData } from '@/models';
 import { apiFetchData } from '@/lib/api';
+import { router } from 'expo-router';
 
 const AuthContext = createContext<{
   user: AuthData;
@@ -21,38 +22,39 @@ const AuthContext = createContext<{
   resetPassword: (email: string, newPassword: string) => Promise<void>;
   changeEmail: (newEmail: string) => Promise<void>;
   isAuth: () => boolean;
-  handleGoogleAuth: () => Promise<void>;
+  handleGoogleAuth: () => void;
 } | null>(null);
 
 export const AuthProvider = ({ children, initialUser }: { children: ReactNode; initialUser?: AuthData }) => {
   const [user, setUser] = useState<AuthData | null>(initialUser || null);
-  const [_, googleResponse, startGoogleAuth] = Google.useAuthRequest({
+  const [request, googleResponse, startGoogleAuth] = Google.useAuthRequest({
     iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
     androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID,
   });
 
   useEffect(() => {
-    const authenticateGoogleUser = async () => {
-      if (googleResponse?.type === 'success' && googleResponse.authentication?.idToken) {
-        const idToken = googleResponse.authentication.idToken;
-
-        const { id, email, token } = await apiFetchData<AuthData>({
-          endpoint: API.auth.google,
-          method: 'POST',
-          body: { idToken },
-        });
-
-        const newUser = { id, email, token };
-        setUser(newUser);
-        await SecureStore.setItemAsync('user', JSON.stringify(newUser));
-      }
-    };
-
     authenticateGoogleUser();
   }, [googleResponse]);
 
-  const handleGoogleAuth = async () => {
-    await startGoogleAuth();
+  const authenticateGoogleUser = async () => {
+    if (googleResponse?.type === 'success' && googleResponse.authentication?.idToken) {
+      const idToken = googleResponse.authentication.idToken;
+
+      const { id, email, token } = await apiFetchData<AuthData>({
+        endpoint: API.auth.google,
+        method: 'POST',
+        body: { idToken },
+      });
+
+      const newUser = { id, email, token };
+      setUser(newUser);
+      await SecureStore.setItemAsync('user', JSON.stringify(newUser));
+      router.push({ pathname: '/profile/[userId]', params: { userId: id } });
+    }
+  };
+
+  const handleGoogleAuth = () => {
+    startGoogleAuth();
   };
 
   const signUp = async (userData: {

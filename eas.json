@@ -2,11 +2,25 @@
   "build": {
     "development": {
       "distribution": "internal",
+      "developmentClient": true,
       "android": {
         "buildType": "apk"
       },
       "ios": {
         "simulator": true
+      }
+    },
+    "development-simulator": {
+      "distribution": "internal",
+      "developmentClient": true,
+      "ios": {
+        "simulator": true
+      }
+    },
+    "production": {
+      "distribution": "store",
+      "android": {
+        "buildType": "apk"
       }
     }
   }
