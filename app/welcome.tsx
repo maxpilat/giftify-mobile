@@ -5,6 +5,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { router } from 'expo-router';
 import { FlatList, ImageSourcePropType, StyleSheet, View } from 'react-native';
 import { SafeAreaView, Image } from 'react-native';
+import * as SecureStore from 'expo-secure-store';
 
 type GridItem = {
   title: string;
@@ -33,10 +34,15 @@ const HANDS: GridItem[] = [
     subtitle: 'Узнавайте всё анонимно и делайте сюрпризы',
     image: require('@/assets/images/hand-04.png'),
   },
-];
+] as const;
 
 export default function WelcomeScreen() {
   const { theme } = useTheme();
+
+  const handleStart = async () => {
+    SecureStore.setItemAsync('hasLaunched', 'true');
+    router.push('/(auth)');
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -58,7 +64,7 @@ export default function WelcomeScreen() {
           numColumns={2}
           scrollEnabled={false}
           renderItem={({ item, index }) => (
-            <View style={[styles.gridItemWrapper, { [index % 2 === 0 ? 'marginRight' : 'marginLeft']: 5 }, ,]}>
+            <View style={[styles.gridItemWrapper, { [index % 2 === 0 ? 'marginRight' : 'marginLeft']: 5 }]}>
               <View
                 style={[
                   styles.gridItem,
@@ -80,7 +86,7 @@ export default function WelcomeScreen() {
             </View>
           )}
         />
-        <PlatformButton style={styles.button} onPress={() => router.push('/(auth)')}>
+        <PlatformButton style={styles.button} onPress={handleStart}>
           <ThemedText type="bodyLargeMedium" style={styles.buttonText}>
             Начать
           </ThemedText>

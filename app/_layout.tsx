@@ -25,11 +25,8 @@ export default function RootLayout() {
   const isLoaded = isFontsLoaded && isFirstLaunch !== null && isAuthLoaded && deepLink !== undefined;
 
   useEffect(() => {
-    SecureStore.deleteItemAsync('hasLaunched').then(() => {
-      checkFirstLaunch();
-      loadAuthData();
-    });
-
+    checkFirstLaunch();
+    loadAuthData();
     Linking.getInitialURL().then(setDeepLink);
   }, []);
 
@@ -50,7 +47,6 @@ export default function RootLayout() {
   const checkFirstLaunch = async () => {
     const isFirstLaunch = !(await SecureStore.getItemAsync('hasLaunched'));
     if (isFirstLaunch) {
-      await SecureStore.setItemAsync('hasLaunched', 'true');
       setIsFirstLaunch(true);
     } else {
       setIsFirstLaunch(false);
