@@ -35,7 +35,7 @@ export default function SettingsScreen() {
   const [name, setName] = useState<string>('');
   const [surname, setSurname] = useState<string>('');
   const [username, setUsername] = useState<string>();
-  const [birthDate, setBirthDate] = useState<Date>();
+  const [birthDate, setBirthDate] = useState<Date>(new Date(2000, 0, 1));
   const [isDatePickerVisible, setIsDatePickerVisible] = useState<boolean>(false);
   const [gender, setGender] = useState<Gender | null>(null);
   const [isPrivateAccount, setIsPrivateAccount] = useState<boolean>(false);

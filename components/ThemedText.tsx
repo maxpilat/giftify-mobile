@@ -1,6 +1,9 @@
+import { Colors } from '@/constants/themes';
 import { useTheme } from '@/hooks/useTheme';
+import { useEffect } from 'react';
 import { TextProps, StyleProp, TextStyle, StyleSheet } from 'react-native';
 import Animated, { AnimatedStyle } from 'react-native-reanimated';
+import { colorKit } from 'reanimated-color-picker';
 
 type Props = TextProps & {
   type?:
@@ -16,16 +19,17 @@ type Props = TextProps & {
     | 'labelLarge'
     | 'labelBase'
     | 'labelSmall';
+  backgroundColor?: string;
   style?: StyleProp<TextStyle> | StyleProp<AnimatedStyle<StyleProp<TextStyle>>>;
 };
 
-export function ThemedText({ style, type = 'bodyBase', ...rest }: Props) {
+export function ThemedText({ style, type = 'bodyBase', backgroundColor, ...rest }: Props) {
   const { theme } = useTheme();
 
   return (
     <Animated.Text
       style={[
-        { color: theme.text },
+        { color: backgroundColor ? (colorKit.isDark(backgroundColor) ? Colors.white : Colors.black) : theme.text },
         type === 'bodyBase' ? styles.bodyBase : undefined,
         type === 'h1' ? styles.h1 : undefined,
         type === 'h2' ? styles.h2 : undefined,

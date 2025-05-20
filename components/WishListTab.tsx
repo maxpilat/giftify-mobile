@@ -54,10 +54,10 @@ export function WishListTab({
     <TouchableOpacity activeOpacity={pressOpacity} onPress={onPress}>
       <Animated.View style={[styles.container, animatedContainerStyle]}>
         <View>
-          <ThemedText type="bodyLarge" style={styles.text}>
+          <ThemedText type="bodyLarge" backgroundColor={isActive ? theme.secondary : theme.button}>
             {name}
           </ThemedText>
-          <ThemedText type="h1" style={styles.text}>
+          <ThemedText type="h1" backgroundColor={isActive ? theme.secondary : theme.button}>
             {count}
           </ThemedText>
 
@@ -77,9 +77,6 @@ const styles = StyleSheet.create({
     padding: 14,
     borderRadius: 20,
     overflow: 'hidden',
-  },
-  text: {
-    color: Colors.white,
   },
   actionButtonContainer: {
     position: 'absolute',

@@ -59,7 +59,7 @@ export default function PickProfileBackgroundColorScreen() {
         </View>
         <ColorPicker value={currentBackground.backgroundColor} onCompleteJS={(color) => handleColorChange(color.hex)}>
           <Panel2 style={{ borderRadius: 0 }} />
-          <BrightnessSlider />
+          <BrightnessSlider style={{ borderRadius: 0 }} boundedThumb={true} />
         </ColorPicker>
       </View>
 

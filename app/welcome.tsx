@@ -41,7 +41,7 @@ export default function WelcomeScreen() {
 
   const handleStart = async () => {
     SecureStore.setItemAsync('hasLaunched', 'true');
-    router.push('/(auth)');
+    router.replace('/(auth)');
   };
 
   return (

@@ -39,6 +39,13 @@ export default function PickCustomColorsScreen() {
     router.back();
   };
 
+  const resetColors = () => {
+    setError('');
+    setTextInputValue(tabIndex === 0 ? Colors.blue : Colors.orange);
+    setPrimaryColor(Colors.blue);
+    setSecondaryColor(Colors.orange);
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.tabs}>
@@ -50,14 +57,17 @@ export default function PickCustomColorsScreen() {
               setTabIndex(index);
             }}
           >
-            <ThemedText type="bodyLargeMedium" style={{ color: tabIndex === index ? Colors.white : theme.text }}>
+            <ThemedText
+              type="bodyLargeMedium"
+              backgroundColor={tabIndex === index ? theme.secondary : theme.background}
+            >
               {tab}
             </ThemedText>
           </TouchableOpacity>
         ))}
       </View>
 
-      <View>
+      <View style={styles.colorPickerContainer}>
         <View style={[styles.preview]}>
           <View style={[styles.outerCircle, { borderColor: currentColor }]}>
             <View style={[styles.innerCircle, { backgroundColor: currentColor }]} />
@@ -74,7 +84,7 @@ export default function PickCustomColorsScreen() {
         </View>
         <ColorPicker value={currentColor} onCompleteJS={(color) => handleColorChange(color.hex)}>
           <Panel2 style={{ borderRadius: 0 }} />
-          <BrightnessSlider />
+          <BrightnessSlider style={{ borderRadius: 0 }} boundedThumb={true} />
         </ColorPicker>
       </View>
 
@@ -90,6 +100,12 @@ export default function PickCustomColorsScreen() {
           </ThemedText>
         </PlatformButton>
       </View>
+
+      <TouchableOpacity onPress={resetColors}>
+        <ThemedText type="bodyLargeMedium" style={{ color: theme.primary }}>
+          Сбросить настройки цвета
+        </ThemedText>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -98,6 +114,7 @@ const styles = StyleSheet.create({
   container: {
     marginTop: 16,
     gap: 36,
+    alignItems: 'center',
   },
   tabs: {
     flexDirection: 'row',
@@ -108,6 +125,9 @@ const styles = StyleSheet.create({
     padding: 8,
     borderRadius: 40,
     alignItems: 'center',
+  },
+  colorPickerContainer: {
+    width: '100%',
   },
   preview: {
     flexDirection: 'row',

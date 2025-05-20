@@ -177,7 +177,7 @@ export function ProfileHeader({ profile, avatar, background, friendsCount, frien
               >
                 <ThemedText
                   type="bodyLargeMedium"
-                  style={{ color: currentTabIndex === index ? Colors.white : theme.text }}
+                  backgroundColor={currentTabIndex === index ? theme.secondary : theme.background}
                 >
                   {tab}
                 </ThemedText>
