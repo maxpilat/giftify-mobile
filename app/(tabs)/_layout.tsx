@@ -6,7 +6,6 @@ import TabBarBackgroundIOS from '@/components/TabBarBackground.ios';
 import { useTheme } from '@/hooks/useTheme';
 import { Icon } from '@/components/Icon';
 import { StoreProvider } from '@/hooks/useStore';
-import { colorKit } from 'reanimated-color-picker';
 
 export default function TabLayout() {
   const { theme } = useTheme();
