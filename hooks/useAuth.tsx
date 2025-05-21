@@ -5,6 +5,7 @@ import { API } from '@/constants/api';
 import { AuthData } from '@/models';
 import { apiFetchData } from '@/lib/api';
 import { router } from 'expo-router';
+import Toast from 'react-native-toast-message';
 
 const AuthContext = createContext<{
   user: AuthData;
@@ -37,19 +38,23 @@ export const AuthProvider = ({ children, initialUser }: { children: ReactNode; i
   }, [googleResponse]);
 
   const authenticateGoogleUser = async () => {
-    if (googleResponse?.type === 'success' && googleResponse.authentication?.idToken) {
-      const idToken = googleResponse.authentication.idToken;
+    try {
+      if (googleResponse?.type === 'success' && googleResponse.authentication?.idToken) {
+        const idToken = googleResponse.authentication.idToken;
 
-      const { id, email, token } = await apiFetchData<AuthData>({
-        endpoint: API.auth.google,
-        method: 'POST',
-        body: { idToken },
-      });
+        const { id, email, token } = await apiFetchData<AuthData>({
+          endpoint: API.auth.google,
+          method: 'POST',
+          body: { idToken },
+        });
 
-      const newUser = { id, email, token };
-      setUser(newUser);
-      await SecureStore.setItemAsync('user', JSON.stringify(newUser));
-      router.push({ pathname: '/profile/[userId]', params: { userId: id } });
+        const newUser = { id, email, token };
+        setUser(newUser);
+        await SecureStore.setItemAsync('user', JSON.stringify(newUser));
+        router.push({ pathname: '/profile/[userId]', params: { userId: id } });
+      }
+    } catch (error) {
+      Toast.show({ type: 'error', text1: 'Не удалось авторизоваться' });
     }
   };
 
@@ -141,11 +146,15 @@ export const AuthProvider = ({ children, initialUser }: { children: ReactNode; i
   };
 
   const changeEmail = async (newEmail: string) => {
-    await apiFetchData({
-      endpoint: API.settings.updateEmail,
-      method: 'PUT',
-      body: { email: user?.email, newEmail },
-    });
+    try {
+      await apiFetchData({
+        endpoint: API.settings.updateEmail,
+        method: 'PUT',
+        body: { email: user?.email, newEmail },
+      });
+    } catch (error) {
+      throw error;
+    }
   };
 
   const isAuth = () => Boolean(user);

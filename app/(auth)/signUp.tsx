@@ -46,19 +46,17 @@ export default function SignUpScreen() {
         setErrors((prev) => ({ ...prev, email: 'Аккаунт с такой почтой уже существует' }));
         return;
       }
-    } catch {
-      return Toast.show({ type: 'error', text1: 'Что-то пошло не так' });
-    }
 
-    apiFetchData<{ code: string }>({
-      endpoint: API.auth.validateEmail,
-      method: 'POST',
-      body: email,
-    })
-      .then(({ code }) =>
-        router.push({ pathname: './validateEmail', params: { name, surname, email, password, friendEmail, code } })
-      )
-      .catch(() => Toast.show({ type: 'error', text1: 'Не удалось запросить код' }));
+      const { code } = await apiFetchData<{ code: string }>({
+        endpoint: API.auth.validateEmail,
+        method: 'POST',
+        body: email,
+      });
+
+      router.push({ pathname: './validateEmail', params: { name, surname, email, password, friendEmail, code } });
+    } catch {
+      Toast.show({ type: 'error', text1: 'Не удалось запросить код' });
+    }
   };
 
   const isValid = () => {

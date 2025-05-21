@@ -7,6 +7,7 @@ import { PlatformButton } from '@/components/PlatformButton';
 import { Colors } from '@/constants/themes';
 import { Link, router } from 'expo-router';
 import { useAuth } from '@/hooks/useAuth';
+import Toast from 'react-native-toast-message';
 
 export default function SignInScreen() {
   const [email, setEmail] = useState<string>('');
@@ -22,7 +23,7 @@ export default function SignInScreen() {
     if (isValid()) {
       signIn(email, password)
         .then(({ id: userId }) => router.replace({ pathname: '/profile/[userId]', params: { userId } }))
-        .catch(() => Alert.alert('Ошибка авторизации', 'Неверные почта или пароль', [{ text: 'Ок', style: 'cancel' }]));
+        .catch(() => Toast.show({ type: 'error', text1: 'Неверные почта или пароль' }));
     }
   };
 

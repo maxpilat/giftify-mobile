@@ -128,7 +128,7 @@ export function FullWishCard({ wish, onLayout }: Props) {
             .then(() => Promise.all([fetchMyWishes(), fetchMyWishLists()]))
             .then((results) => {
               results[0].length === 0 && router.back();
-              Toast.show({ type: 'success', text1: 'Желание исполнено' });
+              Toast.show({ type: 'success', text1: 'Желание исполнено 🎉' });
             })
             .catch(() => Toast.show({ type: 'error', text1: 'Не удалось исполнить желание' }));
         },

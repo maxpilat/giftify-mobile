@@ -23,7 +23,7 @@ export default function ChangeEmailScreen() {
         method: 'POST',
         body: newEmail,
       })
-        .then(({ code }) => router.push({ pathname: './validateEmail', params: { code, newEmail } }))
+        .then(({ code }) => router.push({ pathname: '/validateEmail', params: { code, newEmail } }))
         .catch(() => Toast.show({ type: 'error', text1: 'Не удалось запросить код' }));
     }
   };

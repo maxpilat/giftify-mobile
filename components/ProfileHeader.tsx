@@ -54,11 +54,13 @@ export function ProfileHeader({ profile, avatar, background, friendsCount, frien
     })
       .then(fetchFriends)
       .then(fetchFriendRequests)
-      .then(() =>
-        Toast.show({
-          type: 'success',
-          text1: isSender(profile!.userId) ? 'Пользователь добавлен в друзья' : 'Запрос в друзья отправлен',
-        })
+      .then(
+        () =>
+          isSender(profile!.userId) &&
+          Toast.show({
+            type: 'success',
+            text1: 'Пользователь добавлен в друзья',
+          })
       )
       .catch(() =>
         Toast.show({
@@ -84,12 +86,6 @@ export function ProfileHeader({ profile, avatar, background, friendsCount, frien
     })
       .then(fetchFriends)
       .then(fetchFriendRequests)
-      .then(() =>
-        Toast.show({
-          type: 'success',
-          text1: 'Запрос в друзья отменён',
-        })
-      )
       .catch(() =>
         Toast.show({
           type: 'error',

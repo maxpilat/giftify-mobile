@@ -1,4 +1,4 @@
-export type Options = {
+export type Params = {
   number: number;
   singular: string;
   few: string;
@@ -7,7 +7,7 @@ export type Options = {
   pluralAdj?: string;
 };
 
-export function formatCountedPhrase(options: Options): string {
+export function formatCountedPhrase(options: Params): string {
   const { number, singular, few, many, singularAdj, pluralAdj } = options;
   const absNumber = Math.abs(number) % 100;
   const lastDigit = absNumber % 10;

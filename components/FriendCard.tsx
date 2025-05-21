@@ -23,7 +23,7 @@ export const FriendCard = ({ friend }: Props) => {
   const { fetchFriendRequests, fetchFriends, isFriend, isReceiver, isSender } = useProfile();
 
   const rejectFriendRequest = (isUserTwoAccept: boolean) => {
-    apiFetchData({
+    return apiFetchData({
       endpoint: API.friends.sendRequest,
       method: 'POST',
       body: {
@@ -35,24 +35,17 @@ export const FriendCard = ({ friend }: Props) => {
       token: user.token,
     })
       .then(fetchFriends)
-      .then(fetchFriendRequests)
-      .then(() =>
-        Toast.show({
-          type: 'success',
-          text1: 'Пользователь удалён из друзей',
-        })
-      )
-      .catch(() =>
-        Toast.show({
-          type: 'error',
-          text1: 'Не удалось удалить пользователя из друзей',
-        })
-      );
+      .then(fetchFriendRequests);
   };
 
   const handleRejectFriendRequest = () => {
     if (!isFriend(friend.friendId)) {
-      rejectFriendRequest(false);
+      rejectFriendRequest(false).catch(() =>
+        Toast.show({
+          type: 'error',
+          text1: 'Не удалось отменить запрос в друзья',
+        })
+      );
       return;
     }
 
@@ -61,7 +54,10 @@ export const FriendCard = ({ friend }: Props) => {
       {
         text: 'Удалить из друзей',
         style: 'destructive',
-        onPress: () => rejectFriendRequest(true),
+        onPress: () =>
+          rejectFriendRequest(true)
+            .then(() => Toast.show({ type: 'success', text1: 'Пользователь удалён из друзей' }))
+            .catch(() => Toast.show({ type: 'error', text1: 'Не удалось удалить пользователя из друзей' })),
       },
     ]);
   };
@@ -80,11 +76,13 @@ export const FriendCard = ({ friend }: Props) => {
     })
       .then(fetchFriends)
       .then(fetchFriendRequests)
-      .then(() =>
-        Toast.show({
-          type: 'success',
-          text1: isSender(friend.friendId) ? 'Пользователь добавлен в друзья' : 'Запрос в друзья отправлен',
-        })
+      .then(
+        () =>
+          isSender(friend.friendId) &&
+          Toast.show({
+            type: 'success',
+            text1: 'Пользователь добавлен в друзья',
+          })
       )
       .catch(() =>
         Toast.show({

@@ -57,10 +57,6 @@ export default function SettingsScreen() {
     fetchData();
   }, []);
 
-  useEffect(() => {
-    Toast.show({ type: 'success', text1: 'Данные обновлены' });
-  }, [myAvatar, name, surname, username, birthDate, gender, isPrivateAccount]);
-
   const fetchData = async () => {
     const settings = await apiFetchData<SettingsData>({
       endpoint: API.settings.getSettings(user.id),
@@ -84,7 +80,9 @@ export default function SettingsScreen() {
 
     if (!result.canceled && result.assets?.[0]?.uri) {
       const uri = result.assets[0].uri;
-      changeAvatar(uri).catch(() => Toast.show({ type: 'error', text1: 'Не удалось обновить аватар' }));
+      changeAvatar(uri)
+        .then(() => Toast.show({ type: 'success', text1: 'Данные сохранены' }))
+        .catch(() => Toast.show({ type: 'error', text1: 'Не удалось сохранить данные' }));
     }
   };
 
@@ -96,7 +94,9 @@ export default function SettingsScreen() {
       method: 'PUT',
       body: { email: user.email, newName: value, newSurname: surname },
       token: user.token,
-    }).catch(() => Toast.show({ type: 'error', text1: 'Не удалось обновить имя' }));
+    })
+      .then(() => Toast.show({ type: 'success', text1: 'Данные сохранены' }))
+      .catch(() => Toast.show({ type: 'error', text1: 'Не удалось сохранить данные' }));
   };
 
   const handleSurnameChange = (value: string) => {
@@ -107,7 +107,9 @@ export default function SettingsScreen() {
       method: 'PUT',
       body: { email: user.email, newName: name, newSurname: value },
       token: user.token,
-    }).catch(() => Toast.show({ type: 'error', text1: 'Не удалось обновить фамилию' }));
+    })
+      .then(() => Toast.show({ type: 'success', text1: 'Данные сохранены' }))
+      .catch(() => Toast.show({ type: 'error', text1: 'Не удалось сохранить данные' }));
   };
 
   const handleUsernameChange = (value: string) => {
@@ -117,7 +119,9 @@ export default function SettingsScreen() {
       method: 'PUT',
       body: { email: user.email, newUsername: value || user.email },
       token: user.token,
-    }).catch(() => Toast.show({ type: 'error', text1: 'Не удалось обновить никнейм' }));
+    })
+      .then(() => Toast.show({ type: 'success', text1: 'Данные сохранены' }))
+      .catch(() => Toast.show({ type: 'error', text1: 'Не удалось сохранить данные' }));
   };
 
   const handleBirthDateChange = (value: Date) => {
@@ -128,7 +132,9 @@ export default function SettingsScreen() {
       method: 'PUT',
       body: { email: user.email, newBirthDate: dateToString(value) },
       token: user.token,
-    }).catch(() => Toast.show({ type: 'error', text1: 'Не удалось обновить дату рождения' }));
+    })
+      .then(() => Toast.show({ type: 'success', text1: 'Данные сохранены' }))
+      .catch(() => Toast.show({ type: 'error', text1: 'Не удалось сохранить данные' }));
   };
 
   const handleGenderChange = (value: Gender) => {
@@ -139,7 +145,9 @@ export default function SettingsScreen() {
       method: 'PUT',
       body: { email: user.email, newGender: newGender === 'Male' ? true : false },
       token: user.token,
-    }).catch(() => Toast.show({ type: 'error', text1: 'Не удалось обновить информацию о поле' }));
+    })
+      .then(() => Toast.show({ type: 'success', text1: 'Данные сохранены' }))
+      .catch(() => Toast.show({ type: 'error', text1: 'Не удалось сохранить данные' }));
   };
 
   const handlePrivacyChange = () => {
@@ -150,7 +158,9 @@ export default function SettingsScreen() {
         method: 'PUT',
         body: { email: user.email, newPrivacy },
         token: user.token,
-      }).catch(() => Toast.show({ type: 'error', text1: 'Не удалось обновить настройки приватности' }));
+      })
+        .then(() => Toast.show({ type: 'success', text1: 'Данные сохранены' }))
+        .catch(() => Toast.show({ type: 'error', text1: 'Не удалось сохранить данные' }));
 
       return newPrivacy;
     });

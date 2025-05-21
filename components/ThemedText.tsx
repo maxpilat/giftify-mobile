@@ -1,6 +1,5 @@
 import { Colors } from '@/constants/themes';
 import { useTheme } from '@/hooks/useTheme';
-import { useEffect } from 'react';
 import { TextProps, StyleProp, TextStyle, StyleSheet } from 'react-native';
 import Animated, { AnimatedStyle } from 'react-native-reanimated';
 import { colorKit } from 'reanimated-color-picker';

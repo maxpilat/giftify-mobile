@@ -363,10 +363,7 @@ export default function ProfileScreen() {
             );
           }
 
-          Toast.show({
-            type: 'success',
-            text1: booking ? 'Бронь снята' : 'Желание забронировано',
-          });
+          Toast.show({ type: 'success', text1: booking ? 'Бронь снята' : 'Желание забронировано' });
         } catch {
           Toast.show({ type: 'error', text1: booking ? 'Не удалось снять бронь' : 'Не удалось забронировать желание' });
         }

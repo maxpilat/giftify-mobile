@@ -1,10 +1,5 @@
 import { EncodingType, readAsStringAsync } from 'expo-file-system';
 
-// export function arrayBufferToBase64(buffer: ArrayBuffer): string {
-//   const binaryString = String.fromCharCode(...new Uint8Array(buffer));
-//   return `data:image;base64,${btoa(binaryString)}`;
-// }
-
 export function arrayBufferToBase64(buffer: ArrayBuffer): string {
   const binaryString = Array.from(new Uint8Array(buffer))
     .map((byte) => String.fromCharCode(byte))
