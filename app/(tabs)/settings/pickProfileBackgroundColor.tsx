@@ -6,10 +6,10 @@ import { useProfile } from '@/hooks/useStore';
 import { useTheme } from '@/hooks/useTheme';
 import { ProfileBackground } from '@/models';
 import { getDefaultBackground } from '@/utils/profileBackground';
+import { showToast } from '@/utils/showToast';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import Toast from 'react-native-toast-message';
 import ColorPicker, { Panel2, BrightnessSlider, colorKit } from 'reanimated-color-picker';
 
 export default function PickProfileBackgroundColorScreen() {
@@ -38,8 +38,8 @@ export default function PickProfileBackgroundColorScreen() {
 
   const handleSubmit = () => {
     changeBackground(currentBackground)
-      .then(() => Toast.show({ type: 'success', text1: 'Фон обновлён' }))
-      .catch(() => Toast.show({ type: 'error', text1: 'Не удалось обновить фон' }));
+      .then(() => showToast('success', 'Фон изменён'))
+      .catch(() => showToast('error', 'Не удалось изменить фон'));
     router.back();
   };
 

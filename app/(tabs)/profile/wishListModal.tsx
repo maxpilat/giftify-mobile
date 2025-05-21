@@ -7,7 +7,7 @@ import { useProfile } from '@/hooks/useStore';
 import { API } from '@/constants/api';
 import { useAuth } from '@/hooks/useAuth';
 import { apiFetchData } from '@/lib/api';
-import Toast from 'react-native-toast-message';
+import { showToast } from '@/utils/showToast';
 
 type SearchParams = {
   isSubmit?: 'true' | 'false';
@@ -57,15 +57,9 @@ export default function WishListModalScreen() {
         await fetchWishLists();
         router.back();
 
-        Toast.show({
-          type: 'success',
-          text1: wishListId ? 'Список обновлён' : 'Список добавлен',
-        });
+        showToast('success', wishListId ? 'Список обновлён' : 'Список добавлен');
       } catch {
-        Toast.show({
-          type: 'error',
-          text1: wishListId ? 'Не удалось обновить список' : 'Не удалось добавить список',
-        });
+        showToast('error', wishListId ? 'Не удалось обновить список' : 'Не удалось добавить список');
       }
     }
 

@@ -13,7 +13,7 @@ import { apiFetchData } from '@/lib/api';
 import { API } from '@/constants/api';
 import { Colors } from '@/constants/themes';
 import * as Linking from 'expo-linking';
-import Toast from 'react-native-toast-message';
+import { showToast } from '@/utils/showToast';
 
 const IMAGE_HEIGHT = 450;
 
@@ -56,9 +56,9 @@ export function FullPiggyBankCard({ piggyBank, onLayout }: Props) {
             .then(fetchMyPiggyBanks)
             .then((piggyBanks) => {
               piggyBanks.length === 0 && router.back();
-              Toast.show({ type: 'success', text1: 'Копилка удалена' });
+              showToast('success', 'Копилка удалена');
             })
-            .catch(() => Toast.show({ type: 'error', text1: 'Не удалось удалить копилку' }));
+            .catch(() => showToast('error', 'Не удалось удалить копилку'));
         },
       },
     ]);

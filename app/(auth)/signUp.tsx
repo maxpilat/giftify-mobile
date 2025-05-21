@@ -8,7 +8,7 @@ import { Colors } from '@/constants/themes';
 import { Link, router, useLocalSearchParams } from 'expo-router';
 import { API } from '@/constants/api';
 import { apiFetchData } from '@/lib/api';
-import Toast from 'react-native-toast-message';
+import { showToast } from '@/utils/showToast';
 
 type SearchParams = {
   friendEmail?: string;
@@ -55,7 +55,7 @@ export default function SignUpScreen() {
 
       router.push({ pathname: './validateEmail', params: { name, surname, email, password, friendEmail, code } });
     } catch {
-      Toast.show({ type: 'error', text1: 'Не удалось запросить код' });
+      showToast('error', 'Не удалось запросить код');
     }
   };
 

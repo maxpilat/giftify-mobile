@@ -5,7 +5,10 @@ export const toastConfig = (themeType: ThemeType) => ({
   success: (props: ToastProps) => (
     <SuccessToast
       {...props}
-      contentContainerStyle={{ backgroundColor: themeType === 'dark' ? Colors.darkBlue : Colors.white }}
+      contentContainerStyle={{
+        backgroundColor: themeType === 'dark' ? Colors.darkBlue : Colors.white,
+        borderRadius: 16,
+      }}
       text1Style={{
         fontSize: 16,
         fontFamily: 'stolzl-regular',
@@ -20,6 +23,7 @@ export const toastConfig = (themeType: ThemeType) => ({
       style={{ borderLeftColor: 'red' }}
       contentContainerStyle={{
         backgroundColor: themeType === 'dark' ? Colors.darkBlue : Colors.white,
+        borderRadius: 16,
       }}
       text1Style={{
         fontSize: 16,

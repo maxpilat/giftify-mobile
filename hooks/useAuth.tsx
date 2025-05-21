@@ -5,7 +5,7 @@ import { API } from '@/constants/api';
 import { AuthData } from '@/models';
 import { apiFetchData } from '@/lib/api';
 import { router } from 'expo-router';
-import Toast from 'react-native-toast-message';
+import { showToast } from '@/utils/showToast';
 
 const AuthContext = createContext<{
   user: AuthData;
@@ -54,7 +54,7 @@ export const AuthProvider = ({ children, initialUser }: { children: ReactNode; i
         router.push({ pathname: '/profile/[userId]', params: { userId: id } });
       }
     } catch (error) {
-      Toast.show({ type: 'error', text1: 'Не удалось авторизоваться' });
+      showToast('error', 'Не удалось авторизоваться');
     }
   };
 

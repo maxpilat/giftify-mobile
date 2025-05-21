@@ -11,7 +11,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Colors } from '@/constants/themes';
 import { Link } from 'expo-router';
 import { formatCountedPhrase } from '@/utils/formatCountedPhrase';
-import Toast from 'react-native-toast-message';
+import { showToast } from '@/utils/showToast';
 
 type Props = {
   friend: Friend;
@@ -40,12 +40,7 @@ export const FriendCard = ({ friend }: Props) => {
 
   const handleRejectFriendRequest = () => {
     if (!isFriend(friend.friendId)) {
-      rejectFriendRequest(false).catch(() =>
-        Toast.show({
-          type: 'error',
-          text1: 'Не удалось отменить запрос в друзья',
-        })
-      );
+      rejectFriendRequest(false).catch(() => showToast('error', 'Не удалось отменить запрос в друзья'));
       return;
     }
 
@@ -57,8 +52,8 @@ export const FriendCard = ({ friend }: Props) => {
         onPress: () =>
           rejectFriendRequest(true)
             .then(fetchBookings)
-            .then(() => Toast.show({ type: 'success', text1: 'Пользователь удалён из друзей' }))
-            .catch(() => Toast.show({ type: 'error', text1: 'Не удалось удалить пользователя из друзей' })),
+            .then(() => showToast('success', 'Пользователь удалён из друзей'))
+            .catch(() => showToast('error', 'Не удалось удалить пользователя из друзей')),
       },
     ]);
   };
@@ -77,21 +72,12 @@ export const FriendCard = ({ friend }: Props) => {
     })
       .then(fetchFriends)
       .then(fetchFriendRequests)
-      .then(
-        () =>
-          isSender(friend.friendId) &&
-          Toast.show({
-            type: 'success',
-            text1: 'Пользователь добавлен в друзья',
-          })
-      )
+      .then(() => isSender(friend.friendId) && showToast('success', 'Пользователь добавлен в друзья'))
       .catch(() =>
-        Toast.show({
-          type: 'error',
-          text1: isSender(friend.friendId)
-            ? 'Не удалось принять запрос в друзья'
-            : 'Не удалось отправить запрос в друзья',
-        })
+        showToast(
+          'error',
+          isSender(friend.friendId) ? 'Не удалось принять запрос в друзья' : 'Не удалось отправить запрос в друзья'
+        )
       );
   };
 

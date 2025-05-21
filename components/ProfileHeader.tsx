@@ -9,7 +9,6 @@ import {
   Platform,
   StatusBar,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
 import MaskedView from '@react-native-masked-view/masked-view';
@@ -24,7 +23,7 @@ import { Icon } from '@/components/Icon';
 import { apiFetchData } from '@/lib/api';
 import { API } from '@/constants/api';
 import { useAuth } from '@/hooks/useAuth';
-import Toast from 'react-native-toast-message';
+import { showToast } from '@/utils/showToast';
 
 const mask = `
   <svg width="280" height="130" viewBox="100 -0.5 280 161" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -63,21 +62,12 @@ export function ProfileHeader({ profile, avatar, background, friendsCount, frien
     })
       .then(fetchFriends)
       .then(fetchFriendRequests)
-      .then(
-        () =>
-          isSender(profile!.userId) &&
-          Toast.show({
-            type: 'success',
-            text1: 'Пользователь добавлен в друзья',
-          })
-      )
+      .then(() => isSender(profile!.userId) && showToast('success', 'Пользователь добавлен в друзья'))
       .catch(() =>
-        Toast.show({
-          type: 'error',
-          text1: isSender(profile!.userId)
-            ? 'Не удалось принять запрос в друзья'
-            : 'Не удалось отправить запрос в друзья',
-        })
+        showToast(
+          'error',
+          isSender(profile!.userId) ? 'Не удалось принять запрос в друзья' : 'Не удалось отправить запрос в друзья'
+        )
       );
   };
 
@@ -95,12 +85,7 @@ export function ProfileHeader({ profile, avatar, background, friendsCount, frien
     })
       .then(fetchFriends)
       .then(fetchFriendRequests)
-      .catch(() =>
-        Toast.show({
-          type: 'error',
-          text1: 'Не удалось отменить запрос в друзья',
-        })
-      );
+      .catch(() => showToast('error', 'Не удалось отменить запрос в друзья'));
   };
 
   const getFriendButton = () => {

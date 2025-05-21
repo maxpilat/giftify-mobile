@@ -10,7 +10,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useStore';
 import { base64ToBinaryArray } from '@/utils/convertImage';
 import { apiFetchData } from '@/lib/api';
-import Toast from 'react-native-toast-message';
+import { showToast } from '@/utils/showToast';
 
 type SearchParams = {
   isSubmit?: 'true' | 'false';
@@ -96,15 +96,9 @@ export default function WishModalScreen() {
         await fetchPiggyBanks();
         router.back();
 
-        Toast.show({
-          type: 'success',
-          text1: piggyBankId ? 'Копилка обновлена' : 'Копилка добавлена',
-        });
+        showToast('success', piggyBankId ? 'Копилка обновлена' : 'Копилка добавлена');
       } catch {
-        Toast.show({
-          type: 'error',
-          text1: piggyBankId ? 'Не удалось обновить копилку' : 'Не удалось добавить копилку',
-        });
+        showToast('error', piggyBankId ? 'Не удалось обновить копилку' : 'Не удалось добавить копилку');
       }
     }
 

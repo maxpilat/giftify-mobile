@@ -7,7 +7,7 @@ import { Colors } from '@/constants/themes';
 import { Link, router, useLocalSearchParams } from 'expo-router';
 import { useAuth } from '@/hooks/useAuth';
 import { useTheme } from '@/hooks/useTheme';
-import Toast from 'react-native-toast-message';
+import { showToast } from '@/utils/showToast';
 
 type SearchParams = {
   isSubmit?: 'true' | 'false';
@@ -38,7 +38,7 @@ export default function ChangePasswordScreen() {
     if (isValid()) {
       changePassword(password, newPassword)
         .then(() => router.replace('/settings'))
-        .catch(() => Toast.show({ type: 'error', text1: 'Не удалось изменить пароль' }));
+        .catch(() => showToast('error', 'Не удалось изменить пароль'));
     }
 
     router.setParams({ isSubmit: 'false' });

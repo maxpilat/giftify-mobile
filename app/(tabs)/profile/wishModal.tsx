@@ -16,7 +16,7 @@ import { useProfile } from '@/hooks/useStore';
 import { base64ToBinaryArray } from '@/utils/convertImage';
 import { apiFetchData } from '@/lib/api';
 import { useTheme } from '@/hooks/useTheme';
-import Toast from 'react-native-toast-message';
+import { showToast } from '@/utils/showToast';
 
 type SearchParams = {
   isSubmit?: 'true' | 'false';
@@ -143,15 +143,9 @@ export default function WishModalScreen() {
         router.back();
         await Promise.all([fetchWishes(), fetchWishLists()]);
 
-        Toast.show({
-          type: 'success',
-          text1: wishId ? 'Желание обновлено' : 'Желание добавлено',
-        });
+        showToast('success', wishId ? 'Желание обновлено' : 'Желание добавлено');
       } catch {
-        Toast.show({
-          type: 'error',
-          text1: wishId ? 'Не удалось обновить желание' : 'Не удалось добавить желание',
-        });
+        showToast('error', wishId ? 'Не удалось обновить желание' : 'Не удалось добавить желание');
       }
     }
 
