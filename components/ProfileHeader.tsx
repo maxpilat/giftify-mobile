@@ -249,7 +249,7 @@ const styles = StyleSheet.create({
     padding: 20,
     borderRadius: 40,
     borderWidth: 1,
-    minHeight: 105,
+    minHeight: 135,
   },
   fullname: {
     textAlign: 'center',

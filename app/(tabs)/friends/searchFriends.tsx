@@ -5,7 +5,7 @@ import { TextInput } from '@/components/TextInput';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { useEffect, useState, Fragment } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Share, StyleSheet, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { Colors } from 'react-native/Libraries/NewAppScreen';
 import { Friend } from '@/models';
@@ -13,6 +13,7 @@ import { apiFetchData } from '@/lib/api';
 import { API } from '@/constants/api';
 import { useAuth } from '@/hooks/useAuth';
 import { useTheme } from '@/hooks/useTheme';
+import * as Linking from 'expo-linking';
 
 export default function SearchFriendsScreen() {
   const { theme } = useTheme();
@@ -39,6 +40,14 @@ export default function SearchFriendsScreen() {
     }
   };
 
+  const inviteFriend = () => {
+    const link = Linking.createURL(`/invite`, {
+      queryParams: { friendEmail: authUser.email },
+    });
+
+    Share.share({ url: link });
+  };
+
   return (
     <KeyboardAwareScrollView
       extraScrollHeight={60}
@@ -55,7 +64,7 @@ export default function SearchFriendsScreen() {
         inputMode="search"
         returnKeyType="search"
       />
-      <PlatformButton hapticFeedback="none">
+      <PlatformButton onPress={inviteFriend}>
         <ThemedText type="bodyLargeMedium" style={styles.buttonText}>
           Пригласить в приложение
         </ThemedText>

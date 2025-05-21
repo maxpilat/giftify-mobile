@@ -7,7 +7,7 @@ import { WishCard } from '@/components/WishCard';
 import { WishListTab } from '@/components/WishListTab';
 import { Icon } from '@/components/Icon';
 import { ThemedView } from '@/components/ThemedView';
-import { Link, router, useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { Link, router, Stack, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useTheme } from '@/hooks/useTheme';
 import Animated, { runOnJS, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { ThemedText } from '@/components/ThemedText';
@@ -23,6 +23,7 @@ import { base64ToBinaryArray, binaryArrayToBase64 } from '@/utils/convertImage';
 import { getDefaultBackground } from '@/utils/profileBackground';
 import * as Linking from 'expo-linking';
 import { showToast } from '@/utils/showToast';
+import { BackButton } from '@/components/BackButton';
 
 type SearchParams = {
   userId?: string;
@@ -425,6 +426,16 @@ export default function ProfileScreen() {
 
   return (
     <View style={styles.wrapper}>
+      <Stack.Screen
+        options={{
+          headerTransparent: true,
+          headerTitle: '',
+          headerLeft: () => !isCurrentUser && <BackButton />,
+          contentStyle: {
+            backgroundColor: theme.background,
+          },
+        }}
+      />
       <ParallaxScrollView
         header={
           <ProfileHeader

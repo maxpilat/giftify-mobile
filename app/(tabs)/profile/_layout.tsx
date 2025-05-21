@@ -2,7 +2,7 @@ import { ThemedText } from '@/components/ThemedText';
 import { useTheme } from '@/hooks/useTheme';
 import { router, Stack } from 'expo-router';
 import { TouchableOpacity } from 'react-native';
-import type { NativeStackNavigationOptions } from '@react-navigation/native-stack';
+import { NativeStackNavigationOptions } from '@react-navigation/native-stack';
 import { BackButton } from '@/components/BackButton';
 
 export default function IndexLayout() {
@@ -30,15 +30,6 @@ export default function IndexLayout() {
     },
   });
 
-  const getProfileScreenOptions = (): NativeStackNavigationOptions => ({
-    headerTransparent: true,
-    headerTitle: '',
-    headerLeft: () => router.canGoBack() && <BackButton />,
-    contentStyle: {
-      backgroundColor: theme.background,
-    },
-  });
-
   const getFeedScreenOptions = (title: string): NativeStackNavigationOptions => ({
     headerTitle: () => <ThemedText type="bodyLargeMedium">{title}</ThemedText>,
     headerLeft: BackButton,
@@ -55,7 +46,6 @@ export default function IndexLayout() {
       <Stack.Screen
         name="[userId]"
         dangerouslySingular={() => `${Date.now()}-${Math.random().toString(36).slice(2)}`}
-        options={getProfileScreenOptions()}
       />
       <Stack.Screen
         name="wishes"
