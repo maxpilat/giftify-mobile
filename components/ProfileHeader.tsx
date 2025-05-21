@@ -1,5 +1,14 @@
 import { useState } from 'react';
-import { StyleSheet, ImageBackground, View, TouchableOpacity, Image } from 'react-native';
+import {
+  StyleSheet,
+  ImageBackground,
+  View,
+  TouchableOpacity,
+  Image,
+  Dimensions,
+  Platform,
+  StatusBar,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
@@ -115,6 +124,9 @@ export function ProfileHeader({ profile, avatar, background, friendsCount, frien
     );
   };
 
+  const { height } = Dimensions.get('screen');
+  const paddingTop = Platform.OS === 'ios' ? (height >= 812 ? 44 : 20) : (StatusBar.currentHeight || 20) + 10;
+
   return (
     <ImageBackground
       source={background?.backgroundType === 'TYPE_IMAGE' ? { uri: background.backgroundUri } : undefined}
@@ -127,7 +139,7 @@ export function ProfileHeader({ profile, avatar, background, friendsCount, frien
         },
       ]}
     >
-      <SafeAreaView edges={['top']}>
+      <View style={{ paddingTop }}>
         <View style={styles.headerWrapper}>
           <MaskedView
             style={styles.maskedView}
@@ -208,7 +220,7 @@ export function ProfileHeader({ profile, avatar, background, friendsCount, frien
             ))}
           </ThemedView>
         </View>
-      </SafeAreaView>
+      </View>
     </ImageBackground>
   );
 }
