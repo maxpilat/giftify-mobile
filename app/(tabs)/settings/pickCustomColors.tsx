@@ -6,6 +6,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import Toast from 'react-native-toast-message';
 import ColorPicker, { Panel2, BrightnessSlider, colorKit } from 'reanimated-color-picker';
 
 export default function PickCustomColorsScreen() {
@@ -35,7 +36,9 @@ export default function PickCustomColorsScreen() {
   };
 
   const handleSubmit = () => {
-    updateCustomColors(primaryColor, secondaryColor);
+    updateCustomColors(primaryColor, secondaryColor)
+      .then(() => Toast.show({ type: 'success', text1: 'Цвета обновлены' }))
+      .catch(() => Toast.show({ type: 'error', text1: 'Не удалось обновить цвета' }));
     router.back();
   };
 

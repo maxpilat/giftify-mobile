@@ -7,6 +7,7 @@ import { Colors } from '@/constants/themes';
 import { useTheme } from '@/hooks/useTheme';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useAuth } from '@/hooks/useAuth';
+import Toast from 'react-native-toast-message';
 
 type SearchParams = {
   newEmail: string;
@@ -18,9 +19,11 @@ export default function ValidateEmailScreen() {
   const { code, newEmail } = useLocalSearchParams<SearchParams>();
   const { changeEmail } = useAuth();
 
-  const submit = async (value: string) => {
+  const submit = (value: string) => {
     if (value === code) {
-      await changeEmail(newEmail);
+      changeEmail(newEmail)
+        .then(() => Toast.show({ type: 'success', text1: 'Почта изменена' }))
+        .catch(() => Toast.show({ type: 'error', text1: 'Не удалось изменить почту' }));
       router.replace('/settings');
     }
   };

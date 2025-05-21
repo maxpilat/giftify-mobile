@@ -9,6 +9,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useStore';
 import { apiFetchData } from '@/lib/api';
 import { ThemedText } from '@/components/ThemedText';
+import Toast from 'react-native-toast-message';
 
 type SearchParams = {
   isSubmit?: 'true' | 'false';
@@ -26,15 +27,6 @@ export default function PiggyBankDepositModalScreen() {
     amount: false,
   });
 
-  const [currencies, setCurrencies] = useState<Currency[]>([]);
-
-  useEffect(() => {
-    apiFetchData<Currency[]>({ endpoint: API.currencies.getCurrencies, token: user.token }).then((currencies) => {
-      setCurrencies(currencies);
-      if (!currency) setCurrency(currencies[0]);
-    });
-  }, []);
-
   useEffect(() => {
     if (piggyBankId) {
       const piggyBank = piggyBanks.find((piggyBank) => piggyBank.wishId === +piggyBankId)!;
@@ -46,18 +38,20 @@ export default function PiggyBankDepositModalScreen() {
     handleSubmit();
   }, [isSubmit]);
 
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
     if (isSubmit !== 'true') return;
 
     if (isValid()) {
-      await apiFetchData({
+      apiFetchData({
         endpoint: API.wishes.deposit,
         method: 'POST',
         token: user.token,
         body: { piggyBankId: +piggyBankId, amount },
-      });
+      })
+        .then(fetchPiggyBanks)
+        .then(() => Toast.show({ type: 'success', text1: 'Копилка пополнена' }))
+        .catch(() => Toast.show({ type: 'error', text1: 'Не удалось пополнить копилку' }));
 
-      await fetchPiggyBanks();
       router.back();
     }
 
@@ -66,7 +60,7 @@ export default function PiggyBankDepositModalScreen() {
 
   const isValid = () => {
     const newErrors = {
-      amount: !amount.trim(),
+      amount: !amount,
     };
     setErrors(newErrors);
     return !Object.values(newErrors).some((error) => error);
@@ -88,11 +82,12 @@ export default function PiggyBankDepositModalScreen() {
             keyboardType="numeric"
             inputMode="decimal"
             value={amount}
+            valid={!errors.amount}
             onChangeText={setAmount}
             type="options"
-            options={currencies}
-            getDisplayedValue={(currency) => currency.symbol}
-            getOptionLabel={(currency) => `${currency.symbol} - ${currency.transcription}`}
+            options={[currency]}
+            getDisplayedValue={(currency) => currency?.symbol || ''}
+            getOptionLabel={(currency) => `${currency?.symbol} - ${currency?.transcription}`}
             onSelectOption={setCurrency}
           />
         </View>

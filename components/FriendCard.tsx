@@ -11,6 +11,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Colors } from '@/constants/themes';
 import { Link } from 'expo-router';
 import { formatCountedPhrase } from '@/utils/formatCountedPhrase';
+import Toast from 'react-native-toast-message';
 
 type Props = {
   friend: Friend;
@@ -34,7 +35,19 @@ export const FriendCard = ({ friend }: Props) => {
       token: user.token,
     })
       .then(fetchFriends)
-      .then(fetchFriendRequests);
+      .then(fetchFriendRequests)
+      .then(() =>
+        Toast.show({
+          type: 'success',
+          text1: 'Пользователь удалён из друзей',
+        })
+      )
+      .catch(() =>
+        Toast.show({
+          type: 'error',
+          text1: 'Не удалось удалить пользователя из друзей',
+        })
+      );
   };
 
   const handleRejectFriendRequest = () => {
@@ -66,7 +79,21 @@ export const FriendCard = ({ friend }: Props) => {
       token: user.token,
     })
       .then(fetchFriends)
-      .then(fetchFriendRequests);
+      .then(fetchFriendRequests)
+      .then(() =>
+        Toast.show({
+          type: 'success',
+          text1: isSender(friend.friendId) ? 'Пользователь добавлен в друзья' : 'Запрос в друзья отправлен',
+        })
+      )
+      .catch(() =>
+        Toast.show({
+          type: 'error',
+          text1: isSender(friend.friendId)
+            ? 'Не удалось принять запрос в друзья'
+            : 'Не удалось отправить запрос в друзья',
+        })
+      );
   };
 
   const getFriendButton = () => {

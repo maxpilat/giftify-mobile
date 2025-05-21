@@ -15,6 +15,7 @@ import { Icon } from '@/components/Icon';
 import { apiFetchData } from '@/lib/api';
 import { API } from '@/constants/api';
 import { useAuth } from '@/hooks/useAuth';
+import Toast from 'react-native-toast-message';
 
 const mask = `
   <svg width="280" height="130" viewBox="100 -0.5 280 161" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -52,7 +53,21 @@ export function ProfileHeader({ profile, avatar, background, friendsCount, frien
       token: authUser.token,
     })
       .then(fetchFriends)
-      .then(fetchFriendRequests);
+      .then(fetchFriendRequests)
+      .then(() =>
+        Toast.show({
+          type: 'success',
+          text1: isSender(profile!.userId) ? 'Пользователь добавлен в друзья' : 'Запрос в друзья отправлен',
+        })
+      )
+      .catch(() =>
+        Toast.show({
+          type: 'error',
+          text1: isSender(profile!.userId)
+            ? 'Не удалось принять запрос в друзья'
+            : 'Не удалось отправить запрос в друзья',
+        })
+      );
   };
 
   const rejectFriendRequest = () => {
@@ -68,7 +83,19 @@ export function ProfileHeader({ profile, avatar, background, friendsCount, frien
       token: authUser.token,
     })
       .then(fetchFriends)
-      .then(fetchFriendRequests);
+      .then(fetchFriendRequests)
+      .then(() =>
+        Toast.show({
+          type: 'success',
+          text1: 'Запрос в друзья отменён',
+        })
+      )
+      .catch(() =>
+        Toast.show({
+          type: 'error',
+          text1: 'Не удалось отменить запрос в друзья',
+        })
+      );
   };
 
   const getFriendButton = () => {
@@ -229,7 +256,7 @@ const styles = StyleSheet.create({
     padding: 20,
     borderRadius: 40,
     borderWidth: 1,
-    minHeight: 110,
+    minHeight: 105,
   },
   fullname: {
     textAlign: 'center',

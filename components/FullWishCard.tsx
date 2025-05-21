@@ -16,6 +16,7 @@ import { base64ToBinaryArray } from '@/utils/convertImage';
 import { Colors } from '@/constants/themes';
 import { getDaysUntilBookingExpires } from '@/utils/getDaysUntil';
 import * as Linking from 'expo-linking';
+import Toast from 'react-native-toast-message';
 
 const IMAGE_HEIGHT = 450;
 
@@ -62,12 +63,13 @@ export function FullWishCard({ wish, onLayout }: Props) {
         text: 'Удалить желание',
         style: 'destructive',
         onPress: () => {
-          apiFetchData({ endpoint: API.wishes.delete(wish.wishId), method: 'DELETE', token: authUser.token }).then(
-            () => {
-              fetchMyWishes().then((wishes) => wishes.length === 0 && router.back());
-              fetchMyWishLists();
-            }
-          );
+          apiFetchData({ endpoint: API.wishes.delete(wish.wishId), method: 'DELETE', token: authUser.token })
+            .then(() => Promise.all([fetchMyWishes(), fetchMyWishLists()]))
+            .then((results) => {
+              results[0].length === 0 && router.back();
+              Toast.show({ type: 'success', text1: 'Желание удалено' });
+            })
+            .catch(() => Toast.show({ type: 'error', text1: 'Не удалось удалить желание' }));
         },
       },
     ]);
@@ -79,7 +81,10 @@ export function FullWishCard({ wish, onLayout }: Props) {
       method: booking ? 'DELETE' : 'POST',
       body: booking ? undefined : { wishId: wish.wishId, bookerId: authUser.id },
       token: authUser.token,
-    }).then(fetchMyBookings);
+    })
+      .then(fetchMyBookings)
+      .then(() => Toast.show({ type: 'success', text1: booking ? 'Бронь снята' : 'Желание забронировано' }))
+      .catch(() => Toast.show({ type: 'error', text1: booking ? 'Не удалось снять бронь' : 'Бронь снята' }));
   };
 
   const getBookingAction = (): Action => {
@@ -105,7 +110,10 @@ export function FullWishCard({ wish, onLayout }: Props) {
           image: base64ToBinaryArray(wish.image),
         },
         token: authUser.token,
-      }).then(fetchMyWishes);
+      })
+        .then(fetchMyWishes)
+        .then(() => Toast.show({ type: 'success', text1: 'Желание сохранено' }))
+        .catch(() => Toast.show({ type: 'error', text1: 'Не удалось сохранить желание' }));
     }
   };
 
@@ -116,12 +124,13 @@ export function FullWishCard({ wish, onLayout }: Props) {
         text: 'Ок',
         style: 'default',
         onPress: () => {
-          apiFetchData({ endpoint: API.wishes.delete(wish.wishId), method: 'DELETE', token: authUser.token }).then(
-            () => {
-              fetchMyWishes().then((wishes) => wishes.length === 0 && router.back());
-              fetchMyWishLists();
-            }
-          );
+          apiFetchData({ endpoint: API.wishes.delete(wish.wishId), method: 'DELETE', token: authUser.token })
+            .then(() => Promise.all([fetchMyWishes(), fetchMyWishLists()]))
+            .then((results) => {
+              results[0].length === 0 && router.back();
+              Toast.show({ type: 'success', text1: 'Желание исполнено' });
+            })
+            .catch(() => Toast.show({ type: 'error', text1: 'Не удалось исполнить желание' }));
         },
       },
     ]);

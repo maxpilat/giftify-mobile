@@ -66,9 +66,7 @@ export default function FriendsScreen() {
 
   const fetchData = async () => {
     const promises: Promise<any>[] = [fetchFriends()];
-    if (isCurrentUser) {
-      promises.push(fetchFriendRequests());
-    }
+    if (isCurrentUser) promises.push(fetchFriendRequests());
     await Promise.all(promises);
   };
 

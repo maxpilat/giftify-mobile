@@ -8,6 +8,7 @@ import { Colors } from '@/constants/themes';
 import { Link, router, useLocalSearchParams } from 'expo-router';
 import { API } from '@/constants/api';
 import { apiFetchData } from '@/lib/api';
+import Toast from 'react-native-toast-message';
 
 type SearchParams = {
   friendEmail?: string;
@@ -34,23 +35,30 @@ export default function SignUpScreen() {
       return;
     }
 
-    const isUniqueEmail = await apiFetchData<boolean>({
-      endpoint: API.auth.uniqueEmail,
-      method: 'POST',
-      body: email,
-    });
+    try {
+      const isUniqueEmail = await apiFetchData<boolean>({
+        endpoint: API.auth.uniqueEmail,
+        method: 'POST',
+        body: email,
+      });
 
-    if (!isUniqueEmail) {
-      setErrors((prev) => ({ ...prev, email: 'Аккаунт с такой почтой уже существует' }));
-      return;
+      if (!isUniqueEmail) {
+        setErrors((prev) => ({ ...prev, email: 'Аккаунт с такой почтой уже существует' }));
+        return;
+      }
+    } catch {
+      return Toast.show({ type: 'error', text1: 'Что-то пошло не так' });
     }
 
-    const { code } = await apiFetchData<{ code: string }>({
+    apiFetchData<{ code: string }>({
       endpoint: API.auth.validateEmail,
       method: 'POST',
       body: email,
-    });
-    router.push({ pathname: './validateEmail', params: { name, surname, email, password, friendEmail, code } });
+    })
+      .then(({ code }) =>
+        router.push({ pathname: './validateEmail', params: { name, surname, email, password, friendEmail, code } })
+      )
+      .catch(() => Toast.show({ type: 'error', text1: 'Не удалось запросить код' }));
   };
 
   const isValid = () => {
@@ -75,16 +83,12 @@ export default function SignUpScreen() {
       clearTimeout(typingTimeoutRef.current);
     }
 
-    typingTimeoutRef.current = setTimeout(async () => {
-      const isUnique = await apiFetchData<boolean>({
-        endpoint: API.auth.uniqueEmail,
-        method: 'POST',
-        body: value,
-      });
-
-      if (!isUnique) {
-        setErrors((prev) => ({ ...prev, email: 'Аккаунт с такой почтой уже существует' }));
-      }
+    typingTimeoutRef.current = setTimeout(() => {
+      apiFetchData<boolean>({ endpoint: API.auth.uniqueEmail, method: 'POST', body: value })
+        .then(
+          (isUnique) => isUnique && setErrors((prev) => ({ ...prev, email: 'Аккаунт с такой почтой уже существует' }))
+        )
+        .catch(() => {});
     }, 300);
   };
 

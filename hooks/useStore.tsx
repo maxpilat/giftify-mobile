@@ -286,23 +286,27 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
 
   const changeBackground = useCallback(
     async (background: ProfileBackground) => {
-      setBackground(background);
+      try {
+        setBackground(background);
 
-      await AsyncStorage.setItem('currentBackground', JSON.stringify(background));
+        await AsyncStorage.setItem('currentBackground', JSON.stringify(background));
 
-      await apiFetchData({
-        endpoint: API.settings.updateBackground,
-        method: 'PUT',
-        body: {
-          email: user.email,
-          backgroundType: background.backgroundType,
-          backgroundColor: background.backgroundColor,
-          backgroundImage: background.backgroundUri
-            ? base64ToBinaryArray(await uriToBase64(background.backgroundUri))
-            : undefined,
-        },
-        token: user.token,
-      });
+        await apiFetchData({
+          endpoint: API.settings.updateBackground,
+          method: 'PUT',
+          body: {
+            email: user.email,
+            backgroundType: background.backgroundType,
+            backgroundColor: background.backgroundColor,
+            backgroundImage: background.backgroundUri
+              ? base64ToBinaryArray(await uriToBase64(background.backgroundUri))
+              : undefined,
+          },
+          token: user.token,
+        });
+      } catch (error) {
+        throw error;
+      }
     },
     [user]
   );
@@ -337,17 +341,21 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
 
   const changeAvatar = useCallback(
     async (avatarUri: string) => {
-      setAvatar(avatarUri);
+      try {
+        await apiFetchData({
+          endpoint: API.settings.updateAvatar,
+          method: 'PUT',
+          body: {
+            email: user.email,
+            newAvatar: base64ToBinaryArray(await uriToBase64(avatarUri)),
+          },
+          token: user.token,
+        });
 
-      await apiFetchData({
-        endpoint: API.settings.updateAvatar,
-        method: 'PUT',
-        body: {
-          email: user.email,
-          newAvatar: base64ToBinaryArray(await uriToBase64(avatarUri)),
-        },
-        token: user.token,
-      });
+        setAvatar(avatarUri);
+      } catch (error) {
+        throw error;
+      }
     },
     [user]
   );

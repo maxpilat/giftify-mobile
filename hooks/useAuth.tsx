@@ -64,29 +64,39 @@ export const AuthProvider = ({ children, initialUser }: { children: ReactNode; i
     password: string;
     friendEmail?: string;
   }) => {
-    const newUser = await apiFetchData<AuthData>({
-      endpoint: API.auth.signUp,
-      method: 'POST',
-      body: userData,
-    });
+    try {
+      const newUser = await apiFetchData<AuthData>({
+        endpoint: API.auth.signUp,
+        method: 'POST',
+        body: userData,
+      });
 
-    setUser(newUser);
-    await SecureStore.setItemAsync('user', JSON.stringify(newUser));
+      await SecureStore.setItemAsync('user', JSON.stringify(newUser));
 
-    return newUser;
+      setUser(newUser);
+
+      return newUser;
+    } catch (error) {
+      throw error;
+    }
   };
 
   const signIn = async (email: string, password: string) => {
-    const newUser = await apiFetchData<AuthData>({
-      endpoint: API.auth.signIn,
-      method: 'POST',
-      body: { email, password },
-    });
+    try {
+      const newUser = await apiFetchData<AuthData>({
+        endpoint: API.auth.signIn,
+        method: 'POST',
+        body: { email, password },
+      });
 
-    setUser(newUser);
-    await SecureStore.setItemAsync('user', JSON.stringify(newUser));
+      await SecureStore.setItemAsync('user', JSON.stringify(newUser));
 
-    return newUser;
+      setUser(newUser);
+
+      return newUser;
+    } catch (error) {
+      throw error;
+    }
   };
 
   const signOut = async () => {
@@ -95,27 +105,39 @@ export const AuthProvider = ({ children, initialUser }: { children: ReactNode; i
   };
 
   const deactivateAccount = async () => {
-    if (user) {
-      setUser(null);
-      await apiFetchData({ endpoint: API.auth.deactivateAccount(user.id), method: 'DELETE' });
-      await SecureStore.deleteItemAsync('user');
+    try {
+      if (user) {
+        setUser(null);
+        await apiFetchData({ endpoint: API.auth.deactivateAccount(user.id), method: 'DELETE' });
+        await SecureStore.deleteItemAsync('user');
+      }
+    } catch (error) {
+      throw error;
     }
   };
 
   const changePassword = async (oldPassword: string, newPassword: string) => {
-    await apiFetchData({
-      endpoint: API.auth.updatePassword,
-      method: 'PUT',
-      body: { email: user?.email, oldPassword, newPassword },
-    });
+    try {
+      await apiFetchData({
+        endpoint: API.auth.updatePassword,
+        method: 'PUT',
+        body: { email: user?.email, oldPassword, newPassword },
+      });
+    } catch (error) {
+      throw error;
+    }
   };
 
   const resetPassword = async (email: string, newPassword: string) => {
-    await apiFetchData({
-      endpoint: API.auth.resetPassword,
-      method: 'POST',
-      body: { email, newPassword },
-    });
+    try {
+      await apiFetchData({
+        endpoint: API.auth.resetPassword,
+        method: 'POST',
+        body: { email, newPassword },
+      });
+    } catch (error) {
+      throw error;
+    }
   };
 
   const changeEmail = async (newEmail: string) => {

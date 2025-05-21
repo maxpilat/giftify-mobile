@@ -26,6 +26,7 @@ import { apiFetchData } from '@/lib/api';
 import { API } from '@/constants/api';
 import { useProfile } from '@/hooks/useStore';
 import { launchImageLibraryAsync } from 'expo-image-picker';
+import Toast from 'react-native-toast-message';
 
 export default function SettingsScreen() {
   const { theme } = useTheme();
@@ -36,9 +37,9 @@ export default function SettingsScreen() {
   const [surname, setSurname] = useState<string>('');
   const [username, setUsername] = useState<string>();
   const [birthDate, setBirthDate] = useState<Date>(new Date(2000, 0, 1));
-  const [isDatePickerVisible, setIsDatePickerVisible] = useState<boolean>(false);
   const [gender, setGender] = useState<Gender | null>(null);
   const [isPrivateAccount, setIsPrivateAccount] = useState<boolean>(false);
+  const [isDatePickerVisible, setIsDatePickerVisible] = useState<boolean>(false);
 
   const [errors, setErrors] = useState<Record<'name' | 'surname', string | undefined>>({
     name: undefined,
@@ -56,6 +57,10 @@ export default function SettingsScreen() {
     fetchData();
   }, []);
 
+  useEffect(() => {
+    Toast.show({ type: 'success', text1: 'Данные обновлены' });
+  }, [myAvatar, name, surname, username, birthDate, gender, isPrivateAccount]);
+
   const fetchData = async () => {
     const settings = await apiFetchData<SettingsData>({
       endpoint: API.settings.getSettings(user.id),
@@ -70,17 +75,6 @@ export default function SettingsScreen() {
     setIsPrivateAccount(settings.isPrivate);
   };
 
-  const handleNameChange = (value: string) => {
-    setName(value);
-    setErrors((prev) => ({ ...prev, name: undefined }));
-    apiFetchData({
-      endpoint: API.settings.updateName,
-      method: 'PUT',
-      body: { email: user.email, newName: value, newSurname: surname },
-      token: user.token,
-    });
-  };
-
   const pickAvatar = async () => {
     const result = await launchImageLibraryAsync({
       mediaTypes: 'images',
@@ -90,8 +84,19 @@ export default function SettingsScreen() {
 
     if (!result.canceled && result.assets?.[0]?.uri) {
       const uri = result.assets[0].uri;
-      changeAvatar(uri);
+      changeAvatar(uri).catch(() => Toast.show({ type: 'error', text1: 'Не удалось обновить аватар' }));
     }
+  };
+
+  const handleNameChange = (value: string) => {
+    setName(value);
+    setErrors((prev) => ({ ...prev, name: undefined }));
+    apiFetchData({
+      endpoint: API.settings.updateName,
+      method: 'PUT',
+      body: { email: user.email, newName: value, newSurname: surname },
+      token: user.token,
+    }).catch(() => Toast.show({ type: 'error', text1: 'Не удалось обновить имя' }));
   };
 
   const handleSurnameChange = (value: string) => {
@@ -102,7 +107,7 @@ export default function SettingsScreen() {
       method: 'PUT',
       body: { email: user.email, newName: name, newSurname: value },
       token: user.token,
-    });
+    }).catch(() => Toast.show({ type: 'error', text1: 'Не удалось обновить фамилию' }));
   };
 
   const handleUsernameChange = (value: string) => {
@@ -112,7 +117,7 @@ export default function SettingsScreen() {
       method: 'PUT',
       body: { email: user.email, newUsername: value || user.email },
       token: user.token,
-    });
+    }).catch(() => Toast.show({ type: 'error', text1: 'Не удалось обновить никнейм' }));
   };
 
   const handleBirthDateChange = (value: Date) => {
@@ -123,7 +128,7 @@ export default function SettingsScreen() {
       method: 'PUT',
       body: { email: user.email, newBirthDate: dateToString(value) },
       token: user.token,
-    });
+    }).catch(() => Toast.show({ type: 'error', text1: 'Не удалось обновить дату рождения' }));
   };
 
   const handleGenderChange = (value: Gender) => {
@@ -134,7 +139,7 @@ export default function SettingsScreen() {
       method: 'PUT',
       body: { email: user.email, newGender: newGender === 'Male' ? true : false },
       token: user.token,
-    });
+    }).catch(() => Toast.show({ type: 'error', text1: 'Не удалось обновить информацию о поле' }));
   };
 
   const handlePrivacyChange = () => {
@@ -145,34 +150,34 @@ export default function SettingsScreen() {
         method: 'PUT',
         body: { email: user.email, newPrivacy },
         token: user.token,
-      });
+      }).catch(() => Toast.show({ type: 'error', text1: 'Не удалось обновить настройки приватности' }));
 
       return newPrivacy;
     });
   };
 
-  const handleSignOut = async () => {
+  const handleSignOut = () => {
     Alert.alert('Подтвердите', 'Вы уверены, что хотите выйти?', [
       { text: 'Отмена', style: 'cancel' },
       {
         text: 'Выйти',
         style: 'destructive',
-        onPress: async () => {
+        onPress: () => {
           router.replace('/(auth)');
-          await signOut();
+          signOut().catch(() => Toast.show({ type: 'error', text1: 'Не удалось выйти из аккаунта' }));
         },
       },
     ]);
   };
 
-  const handleDeactivateAccount = async () => {
+  const handleDeactivateAccount = () => {
     Alert.alert('Подтвердите', 'Вы уверены, что хотите безвозвратно удалить аккаунт?', [
       { text: 'Отмена', style: 'cancel' },
       {
         text: 'Удалить аккаунт',
         style: 'destructive',
-        onPress: async () => {
-          await deactivateAccount();
+        onPress: () => {
+          deactivateAccount().catch(() => Toast.show({ type: 'error', text1: 'Не удалось деактивировать аккаунт' }));
           router.replace('/(auth)');
         },
       },

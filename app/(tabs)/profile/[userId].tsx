@@ -22,6 +22,7 @@ import { Action } from '@/components/ActionsButton';
 import { base64ToBinaryArray, binaryArrayToBase64 } from '@/utils/convertImage';
 import { getDefaultBackground } from '@/utils/profileBackground';
 import * as Linking from 'expo-linking';
+import Toast from 'react-native-toast-message';
 
 type SearchParams = {
   userId?: string;
@@ -286,7 +287,9 @@ export default function ProfileScreen() {
             .then(() => {
               setCurrentWishListId(null);
               scrollRef.current?.scrollTo({ x: 0, animated: true });
-            });
+              Toast.show({ type: 'success', text1: 'Список удалён' });
+            })
+            .catch(() => Toast.show({ type: 'error', text1: 'Не удалось удалить список' }));
         },
       },
     ]);
@@ -311,10 +314,10 @@ export default function ProfileScreen() {
         text: 'Удалить желание',
         style: 'destructive',
         onPress: () => {
-          apiFetchData({ endpoint: API.wishes.delete(wishId), method: 'DELETE', token: authUser.token }).then(() => {
-            fetchMyWishes();
-            fetchMyWishLists();
-          });
+          apiFetchData({ endpoint: API.wishes.delete(wishId), method: 'DELETE', token: authUser.token })
+            .then(() => Promise.all([fetchMyWishes(), fetchMyWishLists()]))
+            .then(() => Toast.show({ type: 'success', text1: 'Желание удалёно' }))
+            .catch(() => Toast.show({ type: 'error', text1: 'Не удалось удалить желание' }));
         },
       },
     ]);
@@ -327,36 +330,45 @@ export default function ProfileScreen() {
     return {
       label,
       onPress: async () => {
-        await apiFetchData({
-          endpoint: booking ? API.booking.cancel(booking.bookingId) : API.booking.create,
-          method: booking ? 'DELETE' : 'POST',
-          body: booking ? undefined : { wishId, bookerId: authUser.id },
-          token: authUser.token,
-        });
+        try {
+          await apiFetchData({
+            endpoint: booking ? API.booking.cancel(booking.bookingId) : API.booking.create,
+            method: booking ? 'DELETE' : 'POST',
+            body: booking ? undefined : { wishId, bookerId: authUser.id },
+            token: authUser.token,
+          });
 
-        const newBookings = await fetchMyBookings();
+          const newBookings = await fetchMyBookings();
 
-        if (!booking) {
-          const newBooking = newBookings.find(
-            (b) => !myBookings.some((myBooking) => myBooking.bookingId === b.bookingId)
-          );
+          if (!booking) {
+            const newBooking = newBookings.find(
+              (b) => !myBookings.some((myBooking) => myBooking.bookingId === b.bookingId)
+            );
 
-          setWishes((prevWishes) =>
-            prevWishes.map((prevWish) => ({
-              ...prevWish,
-              activeBookingId: prevWish.wishId === wishId ? newBooking?.bookingId : prevWish.activeBookingId,
-            }))
-          );
-
-          setWishLists((prevWishLists) =>
-            prevWishLists.map((prevWishList) => ({
-              ...prevWishList,
-              wishes: prevWishList.wishes.map((prevWish) => ({
+            setWishes((prevWishes) =>
+              prevWishes.map((prevWish) => ({
                 ...prevWish,
                 activeBookingId: prevWish.wishId === wishId ? newBooking?.bookingId : prevWish.activeBookingId,
-              })),
-            }))
-          );
+              }))
+            );
+
+            setWishLists((prevWishLists) =>
+              prevWishLists.map((prevWishList) => ({
+                ...prevWishList,
+                wishes: prevWishList.wishes.map((prevWish) => ({
+                  ...prevWish,
+                  activeBookingId: prevWish.wishId === wishId ? newBooking?.bookingId : prevWish.activeBookingId,
+                })),
+              }))
+            );
+          }
+
+          Toast.show({
+            type: 'success',
+            text1: booking ? 'Бронь снята' : 'Желание забронировано',
+          });
+        } catch {
+          Toast.show({ type: 'error', text1: booking ? 'Не удалось снять бронь' : 'Не удалось забронировать желание' });
         }
       },
     };
@@ -375,9 +387,10 @@ export default function ProfileScreen() {
   };
 
   const deletePiggyBank = (piggyBankId: number) => {
-    apiFetchData({ endpoint: API.wishes.delete(piggyBankId), method: 'DELETE', token: authUser.token }).then(
-      fetchMyPiggyBanks
-    );
+    apiFetchData({ endpoint: API.wishes.delete(piggyBankId), method: 'DELETE', token: authUser.token })
+      .then(fetchMyPiggyBanks)
+      .then(() => Toast.show({ type: 'success', text1: 'Копилка удалёна' }))
+      .catch(() => Toast.show({ type: 'error', text1: 'Не удалось удалить копилку' }));
   };
 
   const saveWish = (wish: Wish) => {
@@ -396,7 +409,10 @@ export default function ProfileScreen() {
           image: base64ToBinaryArray(wish.image || ''),
         },
         token: authUser.token,
-      }).then(fetchMyWishes);
+      })
+        .then(fetchMyWishes)
+        .then(() => Toast.show({ type: 'success', text1: 'Желание сохранено' }))
+        .catch(() => Toast.show({ type: 'error', text1: 'Не удалось сохранить желание' }));
     }
   };
 

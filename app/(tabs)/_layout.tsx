@@ -6,9 +6,11 @@ import TabBarBackgroundIOS from '@/components/TabBarBackground.ios';
 import { useTheme } from '@/hooks/useTheme';
 import { Icon } from '@/components/Icon';
 import { StoreProvider } from '@/hooks/useStore';
+import Toast from 'react-native-toast-message';
+import { toastConfig } from '@/constants/toast';
 
 export default function TabLayout() {
-  const { theme } = useTheme();
+  const { theme, themeType, systemThemeType } = useTheme();
 
   return (
     <StoreProvider>
@@ -62,6 +64,7 @@ export default function TabLayout() {
           }}
         />
       </Tabs>
+      <Toast config={toastConfig(themeType === 'system' ? systemThemeType : themeType)} />
     </StoreProvider>
   );
 }

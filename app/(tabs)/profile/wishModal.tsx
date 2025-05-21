@@ -16,6 +16,7 @@ import { useProfile } from '@/hooks/useStore';
 import { base64ToBinaryArray } from '@/utils/convertImage';
 import { apiFetchData } from '@/lib/api';
 import { useTheme } from '@/hooks/useTheme';
+import Toast from 'react-native-toast-message';
 
 type SearchParams = {
   isSubmit?: 'true' | 'false';
@@ -56,21 +57,10 @@ export default function WishModalScreen() {
 
   useEffect(() => {
     setSwitchStates(() =>
-      wishLists.map((wishList) => {
-        if (wishIdParam) {
-          const enabled = Boolean(wishList.wishes.find((wish) => wish.wishId === +wishIdParam));
-
-          return {
-            id: wishList.wishListId,
-            enabled,
-          };
-        }
-
-        return {
-          id: wishList.wishListId,
-          enabled: false,
-        };
-      })
+      wishLists.map(({ wishListId, wishes }) => ({
+        id: wishListId,
+        enabled: !!wishIdParam && wishes.some(({ wishId }) => wishId === +wishIdParam),
+      }))
     );
   }, [wishLists]);
 
@@ -108,51 +98,61 @@ export default function WishModalScreen() {
 
       let wishId = wishIdParam ? +wishIdParam : null;
 
-      if (wishId) {
-        (payload as any).wishId = wishId;
-        await apiFetchData({
-          endpoint: API.wishes.update,
-          method: 'PUT',
-          token: user.token,
-          body: { ...payload, image: binaryImage },
+      try {
+        if (wishId) {
+          (payload as any).wishId = wishId;
+          await apiFetchData({
+            endpoint: API.wishes.update,
+            method: 'PUT',
+            token: user.token,
+            body: { ...payload, image: binaryImage },
+          });
+        } else {
+          (payload as any).wisherId = user.id;
+          wishId = await apiFetchData<number>({
+            endpoint: API.wishes.create,
+            method: 'POST',
+            token: user.token,
+            body: { ...payload, image: binaryImage },
+          });
+
+          await Promise.all(
+            switchStates.map((state) => {
+              const wishList = wishLists.find((item) => item.wishListId === state.id)!;
+              const isWishInWishList = wishList.wishes.some((wish) => wish.wishId === wishId);
+
+              if (state.enabled && !isWishInWishList) {
+                return apiFetchData({
+                  endpoint: API.wishes.addToWishList,
+                  method: 'POST',
+                  body: { wishId, wishListId: state.id },
+                  token: user.token,
+                });
+              } else if (!state.enabled && isWishInWishList) {
+                return apiFetchData({
+                  endpoint: API.wishes.deleteFromWishList,
+                  method: 'DELETE',
+                  body: { wishId, wishListId: state.id },
+                  token: user.token,
+                });
+              }
+            })
+          );
+        }
+
+        router.back();
+        await Promise.all([fetchWishes(), fetchWishLists()]);
+
+        Toast.show({
+          type: 'success',
+          text1: wishId ? 'Желание обновлено' : 'Желание добавлено',
         });
-      } else {
-        (payload as any).wisherId = user.id;
-        wishId = await apiFetchData<number>({
-          endpoint: API.wishes.create,
-          method: 'POST',
-          token: user.token,
-          body: { ...payload, image: binaryImage },
+      } catch {
+        Toast.show({
+          type: 'error',
+          text1: wishId ? 'Не удалось обновить желание' : 'Не удалось добавить желание',
         });
       }
-
-      await Promise.all(
-        switchStates.map((state) => {
-          const wishList = wishLists.find((item) => item.wishListId === state.id)!;
-          const isWishInWishList = wishList.wishes.some((wish) => wish.wishId === wishId);
-
-          if (state.enabled && !isWishInWishList) {
-            return apiFetchData({
-              endpoint: API.wishes.addToWishList,
-              method: 'POST',
-              body: { wishId, wishListId: state.id },
-              token: user.token,
-            });
-          } else if (!state.enabled && isWishInWishList) {
-            return apiFetchData({
-              endpoint: API.wishes.deleteFromWishList,
-              method: 'DELETE',
-              body: { wishId, wishListId: state.id },
-              token: user.token,
-            });
-          }
-        })
-      );
-
-      router.back();
-
-      fetchWishes();
-      fetchWishLists();
     }
 
     router.setParams({ isSubmit: 'false' });

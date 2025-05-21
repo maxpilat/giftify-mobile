@@ -7,6 +7,7 @@ import { useProfile } from '@/hooks/useStore';
 import { API } from '@/constants/api';
 import { useAuth } from '@/hooks/useAuth';
 import { apiFetchData } from '@/lib/api';
+import Toast from 'react-native-toast-message';
 
 type SearchParams = {
   isSubmit?: 'true' | 'false';
@@ -36,24 +37,36 @@ export default function WishListModalScreen() {
     if (isSubmit !== 'true') return;
 
     if (isValid()) {
-      if (wishListId) {
-        await apiFetchData({
-          endpoint: API.wishLists.update,
-          method: 'PUT',
-          token: user.token,
-          body: { wishListId: +wishListId, name },
+      try {
+        if (wishListId) {
+          await apiFetchData({
+            endpoint: API.wishLists.update,
+            method: 'PUT',
+            token: user.token,
+            body: { wishListId: +wishListId, name },
+          });
+        } else {
+          await apiFetchData({
+            endpoint: API.wishLists.create,
+            method: 'POST',
+            token: user.token,
+            body: { creatorId: user.id, name },
+          });
+        }
+
+        await fetchWishLists();
+        router.back();
+
+        Toast.show({
+          type: 'success',
+          text1: wishListId ? 'Список обновлён' : 'Список добавлен',
         });
-      } else {
-        await apiFetchData({
-          endpoint: API.wishLists.create,
-          method: 'POST',
-          token: user.token,
-          body: { creatorId: user.id, name },
+      } catch {
+        Toast.show({
+          type: 'error',
+          text1: wishListId ? 'Не удалось обновить список' : 'Не удалось добавить список',
         });
       }
-
-      await fetchWishLists();
-      router.back();
     }
 
     router.setParams({ isSubmit: 'false' });

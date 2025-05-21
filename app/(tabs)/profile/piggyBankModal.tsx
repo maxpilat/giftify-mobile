@@ -10,6 +10,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useStore';
 import { base64ToBinaryArray } from '@/utils/convertImage';
 import { apiFetchData } from '@/lib/api';
+import Toast from 'react-native-toast-message';
 
 type SearchParams = {
   isSubmit?: 'true' | 'false';
@@ -73,26 +74,38 @@ export default function WishModalScreen() {
 
       const buffer = base64ToBinaryArray(image!);
 
-      if (piggyBankId) {
-        (payload as any).wishId = +piggyBankId;
-        await apiFetchData({
-          endpoint: API.wishes.update,
-          method: 'PUT',
-          token: user.token,
-          body: { ...payload, image: buffer },
+      try {
+        if (piggyBankId) {
+          (payload as any).wishId = +piggyBankId;
+          await apiFetchData({
+            endpoint: API.wishes.update,
+            method: 'PUT',
+            token: user.token,
+            body: { ...payload, image: buffer },
+          });
+        } else {
+          (payload as any).wisherId = user.id;
+          await apiFetchData({
+            endpoint: API.wishes.create,
+            method: 'POST',
+            token: user.token,
+            body: { ...payload, image: buffer },
+          });
+        }
+
+        await fetchPiggyBanks();
+        router.back();
+
+        Toast.show({
+          type: 'success',
+          text1: piggyBankId ? 'Копилка обновлена' : 'Копилка добавлена',
         });
-      } else {
-        (payload as any).wisherId = user.id;
-        await apiFetchData({
-          endpoint: API.wishes.create,
-          method: 'POST',
-          token: user.token,
-          body: { ...payload, image: buffer },
+      } catch {
+        Toast.show({
+          type: 'error',
+          text1: piggyBankId ? 'Не удалось обновить копилку' : 'Не удалось добавить копилку',
         });
       }
-
-      await fetchPiggyBanks();
-      router.back();
     }
 
     router.setParams({ isSubmit: 'false' });

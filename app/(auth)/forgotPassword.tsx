@@ -9,6 +9,7 @@ import { PlatformButton } from '@/components/PlatformButton';
 import { API } from '@/constants/api';
 import { router } from 'expo-router';
 import { apiFetchData } from '@/lib/api';
+import Toast from 'react-native-toast-message';
 
 export default function ForgotPasswordScreen() {
   const [email, setEmail] = useState<string>('');
@@ -17,26 +18,31 @@ export default function ForgotPasswordScreen() {
   });
 
   const submit = async () => {
-    const isUniqueEmail = await apiFetchData<boolean>({
-      endpoint: API.auth.uniqueEmail,
-      method: 'POST',
-      body: email,
-    });
-
-    if (isUniqueEmail) {
-      return setErrors((prev) => ({
-        ...prev,
-        email: 'Аккаунта с такой почтой не существует',
-      }));
-    }
-
-    if (isValid()) {
-      const { code } = await apiFetchData<{ code: string }>({
-        endpoint: API.auth.validateEmail,
+    try {
+      const isUniqueEmail = await apiFetchData<boolean>({
+        endpoint: API.auth.uniqueEmail,
         method: 'POST',
         body: email,
       });
-      router.push({ pathname: './resetPassword', params: { code, email } });
+
+      if (isUniqueEmail) {
+        return setErrors((prev) => ({
+          ...prev,
+          email: 'Аккаунта с такой почтой не существует',
+        }));
+      }
+    } catch {
+      return Toast.show({ type: 'error', text1: 'Что-то пошло не так' });
+    }
+
+    if (isValid()) {
+      apiFetchData<{ code: string }>({
+        endpoint: API.auth.validateEmail,
+        method: 'POST',
+        body: email,
+      })
+        .then(({ code }) => router.push({ pathname: '/resetPassword', params: { code, email } }))
+        .catch(() => Toast.show({ type: 'error', text1: 'Не удалось запросить код' }));
     }
   };
 

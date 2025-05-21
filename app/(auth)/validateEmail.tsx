@@ -7,6 +7,7 @@ import { Colors } from '@/constants/themes';
 import { useTheme } from '@/hooks/useTheme';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useAuth } from '@/hooks/useAuth';
+import Toast from 'react-native-toast-message';
 
 type SearchParams = {
   email: string;
@@ -22,10 +23,13 @@ export default function ValidateEmailScreen() {
   const { code, ...userData } = useLocalSearchParams<SearchParams>();
   const { signUp } = useAuth();
 
-  const handleSubmit = async (value: string) => {
+  const handleSubmit = (value: string) => {
     if (value === code) {
-      const user = await signUp(userData);
-      router.replace({ pathname: '/profile/[userId]', params: { userId: user.id } });
+      signUp(userData)
+        .then((user) => router.replace({ pathname: '/profile/[userId]', params: { userId: user.id } }))
+        .catch(() => Toast.show({ type: 'error', text1: 'Не удалось авторизоваться' }));
+    } else {
+      Toast.show({ type: 'error', text1: 'Неверный код' });
     }
   };
 

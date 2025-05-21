@@ -9,6 +9,7 @@ import { useProfile } from '@/hooks/useStore';
 import { ProfileBackground } from '@/models';
 import { getDefaultBackground } from '@/utils/profileBackground';
 import { launchImageLibraryAsync } from 'expo-image-picker';
+import Toast from 'react-native-toast-message';
 
 export default function ChangeProfileBackground() {
   const { theme, themeType, systemThemeType } = useTheme();
@@ -19,11 +20,11 @@ export default function ChangeProfileBackground() {
   }, []);
 
   const handleSelectBackground = (newBackground: ProfileBackground) => {
-    if (background.backgroundId === newBackground.backgroundId) {
-      changeBackground(getDefaultBackground(themeType === 'system' ? systemThemeType : themeType));
-    } else {
-      changeBackground(newBackground);
-    }
+    changeBackground(
+      background.backgroundId === newBackground.backgroundId
+        ? getDefaultBackground(themeType === 'system' ? systemThemeType : themeType)
+        : newBackground
+    ).catch(() => Toast.show({ type: 'error', text1: 'Не удалось изменить фон' }));
   };
 
   const pickImage = async () => {
@@ -35,7 +36,9 @@ export default function ChangeProfileBackground() {
 
     if (!result.canceled && result.assets?.[0]?.uri) {
       const uri = result.assets[0].uri;
-      addBackgroundImage(uri).then(changeBackground);
+      addBackgroundImage(uri)
+        .then(changeBackground)
+        .catch(() => Toast.show({ type: 'error', text1: 'Не удалось изменить фон' }));
     }
   };
 

@@ -76,23 +76,31 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
   );
 
   const changeTheme = async (themeType: ThemeType | 'system') => {
-    setThemeType(themeType);
-    await apiFetchData({
-      endpoint: API.settings.updateTheme,
-      method: 'PUT',
-      body: { email: user.email, newTheme: clientThemeToServer(themeType) },
-      token: user.token,
-    });
+    try {
+      setThemeType(themeType);
+      await apiFetchData({
+        endpoint: API.settings.updateTheme,
+        method: 'PUT',
+        body: { email: user.email, newTheme: clientThemeToServer(themeType) },
+        token: user.token,
+      });
+    } catch (error) {
+      throw error;
+    }
   };
 
   const updateCustomColors = async (primary: string, secondary: string) => {
-    setCustomColors({ primary, secondary });
-    await apiFetchData({
-      endpoint: API.settings.updateColors,
-      method: 'PUT',
-      body: { email: user.email, newPrimaryColor: primary, newSecondaryColor: secondary },
-      token: user.token,
-    });
+    try {
+      setCustomColors({ primary, secondary });
+      await apiFetchData({
+        endpoint: API.settings.updateColors,
+        method: 'PUT',
+        body: { email: user.email, newPrimaryColor: primary, newSecondaryColor: secondary },
+        token: user.token,
+      });
+    } catch (error) {
+      throw error;
+    }
   };
 
   return (
