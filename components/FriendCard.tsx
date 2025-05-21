@@ -20,7 +20,7 @@ type Props = {
 export const FriendCard = ({ friend }: Props) => {
   const { theme } = useTheme();
   const { user } = useAuth();
-  const { fetchFriendRequests, fetchFriends, isFriend, isReceiver, isSender } = useProfile();
+  const { fetchFriendRequests, fetchFriends, fetchBookings, isFriend, isReceiver, isSender } = useProfile();
 
   const rejectFriendRequest = (isUserTwoAccept: boolean) => {
     return apiFetchData({
@@ -56,6 +56,7 @@ export const FriendCard = ({ friend }: Props) => {
         style: 'destructive',
         onPress: () =>
           rejectFriendRequest(true)
+            .then(fetchBookings)
             .then(() => Toast.show({ type: 'success', text1: 'Пользователь удалён из друзей' }))
             .catch(() => Toast.show({ type: 'error', text1: 'Не удалось удалить пользователя из друзей' })),
       },
