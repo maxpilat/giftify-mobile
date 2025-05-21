@@ -17,6 +17,7 @@ export const API = {
     getWish: (wishId: number) => `/api/wish/${wishId}`,
     getImage: (wishId: number) => `/api/wish/${wishId}/img`,
     delete: (wishId: number) => `/api/wish/${wishId}`,
+    deleteFromWishList: '/api/wish/delete-from-wish-list',
   },
   wishLists: {
     create: '/api/wish-list',
@@ -27,7 +28,7 @@ export const API = {
     sendRequest: '/api/friends',
     getFriends: (userId: number) => `/api/friends/${userId}`,
     getFriendRequests: (userId: number) => `/api/friends/requests/${userId}`,
-    getAllUsers: '/api/friends',
+    getAllUsers: (userId: number) => `/api/friends/${userId}/search`,
   },
   booking: {
     create: '/api/booking',

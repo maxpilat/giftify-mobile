@@ -7,6 +7,11 @@ export function arrayBufferToBase64(buffer: ArrayBuffer): string {
   return `data:image;base64,${btoa(binaryString)}`;
 }
 
+export function binaryArrayToBase64(binaryArray: number[]): string {
+  const binaryString = String.fromCharCode(...binaryArray);
+  return `data:image;base64,${btoa(binaryString)}`;
+}
+
 export function base64ToBinaryArray(base64: string): number[] {
   const binaryString = atob(base64.split(',').pop() ?? '');
   return Array.from(binaryString, (char) => char.charCodeAt(0));

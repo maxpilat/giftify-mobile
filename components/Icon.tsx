@@ -1,5 +1,4 @@
 import { Icons } from '@/constants/icons';
-import React from 'react';
 import { StyleProp } from 'react-native';
 import { NumberProp, SvgXml } from 'react-native-svg';
 

@@ -1,12 +1,13 @@
 import { StyleSheet, View } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { TextInput } from '@/components/TextInput';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { Colors } from '@/constants/themes';
 import { Link, router, useLocalSearchParams } from 'expo-router';
 import { useAuth } from '@/hooks/useAuth';
 import { useTheme } from '@/hooks/useTheme';
+import Toast from 'react-native-toast-message';
 
 type SearchParams = {
   isSubmit?: 'true' | 'false';
@@ -31,12 +32,13 @@ export default function ChangePasswordScreen() {
     handleSubmit();
   }, [isSubmit]);
 
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
     if (isSubmit !== 'true') return;
 
     if (isValid()) {
-      await changePassword(password, newPassword);
-      router.replace('/settings');
+      changePassword(password, newPassword)
+        .then(() => router.replace('/settings'))
+        .catch(() => Toast.show({ type: 'error', text1: 'Не удалось изменить пароль' }));
     }
 
     router.setParams({ isSubmit: 'false' });

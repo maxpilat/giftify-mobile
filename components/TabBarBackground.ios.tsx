@@ -7,12 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 export default function TabBarBackground() {
   const { themeType } = useTheme();
 
-  const tint: BlurTint =
-    themeType === 'system'
-      ? 'systemChromeMaterial'
-      : themeType === 'dark'
-      ? 'systemChromeMaterialDark'
-      : 'systemChromeMaterialLight';
+  const tint: BlurTint = themeType === 'system' ? 'default' : themeType === 'dark' ? 'dark' : 'systemMaterialLight';
 
   return <BlurView tint={tint} intensity={100} style={StyleSheet.absoluteFill} />;
 }

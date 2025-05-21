@@ -1,12 +1,13 @@
-import { StyleSheet, View } from 'react-native';
+import { Alert, StyleSheet, View } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { TextInput } from '@/components/TextInput';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { PlatformButton } from '@/components/PlatformButton';
 import { Colors } from '@/constants/themes';
 import { Link, router } from 'expo-router';
 import { useAuth } from '@/hooks/useAuth';
+import Toast from 'react-native-toast-message';
 
 export default function SignInScreen() {
   const [email, setEmail] = useState<string>('');
@@ -18,10 +19,11 @@ export default function SignInScreen() {
 
   const { signIn } = useAuth();
 
-  const submit = async () => {
+  const submit = () => {
     if (isValid()) {
-      await signIn(email, password);
-      router.replace('../(tabs)');
+      signIn(email, password)
+        .then(({ id: userId }) => router.replace({ pathname: '/profile/[userId]', params: { userId } }))
+        .catch(() => Toast.show({ type: 'error', text1: 'Неверные почта или пароль' }));
     }
   };
 
@@ -57,6 +59,7 @@ export default function SignInScreen() {
             }}
             keyboardType="email-address"
             inputMode="email"
+            autoCapitalize="none"
           />
           <View style={styles.passwordContainer}>
             <TextInput

@@ -1,12 +1,12 @@
-import React, { createContext, useContext, ReactNode, useState, useEffect, useMemo } from 'react';
+import { createContext, useContext, ReactNode, useState, useEffect, useMemo } from 'react';
 import { Appearance } from 'react-native';
 import { Themes, Colors, Theme, ThemeType } from '@/constants/themes';
 import { apiFetchData } from '@/lib/api';
 import { API } from '@/constants/api';
 import { useAuth } from '@/hooks/useAuth';
-import { SettingsData, ServerThemeType } from '@/models';
+import { SettingsData, ApiThemeType } from '@/models';
 
-export const serverThemeToClient = (serverTheme: ServerThemeType): ThemeType | 'system' => {
+export const serverThemeToClient = (serverTheme: ApiThemeType): ThemeType | 'system' => {
   switch (serverTheme) {
     case 'TYPE_LIGHT':
       return 'light';
@@ -14,12 +14,10 @@ export const serverThemeToClient = (serverTheme: ServerThemeType): ThemeType | '
       return 'dark';
     case 'TYPE_SYSTEM':
       return 'system';
-    default:
-      throw new Error(`Unknown ServerThemeType: ${serverTheme}`);
   }
 };
 
-export const clientThemeToServer = (theme: ThemeType | 'system'): ServerThemeType => {
+export const clientThemeToServer = (theme: ThemeType | 'system'): ApiThemeType => {
   switch (theme) {
     case 'light':
       return 'TYPE_LIGHT';
@@ -27,16 +25,15 @@ export const clientThemeToServer = (theme: ThemeType | 'system'): ServerThemeTyp
       return 'TYPE_DARK';
     case 'system':
       return 'TYPE_SYSTEM';
-    default:
-      throw new Error(`Unknown ThemeType: ${theme}`);
   }
 };
 
 const ThemeContext = createContext<{
   theme: Theme;
   themeType: ThemeType | 'system';
-  changeTheme: (type: ThemeType | 'system') => void;
-  updateCustomColors: (primary: string, secondary: string) => void;
+  systemThemeType: ThemeType;
+  changeTheme: (type: ThemeType | 'system') => Promise<void>;
+  updateCustomColors: (primary: string, secondary: string) => Promise<void>;
 } | null>(null);
 
 export const ThemeProvider = ({ children }: { children: ReactNode }) => {
@@ -49,17 +46,6 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
     secondary: Colors.orange,
   });
 
-  const initThemeType = async () => {
-    if (isAuth()) {
-      const { themeType: storedThemeType } = await apiFetchData<SettingsData>({
-        endpoint: API.settings.getSettings(user.userId),
-        token: user.token,
-      });
-
-      if (storedThemeType) setThemeType(serverThemeToClient(storedThemeType));
-    }
-  };
-
   useEffect(() => {
     const subscription = Appearance.addChangeListener(({ colorScheme }) => {
       setSystemThemeType(colorScheme || 'light');
@@ -70,6 +56,17 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
     return () => subscription.remove();
   }, []);
 
+  const initThemeType = async () => {
+    if (isAuth()) {
+      const { themeType: storedThemeType } = await apiFetchData<SettingsData>({
+        endpoint: API.settings.getSettings(user.id),
+        token: user.token,
+      });
+
+      if (storedThemeType) setThemeType(serverThemeToClient(storedThemeType));
+    }
+  };
+
   const theme: Theme = useMemo(
     () => ({
       ...Themes[themeType === 'system' ? systemThemeType : themeType],
@@ -79,21 +76,35 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
   );
 
   const changeTheme = async (themeType: ThemeType | 'system') => {
-    setThemeType(themeType);
-    await apiFetchData({
-      endpoint: API.settings.updateTheme,
-      method: 'PUT',
-      body: { email: user.email, newTheme: clientThemeToServer(themeType) },
-      token: user.token,
-    });
+    try {
+      setThemeType(themeType);
+      await apiFetchData({
+        endpoint: API.settings.updateTheme,
+        method: 'PUT',
+        body: { email: user.email, newTheme: clientThemeToServer(themeType) },
+        token: user.token,
+      });
+    } catch (error) {
+      throw error;
+    }
   };
 
-  const updateCustomColors = (primary: string, secondary: string) => {
-    setCustomColors({ primary, secondary });
+  const updateCustomColors = async (primary: string, secondary: string) => {
+    try {
+      setCustomColors({ primary, secondary });
+      await apiFetchData({
+        endpoint: API.settings.updateColors,
+        method: 'PUT',
+        body: { email: user.email, newPrimaryColor: primary, newSecondaryColor: secondary },
+        token: user.token,
+      });
+    } catch (error) {
+      throw error;
+    }
   };
 
   return (
-    <ThemeContext.Provider value={{ theme, themeType, changeTheme, updateCustomColors }}>
+    <ThemeContext.Provider value={{ theme, themeType, systemThemeType, changeTheme, updateCustomColors }}>
       {children}
     </ThemeContext.Provider>
   );

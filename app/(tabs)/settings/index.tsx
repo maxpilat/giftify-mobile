@@ -9,7 +9,7 @@ import {
   Alert,
   RefreshControl,
 } from 'react-native';
-import React, { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Gender, SettingsData } from '@/models';
 import { TextInput } from '@/components/TextInput';
 import { useTheme } from '@/hooks/useTheme';
@@ -24,21 +24,22 @@ import { useAuth } from '@/hooks/useAuth';
 import { router } from 'expo-router';
 import { apiFetchData } from '@/lib/api';
 import { API } from '@/constants/api';
-import { useProfile } from '@/hooks/useProfile';
+import { useProfile } from '@/hooks/useStore';
+import { launchImageLibraryAsync } from 'expo-image-picker';
+import Toast from 'react-native-toast-message';
 
 export default function SettingsScreen() {
   const { theme } = useTheme();
   const { user, signOut, deactivateAccount } = useAuth();
-  const { avatar: myAvatar } = useProfile();
+  const { avatar: myAvatar, changeAvatar } = useProfile();
 
-  const [avatar, setAvatar] = useState<string | null>(myAvatar || null);
   const [name, setName] = useState<string>('');
   const [surname, setSurname] = useState<string>('');
   const [username, setUsername] = useState<string>();
-  const [birthDate, setBirthDate] = useState<Date>();
-  const [isDatePickerVisible, setIsDatePickerVisible] = useState<boolean>(false);
+  const [birthDate, setBirthDate] = useState<Date>(new Date(2000, 0, 1));
   const [gender, setGender] = useState<Gender | null>(null);
   const [isPrivateAccount, setIsPrivateAccount] = useState<boolean>(false);
+  const [isDatePickerVisible, setIsDatePickerVisible] = useState<boolean>(false);
 
   const [errors, setErrors] = useState<Record<'name' | 'surname', string | undefined>>({
     name: undefined,
@@ -47,10 +48,10 @@ export default function SettingsScreen() {
 
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const onRefresh = useCallback(() => {
+  const onRefresh = () => {
     setIsRefreshing(true);
-    fetchData().then(() => setIsRefreshing(false));
-  }, []);
+    fetchData().finally(() => setIsRefreshing(false));
+  };
 
   useEffect(() => {
     fetchData();
@@ -58,7 +59,7 @@ export default function SettingsScreen() {
 
   const fetchData = async () => {
     const settings = await apiFetchData<SettingsData>({
-      endpoint: API.settings.getSettings(user.userId),
+      endpoint: API.settings.getSettings(user.id),
       token: user.token,
     });
 
@@ -70,6 +71,21 @@ export default function SettingsScreen() {
     setIsPrivateAccount(settings.isPrivate);
   };
 
+  const pickAvatar = async () => {
+    const result = await launchImageLibraryAsync({
+      mediaTypes: 'images',
+      allowsEditing: false,
+      quality: 1,
+    });
+
+    if (!result.canceled && result.assets?.[0]?.uri) {
+      const uri = result.assets[0].uri;
+      changeAvatar(uri)
+        .then(() => Toast.show({ type: 'success', text1: 'Данные сохранены' }))
+        .catch(() => Toast.show({ type: 'error', text1: 'Не удалось сохранить данные' }));
+    }
+  };
+
   const handleNameChange = (value: string) => {
     setName(value);
     setErrors((prev) => ({ ...prev, name: undefined }));
@@ -78,7 +94,9 @@ export default function SettingsScreen() {
       method: 'PUT',
       body: { email: user.email, newName: value, newSurname: surname },
       token: user.token,
-    });
+    })
+      .then(() => Toast.show({ type: 'success', text1: 'Данные сохранены' }))
+      .catch(() => Toast.show({ type: 'error', text1: 'Не удалось сохранить данные' }));
   };
 
   const handleSurnameChange = (value: string) => {
@@ -89,18 +107,21 @@ export default function SettingsScreen() {
       method: 'PUT',
       body: { email: user.email, newName: name, newSurname: value },
       token: user.token,
-    });
+    })
+      .then(() => Toast.show({ type: 'success', text1: 'Данные сохранены' }))
+      .catch(() => Toast.show({ type: 'error', text1: 'Не удалось сохранить данные' }));
   };
 
   const handleUsernameChange = (value: string) => {
-    console.log(value);
     setUsername(value);
     apiFetchData({
       endpoint: API.settings.updateUsername,
       method: 'PUT',
       body: { email: user.email, newUsername: value || user.email },
       token: user.token,
-    });
+    })
+      .then(() => Toast.show({ type: 'success', text1: 'Данные сохранены' }))
+      .catch(() => Toast.show({ type: 'error', text1: 'Не удалось сохранить данные' }));
   };
 
   const handleBirthDateChange = (value: Date) => {
@@ -111,7 +132,9 @@ export default function SettingsScreen() {
       method: 'PUT',
       body: { email: user.email, newBirthDate: dateToString(value) },
       token: user.token,
-    });
+    })
+      .then(() => Toast.show({ type: 'success', text1: 'Данные сохранены' }))
+      .catch(() => Toast.show({ type: 'error', text1: 'Не удалось сохранить данные' }));
   };
 
   const handleGenderChange = (value: Gender) => {
@@ -122,7 +145,9 @@ export default function SettingsScreen() {
       method: 'PUT',
       body: { email: user.email, newGender: newGender === 'Male' ? true : false },
       token: user.token,
-    });
+    })
+      .then(() => Toast.show({ type: 'success', text1: 'Данные сохранены' }))
+      .catch(() => Toast.show({ type: 'error', text1: 'Не удалось сохранить данные' }));
   };
 
   const handlePrivacyChange = () => {
@@ -133,34 +158,36 @@ export default function SettingsScreen() {
         method: 'PUT',
         body: { email: user.email, newPrivacy },
         token: user.token,
-      });
+      })
+        .then(() => Toast.show({ type: 'success', text1: 'Данные сохранены' }))
+        .catch(() => Toast.show({ type: 'error', text1: 'Не удалось сохранить данные' }));
 
       return newPrivacy;
     });
   };
 
-  const handleSignOut = async () => {
+  const handleSignOut = () => {
     Alert.alert('Подтвердите', 'Вы уверены, что хотите выйти?', [
       { text: 'Отмена', style: 'cancel' },
       {
         text: 'Выйти',
         style: 'destructive',
-        onPress: async () => {
-          await signOut();
+        onPress: () => {
           router.replace('/(auth)');
+          signOut().catch(() => Toast.show({ type: 'error', text1: 'Не удалось выйти из аккаунта' }));
         },
       },
     ]);
   };
 
-  const handleDeactivateAccount = async () => {
+  const handleDeactivateAccount = () => {
     Alert.alert('Подтвердите', 'Вы уверены, что хотите безвозвратно удалить аккаунт?', [
       { text: 'Отмена', style: 'cancel' },
       {
         text: 'Удалить аккаунт',
         style: 'destructive',
-        onPress: async () => {
-          await deactivateAccount();
+        onPress: () => {
+          deactivateAccount().catch(() => Toast.show({ type: 'error', text1: 'Не удалось деактивировать аккаунт' }));
           router.replace('/(auth)');
         },
       },
@@ -173,14 +200,15 @@ export default function SettingsScreen() {
         style={styles.scrollView}
         refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />}
       >
-        <ThemedText type="h1">Настройки</ThemedText>
         <View style={styles.content}>
           <View style={styles.body}>
             <View style={styles.mainInfo}>
-              <Image
-                source={avatar ? { uri: avatar } : require('@/assets/images/avatar.png')}
-                style={[styles.avatar, { backgroundColor: theme.tabBarBorder }]}
-              />
+              <TouchableOpacity activeOpacity={0.7} onPress={pickAvatar}>
+                <Image
+                  source={myAvatar ? { uri: myAvatar } : require('@/assets/images/avatar.png')}
+                  style={[styles.avatar, { backgroundColor: theme.tabBarBorder }]}
+                />
+              </TouchableOpacity>
               <View style={styles.fullnameContainer}>
                 <TextInput
                   icon="user"
@@ -209,6 +237,7 @@ export default function SettingsScreen() {
               value={username}
               onChangeText={handleUsernameChange}
               returnKeyType="done"
+              autoCapitalize="none"
             />
 
             <View style={styles.actionsSection}>
@@ -274,14 +303,20 @@ export default function SettingsScreen() {
                 <Icon name="right" color={theme.primary} />
               </TouchableOpacity>
               <View style={styles.divider} />
-              <TouchableOpacity style={styles.actionsSectionRow} onPress={() => router.push('/settings/changeEmail')}>
+              <TouchableOpacity
+                style={styles.actionsSectionRow}
+                onPress={() => router.push('/settings/pickCustomColors')}
+              >
                 <ThemedText type="bodyLarge" style={{ color: theme.primary }}>
                   Изменить цвета
                 </ThemedText>
                 <Icon name="right" color={theme.primary} />
               </TouchableOpacity>
               <View style={styles.divider} />
-              <TouchableOpacity style={styles.actionsSectionRow} onPress={() => router.push('/settings/changeEmail')}>
+              <TouchableOpacity
+                style={styles.actionsSectionRow}
+                onPress={() => router.push('/settings/changeProfileBackground')}
+              >
                 <ThemedText type="bodyLarge" style={{ color: theme.primary }}>
                   Изменить фон профиля
                 </ThemedText>
@@ -324,20 +359,21 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingBottom: 90,
+    marginTop: 16,
     gap: 32,
-    marginTop: 24,
   },
   body: {
     gap: 24,
   },
   mainInfo: {
     flexDirection: 'row',
+    alignItems: 'center',
     gap: 20,
   },
   avatar: {
-    width: 110,
-    height: 110,
-    borderRadius: 55,
+    width: 124,
+    height: 124,
+    borderRadius: 62,
   },
   fullnameContainer: {
     flex: 1,

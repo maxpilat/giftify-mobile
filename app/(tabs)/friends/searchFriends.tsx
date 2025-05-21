@@ -4,24 +4,25 @@ import { PlatformButton } from '@/components/PlatformButton';
 import { TextInput } from '@/components/TextInput';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState, Fragment } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { Colors } from 'react-native/Libraries/NewAppScreen';
-import friends from '.';
 import { Friend } from '@/models';
 import { apiFetchData } from '@/lib/api';
 import { API } from '@/constants/api';
 import { useAuth } from '@/hooks/useAuth';
+import { useTheme } from '@/hooks/useTheme';
 
 export default function SearchFriendsScreen() {
-  const { user } = useAuth();
+  const { theme } = useTheme();
+  const { user: authUser } = useAuth();
 
   const [users, setUsers] = useState<Friend[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<Friend[]>([]);
 
   useEffect(() => {
-    apiFetchData<Friend[]>({ endpoint: API.friends.getAllUsers, token: user.token }).then(setUsers);
+    apiFetchData<Friend[]>({ endpoint: API.friends.getAllUsers(authUser.id), token: authUser.token }).then(setUsers);
   }, []);
 
   const filterUsers = (value: string) => {
@@ -49,11 +50,10 @@ export default function SearchFriendsScreen() {
         icon="search"
         placeholder="Поиск"
         type="search"
-        onChangeText={(value) => {
-          filterUsers(value);
-        }}
+        onChangeText={filterUsers}
         keyboardType="default"
         inputMode="search"
+        returnKeyType="search"
       />
       <PlatformButton hapticFeedback="none">
         <ThemedText type="bodyLargeMedium" style={styles.buttonText}>
@@ -63,10 +63,12 @@ export default function SearchFriendsScreen() {
       </PlatformButton>
       <ThemedView>
         {filteredUsers.map((user, index) => (
-          <React.Fragment key={user.friendId}>
+          <Fragment key={user.friendId}>
             <FriendCard friend={user} />
-            {index !== friends.length - 1 && <View style={styles.divider}></View>}
-          </React.Fragment>
+            {index !== filteredUsers.length - 1 && (
+              <View style={[styles.divider, { backgroundColor: theme.tabBarBorder }]}></View>
+            )}
+          </Fragment>
         ))}
       </ThemedView>
     </KeyboardAwareScrollView>
@@ -83,7 +85,6 @@ const styles = StyleSheet.create({
     color: Colors.white,
   },
   divider: {
-    backgroundColor: Colors.light,
     height: 1,
     marginLeft: 80,
   },

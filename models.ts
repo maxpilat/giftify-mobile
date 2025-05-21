@@ -1,8 +1,6 @@
-import { ThemeType } from './constants/themes';
-
 export interface Wish {
   wishId: number;
-  wisherId: number;
+  wisherProfileData: Profile,
   wishType: WishType;
   name: string;
   description?: string;
@@ -32,7 +30,7 @@ export interface WishList {
 
 export interface Booking {
   bookingId: number;
-  wish: Omit<Wish, 'wisherId'> & { wisherProfileData: Profile };
+  wish: Wish;
   bookerId: number;
   booked: string;
   isActive: boolean;
@@ -43,6 +41,7 @@ export interface Profile {
   name: string;
   surname: string;
   username?: string;
+  avatar?: string;
 }
 
 export interface Friend {
@@ -63,7 +62,7 @@ export interface FriendRequest {
 }
 
 export interface AuthData {
-  userId: number;
+  id: number;
   email: string;
   token: string;
 }
@@ -78,9 +77,24 @@ export interface SettingsData {
   birthDate?: string;
   isMan: boolean;
   isPrivate: boolean;
-  themeType: ServerThemeType;
+  themeType: ApiThemeType;
   primaryColor: string;
   secondaryColor: string;
 }
 
-export type ServerThemeType = 'TYPE_LIGHT' | 'TYPE_DARK' | 'TYPE_SYSTEM';
+export type ApiThemeType = 'TYPE_LIGHT' | 'TYPE_DARK' | 'TYPE_SYSTEM';
+
+export type BackgroundType = 'TYPE_COLOR' | 'TYPE_IMAGE';
+
+export interface ApiProfileBackground {
+  backgroundType: BackgroundType;
+  backgroundImage?: number[];
+  backgroundColor?: string;
+}
+
+export interface ProfileBackground {
+  backgroundType: BackgroundType;
+  backgroundId?: number;
+  backgroundUri?: string;
+  backgroundColor?: string;
+}

@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "",
+    "name": "giftify",
     "slug": "Giftify",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/logo-light.png",
-    "scheme": "myapp",
+    "scheme": "giftify",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
@@ -16,7 +16,8 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/logo-light.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.maxpilat.giftify"
     },
     "web": {
       "bundler": "metro",
@@ -31,13 +32,20 @@
           "image": "./assets/images/logo-light.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff"
+          "backgroundColor": "black"
         }
       ],
       "expo-secure-store"
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "deabad7c-00b4-4537-b33c-d35cc015b44a"
+      }
+    },
+    "owner": "maxpilat"
   }
 }

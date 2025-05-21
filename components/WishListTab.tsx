@@ -1,7 +1,6 @@
-import React from 'react';
-import { StyleSheet, TouchableOpacity } from 'react-native';
+import { useEffect } from 'react';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import Animated, { useSharedValue, useAnimatedStyle, withTiming, Easing } from 'react-native-reanimated';
-import { Colors } from '@/constants/themes';
 import { ThemedText } from '@/components/ThemedText';
 import { useTheme } from '@/hooks/useTheme';
 import { Action, ActionButton } from '@/components/ActionsButton';
@@ -13,23 +12,21 @@ type Props = {
   onPress?: () => void;
   pressOpacity?: number;
   duration?: number;
-  enableActions?: boolean;
   actions?: Action[];
 };
 
 export function WishListTab({
   name,
   count,
-  isActive,
+  isActive = false,
   onPress,
   pressOpacity = 0.7,
   duration = 300,
-  enableActions = true,
   actions = [],
 }: Props) {
   const { theme } = useTheme();
 
-  const backgroundColorValue = isActive ? theme.secondary : Colors.black;
+  const backgroundColorValue = isActive ? theme.secondary : theme.button;
   const paddingValue = isActive ? 50 : 14;
   const translateXValue = isActive ? 0 : 10;
 
@@ -46,29 +43,31 @@ export function WishListTab({
     transform: [{ translateX: withTiming(translateX.value, { duration, easing: Easing.inOut(Easing.ease) }) }],
   }));
 
-  React.useEffect(() => {
+  useEffect(() => {
     backgroundColor.value = backgroundColorValue;
     padding.value = paddingValue;
     translateX.value = translateXValue;
-  }, [isActive]);
+  }, [isActive, theme]);
 
   return (
-    <Animated.View style={[styles.container, animatedContainerStyle]}>
-      <TouchableOpacity activeOpacity={pressOpacity} onPress={onPress}>
-        <ThemedText type="bodyLarge" style={styles.text}>
-          {name}
-        </ThemedText>
-        <ThemedText type="h1" style={styles.text}>
-          {count}
-        </ThemedText>
+    <TouchableOpacity activeOpacity={pressOpacity} onPress={onPress}>
+      <Animated.View style={[styles.container, animatedContainerStyle]}>
+        <View>
+          <ThemedText type="bodyLarge" backgroundColor={isActive ? theme.secondary : theme.button}>
+            {name}
+          </ThemedText>
+          <ThemedText type="h1" backgroundColor={isActive ? theme.secondary : theme.button}>
+            {count}
+          </ThemedText>
 
-        {enableActions && (
-          <Animated.View style={[styles.actionButtonContainer, animatedActionButtonStyle]}>
-            <ActionButton style={[styles.actionButton]} size={36} actions={actions} pressOpacity={pressOpacity} />
-          </Animated.View>
-        )}
-      </TouchableOpacity>
-    </Animated.View>
+          {actions.length > 0 && (
+            <Animated.View style={[styles.actionButtonContainer, animatedActionButtonStyle]}>
+              <ActionButton style={styles.actionButton} size={36} actions={actions} pressOpacity={pressOpacity} />
+            </Animated.View>
+          )}
+        </View>
+      </Animated.View>
+    </TouchableOpacity>
   );
 }
 
@@ -77,9 +76,6 @@ const styles = StyleSheet.create({
     padding: 14,
     borderRadius: 20,
     overflow: 'hidden',
-  },
-  text: {
-    color: Colors.white,
   },
   actionButtonContainer: {
     position: 'absolute',

@@ -1,12 +1,12 @@
-import { Icon } from '@/components/Icon';
-import { ThemedText } from '@/components/ThemedText';
+import { BackButton } from '@/components/BackButton';
+import { toastConfig } from '@/constants/toast';
 import { useTheme } from '@/hooks/useTheme';
 import { NativeStackNavigationOptions } from '@react-navigation/native-stack';
-import { router, Stack } from 'expo-router';
-import { TouchableOpacity } from 'react-native';
+import { Stack } from 'expo-router';
+import Toast from 'react-native-toast-message';
 
 export default function AuthLayout() {
-  const { theme } = useTheme();
+  const { theme, themeType, systemThemeType } = useTheme();
 
   const getScreenOptions = (): NativeStackNavigationOptions => ({
     headerShadowVisible: false,
@@ -17,12 +17,7 @@ export default function AuthLayout() {
       backgroundColor: theme.background,
     },
     headerTitle: '',
-    headerLeft: () => (
-      <TouchableOpacity onPress={() => router.back()} style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
-        <Icon name="left" size={18} color={theme.primary} />
-        <ThemedText style={{ color: theme.primary }}>Назад</ThemedText>
-      </TouchableOpacity>
-    ),
+    headerLeft: BackButton,
   });
 
   return (
@@ -33,6 +28,7 @@ export default function AuthLayout() {
       <Stack.Screen name="validateEmail" options={getScreenOptions()} />
       <Stack.Screen name="forgotPassword" options={getScreenOptions()} />
       <Stack.Screen name="resetPassword" options={getScreenOptions()} />
+      <Toast config={toastConfig(themeType === 'system' ? systemThemeType : themeType)} />
     </Stack>
   );
 }

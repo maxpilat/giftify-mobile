@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { useTheme } from '@/hooks/useTheme';
@@ -38,7 +38,7 @@ export function ProgressBar({ currentAmount = 0, targetAmount = 100, currency }:
       const offset = ((barWidth / 100) * progress) / 2 - labelWidth / 2;
       animatedLabel.value = withTiming(offset, options);
     }
-  }, [barWidth, labelWidth]);
+  }, [barWidth, labelWidth, progress]);
 
   const barStyle = useAnimatedStyle(() => ({
     width: `${animatedBar.value}%`,

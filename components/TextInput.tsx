@@ -1,5 +1,14 @@
-import React, { useEffect, useState } from 'react';
-import { StyleSheet, TouchableOpacity, View, TextInput as NativeTextInput, TextInputProps } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import {
+  StyleSheet,
+  TouchableOpacity,
+  View,
+  TextInput as NativeTextInput,
+  TextInputProps,
+  StyleProp,
+  ViewStyle,
+  Pressable,
+} from 'react-native';
 import { useActionSheet } from '@expo/react-native-action-sheet';
 import { Icon } from '@/components/Icon';
 import { Colors } from '@/constants/themes';
@@ -17,6 +26,8 @@ type Props<T> = {
   getDisplayedValue?: (item: T) => string;
   getOptionLabel?: (item: T) => string;
   onSelectOption?: (item: T) => void;
+  containerStyle?: StyleProp<ViewStyle>;
+  inputContainerStyle?: StyleProp<ViewStyle>;
 } & TextInputProps;
 
 export function TextInput<T>({
@@ -28,6 +39,8 @@ export function TextInput<T>({
   getDisplayedValue,
   getOptionLabel,
   onSelectOption,
+  containerStyle,
+  inputContainerStyle,
   ...inputConfig
 }: Props<T>) {
   const { theme } = useTheme();
@@ -37,6 +50,8 @@ export function TextInput<T>({
   const [selectedOption, setSelectedOption] = useState<T | null>(options?.[0] ?? null);
   const [isSecure, setIsSecure] = useState(type === 'password' ? true : false);
   const [isActive, setIsActive] = useState(false);
+
+  const inputRef = useRef<NativeTextInput>(null);
 
   const errorHeight = useSharedValue(0);
   const errorOpacity = useSharedValue(0);
@@ -81,13 +96,20 @@ export function TextInput<T>({
   }, [options]);
 
   return (
-    <View style={styles.container}>
+    <Pressable
+      style={[styles.container, containerStyle]}
+      onPress={(event) => {
+        inputConfig.onPress?.(event);
+        inputRef.current?.focus();
+      }}
+    >
       <View
         style={[
           styles.inputContainer,
           { borderColor: isActive ? theme.secondary : Colors.grey },
           inputConfig.multiline && { alignItems: 'flex-start' },
           !valid && { borderColor: Colors.red },
+          inputContainerStyle,
         ]}
       >
         {icon && (
@@ -99,11 +121,12 @@ export function TextInput<T>({
           />
         )}
         <NativeTextInput
-          {...inputConfig}
+          ref={inputRef}
           style={[styles.input, { color: theme.text }, inputConfig.multiline && { height: 96 }]}
           placeholderTextColor={Colors.grey}
           secureTextEntry={isSecure}
           value={inputConfig.value || value}
+          {...inputConfig}
           onChangeText={(value) => {
             setValue(value);
             inputConfig.onChangeText?.(value);
@@ -151,13 +174,14 @@ export function TextInput<T>({
           )}
         </Animated.View>
       )}
-    </View>
+    </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     gap: 5,
+    width: '100%',
   },
   inputContainer: {
     flexDirection: 'row',

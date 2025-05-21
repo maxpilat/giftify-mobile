@@ -8,6 +8,7 @@ import { PlatformButton } from '@/components/PlatformButton';
 import { API } from '@/constants/api';
 import { router } from 'expo-router';
 import { apiFetchData } from '@/lib/api';
+import Toast from 'react-native-toast-message';
 
 export default function ChangeEmailScreen() {
   const [newEmail, setNewEmail] = useState<string>('');
@@ -15,14 +16,15 @@ export default function ChangeEmailScreen() {
     newEmail: undefined,
   });
 
-  const submit = async () => {
+  const submit = () => {
     if (isValid()) {
-      const { code } = await apiFetchData<{ code: string }>({
+      apiFetchData<{ code: string }>({
         endpoint: API.auth.validateEmail,
         method: 'POST',
         body: newEmail,
-      });
-      router.push({ pathname: './validateEmail', params: { code, newEmail } });
+      })
+        .then(({ code }) => router.push({ pathname: '/validateEmail', params: { code, newEmail } }))
+        .catch(() => Toast.show({ type: 'error', text1: 'Не удалось запросить код' }));
     }
   };
 
@@ -60,6 +62,7 @@ export default function ChangeEmailScreen() {
           }}
           keyboardType="email-address"
           inputMode="email"
+          autoCapitalize="none"
         />
         <PlatformButton style={styles.button} onPress={submit}>
           <ThemedText type="bodyLargeMedium" style={styles.buttonText}>
