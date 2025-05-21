@@ -9,7 +9,7 @@ import { PlatformButton } from '@/components/PlatformButton';
 import { API } from '@/constants/api';
 import { router } from 'expo-router';
 import { apiFetchData } from '@/lib/api';
-import Toast from 'react-native-toast-message';
+import { showToast } from '@/utils/showToast';
 
 export default function ForgotPasswordScreen() {
   const [email, setEmail] = useState<string>('');
@@ -32,7 +32,7 @@ export default function ForgotPasswordScreen() {
         }));
       }
     } catch {
-      return Toast.show({ type: 'error', text1: 'Что-то пошло не так' });
+      return showToast('error', 'Что-то пошло не так');
     }
 
     if (isValid()) {
@@ -42,7 +42,7 @@ export default function ForgotPasswordScreen() {
         body: email,
       })
         .then(({ code }) => router.push({ pathname: '/resetPassword', params: { code, email } }))
-        .catch(() => Toast.show({ type: 'error', text1: 'Не удалось запросить код' }));
+        .catch(() => showToast('error', 'Не удалось запросить код'));
     }
   };
 

@@ -22,7 +22,7 @@ import { Action } from '@/components/ActionsButton';
 import { base64ToBinaryArray, binaryArrayToBase64 } from '@/utils/convertImage';
 import { getDefaultBackground } from '@/utils/profileBackground';
 import * as Linking from 'expo-linking';
-import Toast from 'react-native-toast-message';
+import { showToast } from '@/utils/showToast';
 
 type SearchParams = {
   userId?: string;
@@ -287,9 +287,9 @@ export default function ProfileScreen() {
             .then(() => {
               setCurrentWishListId(null);
               scrollRef.current?.scrollTo({ x: 0, animated: true });
-              Toast.show({ type: 'success', text1: 'Список удалён' });
+              showToast('success', 'Список удалён');
             })
-            .catch(() => Toast.show({ type: 'error', text1: 'Не удалось удалить список' }));
+            .catch(() => showToast('error', 'Не удалось удалить список'));
         },
       },
     ]);
@@ -316,8 +316,8 @@ export default function ProfileScreen() {
         onPress: () => {
           apiFetchData({ endpoint: API.wishes.delete(wishId), method: 'DELETE', token: authUser.token })
             .then(() => Promise.all([fetchMyWishes(), fetchMyWishLists()]))
-            .then(() => Toast.show({ type: 'success', text1: 'Желание удалёно' }))
-            .catch(() => Toast.show({ type: 'error', text1: 'Не удалось удалить желание' }));
+            .then(() => showToast('success', 'Желание удалено'))
+            .catch(() => showToast('error', 'Не удалось удалить желание'));
         },
       },
     ]);
@@ -363,9 +363,9 @@ export default function ProfileScreen() {
             );
           }
 
-          Toast.show({ type: 'success', text1: booking ? 'Бронь снята' : 'Желание забронировано' });
+          showToast('success', booking ? 'Бронь снята' : 'Желание забронировано');
         } catch {
-          Toast.show({ type: 'error', text1: booking ? 'Не удалось снять бронь' : 'Не удалось забронировать желание' });
+          showToast('error', booking ? 'Не удалось снять бронь' : 'Не удалось забронировать желание');
         }
       },
     };
@@ -386,8 +386,8 @@ export default function ProfileScreen() {
   const deletePiggyBank = (piggyBankId: number) => {
     apiFetchData({ endpoint: API.wishes.delete(piggyBankId), method: 'DELETE', token: authUser.token })
       .then(fetchMyPiggyBanks)
-      .then(() => Toast.show({ type: 'success', text1: 'Копилка удалёна' }))
-      .catch(() => Toast.show({ type: 'error', text1: 'Не удалось удалить копилку' }));
+      .then(() => showToast('success', 'Копилка удалена'))
+      .catch(() => showToast('error', 'Не удалось удалить копилку'));
   };
 
   const saveWish = (wish: Wish) => {
@@ -408,8 +408,8 @@ export default function ProfileScreen() {
         token: authUser.token,
       })
         .then(fetchMyWishes)
-        .then(() => Toast.show({ type: 'success', text1: 'Желание сохранено' }))
-        .catch(() => Toast.show({ type: 'error', text1: 'Не удалось сохранить желание' }));
+        .then(() => showToast('success', 'Желание сохранено'))
+        .catch(() => showToast('error', 'Не удалось сохранить желание'));
     }
   };
 

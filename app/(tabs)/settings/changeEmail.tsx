@@ -8,7 +8,7 @@ import { PlatformButton } from '@/components/PlatformButton';
 import { API } from '@/constants/api';
 import { router } from 'expo-router';
 import { apiFetchData } from '@/lib/api';
-import Toast from 'react-native-toast-message';
+import { showToast } from '@/utils/showToast';
 
 export default function ChangeEmailScreen() {
   const [newEmail, setNewEmail] = useState<string>('');
@@ -24,7 +24,7 @@ export default function ChangeEmailScreen() {
         body: newEmail,
       })
         .then(({ code }) => router.push({ pathname: '/validateEmail', params: { code, newEmail } }))
-        .catch(() => Toast.show({ type: 'error', text1: 'Не удалось запросить код' }));
+        .catch(() => showToast('error', 'Не удалось запросить код'));
     }
   };
 

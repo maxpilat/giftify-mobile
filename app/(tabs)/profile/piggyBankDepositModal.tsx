@@ -9,7 +9,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useStore';
 import { apiFetchData } from '@/lib/api';
 import { ThemedText } from '@/components/ThemedText';
-import Toast from 'react-native-toast-message';
+import { showToast } from '@/utils/showToast';
 
 type SearchParams = {
   isSubmit?: 'true' | 'false';
@@ -49,8 +49,9 @@ export default function PiggyBankDepositModalScreen() {
         body: { piggyBankId: +piggyBankId, amount },
       })
         .then(fetchPiggyBanks)
-        .then(() => Toast.show({ type: 'success', text1: 'Копилка пополнена' }))
-        .catch(() => Toast.show({ type: 'error', text1: 'Не удалось пополнить копилку' }));
+
+        .then(() => showToast('success', 'Копилка пополнена'))
+        .catch(() => showToast('error', 'Не удалось пополнить копилку'));
 
       router.back();
     }

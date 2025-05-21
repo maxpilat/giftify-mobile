@@ -1,12 +1,12 @@
 import { Animated, StyleProp, StyleSheet, ViewStyle } from 'react-native';
 import { PlatformPressable } from '@react-navigation/elements';
-import { impactAsync, ImpactFeedbackStyle } from 'expo-haptics';
+import * as Haptics from 'expo-haptics';
 import { Colors } from '@/constants/themes';
 import { useTheme } from '@/hooks/useTheme';
 
 type Props = {
   onPress?: () => void;
-  hapticFeedback?: keyof typeof ImpactFeedbackStyle | 'none';
+  hapticFeedback?: keyof typeof Haptics.ImpactFeedbackStyle | 'none';
   pressOpacity?: number;
   children?: React.ReactNode;
   style?: Animated.WithAnimatedValue<StyleProp<ViewStyle>>;
@@ -16,7 +16,7 @@ export function PlatformButton({ onPress, hapticFeedback = 'Medium', pressOpacit
   const { theme } = useTheme();
 
   const handlePress = () => {
-    hapticFeedback !== 'none' && impactAsync(ImpactFeedbackStyle[hapticFeedback]);
+    hapticFeedback !== 'none' && Haptics.impactAsync(Haptics.ImpactFeedbackStyle[hapticFeedback]);
     onPress && onPress();
   };
 

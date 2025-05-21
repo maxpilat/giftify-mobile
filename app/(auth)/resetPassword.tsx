@@ -9,7 +9,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useAuth } from '@/hooks/useAuth';
 import { OtpInput } from 'react-native-otp-entry';
 import { useTheme } from '@/hooks/useTheme';
-import Toast from 'react-native-toast-message';
+import { showToast } from '@/utils/showToast';
 
 type SearchParams = {
   code: string;
@@ -35,9 +35,9 @@ export default function ResetPasswordScreen() {
       resetPassword(params.email, newPassword)
         .then(() => {
           router.replace('/signIn');
-          Toast.show({ type: 'success', text1: 'Пароль изменён' });
+          showToast('success', 'Пароль изменён');
         })
-        .catch(() => Toast.show({ type: 'error', text1: 'Не удалось изменить пароль' }));
+        .catch(() => showToast('error', 'Не удалось изменить пароль'));
     }
   };
 
@@ -54,9 +54,7 @@ export default function ResetPasswordScreen() {
     };
     setErrors(newErrors);
 
-    if (newErrors.code) {
-      Toast.show({ type: 'error', text1: newErrors.code });
-    }
+    if (newErrors.code) showToast('error', newErrors.code);
 
     return !Object.values(newErrors).some((error) => error);
   };
