@@ -96,7 +96,7 @@ export default function WishesScreen() {
 
 const styles = StyleSheet.create({
   scrollViewContainer: {
-    gap: 42,
-    paddingBottom: 130,
+    gap: 22,
+    paddingBottom: 80,
   },
 });

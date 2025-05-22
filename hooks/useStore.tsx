@@ -291,6 +291,15 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
 
         await AsyncStorage.setItem('currentBackground', JSON.stringify(background));
 
+        console.log({
+          email: user.email,
+          backgroundType: background.backgroundType,
+          backgroundColor: background.backgroundColor,
+          backgroundImage: background.backgroundUri
+            ? base64ToBinaryArray(await uriToBase64(background.backgroundUri)).slice(0, 10)
+            : undefined,
+        });
+
         await apiFetchData({
           endpoint: API.settings.updateBackground,
           method: 'PUT',

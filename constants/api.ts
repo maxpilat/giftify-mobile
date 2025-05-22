@@ -33,7 +33,7 @@ export const API = {
   booking: {
     create: '/api/booking',
     getBooking: (bookingId: number) => `/api/booking/${bookingId}`,
-    cancel: (bookingId: number) => `/api/booking/${bookingId}`,
+    cancel: (wishId: number) => `/api/booking/${wishId}`,
   },
   profile: {
     getProfile: (userId: number) => `/api/profile/${userId}`,

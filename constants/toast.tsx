@@ -1,18 +1,19 @@
-import { Colors, ThemeType } from '@/constants/themes';
+import { Colors } from '@/constants/themes';
 import { SuccessToast, ErrorToast, ToastProps } from 'react-native-toast-message';
 
-export const toastConfig = (themeType: ThemeType) => ({
+export const toastConfig = {
   success: (props: ToastProps) => (
     <SuccessToast
       {...props}
+      style={{ borderLeftWidth: 0, borderRadius: 40 }}
       contentContainerStyle={{
-        backgroundColor: themeType === 'dark' ? Colors.darkBlue : Colors.white,
-        borderRadius: 16,
+        backgroundColor: Colors.green,
+        borderRadius: 40,
       }}
       text1Style={{
         fontSize: 16,
         fontFamily: 'stolzl-regular',
-        color: themeType === 'dark' ? Colors.white : Colors.black,
+        color: Colors.white,
       }}
     />
   ),
@@ -20,16 +21,16 @@ export const toastConfig = (themeType: ThemeType) => ({
   error: (props: ToastProps) => (
     <ErrorToast
       {...props}
-      style={{ borderLeftColor: 'red' }}
+      style={{ borderLeftWidth: 0, borderRadius: 40 }}
       contentContainerStyle={{
-        backgroundColor: themeType === 'dark' ? Colors.darkBlue : Colors.white,
-        borderRadius: 16,
+        backgroundColor: Colors.red,
+        borderRadius: 40,
       }}
       text1Style={{
         fontSize: 16,
         fontFamily: 'stolzl-regular',
-        color: themeType === 'dark' ? Colors.white : Colors.black,
+        color: Colors.white,
       }}
     />
   ),
-});
+};

@@ -1,14 +1,5 @@
 import { useState } from 'react';
-import {
-  StyleSheet,
-  ImageBackground,
-  View,
-  TouchableOpacity,
-  Image,
-  Dimensions,
-  Platform,
-  StatusBar,
-} from 'react-native';
+import { StyleSheet, ImageBackground, View, TouchableOpacity, Image, Platform, StatusBar } from 'react-native';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
 import MaskedView from '@react-native-masked-view/masked-view';
@@ -24,6 +15,7 @@ import { apiFetchData } from '@/lib/api';
 import { API } from '@/constants/api';
 import { useAuth } from '@/hooks/useAuth';
 import { showToast } from '@/utils/showToast';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const mask = `
   <svg width="280" height="130" viewBox="100 -0.5 280 161" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -109,8 +101,8 @@ export function ProfileHeader({ profile, avatar, background, friendsCount, frien
     );
   };
 
-  const { height } = Dimensions.get('screen');
-  const paddingTop = Platform.OS === 'ios' ? (height >= 812 ? 44 : 20) : (StatusBar.currentHeight || 20) + 10;
+  const { top } = useSafeAreaInsets();
+  const paddingTop = Platform.OS === 'ios' ? top : (StatusBar.currentHeight || 20) + 10;
 
   return (
     <ImageBackground
@@ -142,46 +134,48 @@ export function ProfileHeader({ profile, avatar, background, friendsCount, frien
             </ThemedView>
           </MaskedView>
           <ThemedView style={[styles.info, { borderColor: theme.background }]}>
-            <ThemedText type="h2" style={styles.fullname} numberOfLines={1}>
-              {profile?.name + ' ' + profile?.surname}
-            </ThemedText>
             {profile && (
-              <View style={styles.details}>
-                {profile?.username && (
-                  <ThemedText type="bodyLargeMedium">
-                    {profile.username.length > 10 ? `${profile.username.slice(0, 9)}...` : profile.username}
-                  </ThemedText>
-                )}
-                <Link asChild href={{ pathname: '/friends/[userId]', params: { userId: profile.userId } }}>
-                  <TouchableOpacity style={styles.friends}>
-                    {friendsAvatars && friendsAvatars.length > 0 && (
-                      <View style={styles.friendsAvatars}>
-                        {friendsAvatars.map((friendAvatar, index) => (
-                          <Image
-                            key={index}
-                            source={friendAvatar ? { uri: friendAvatar } : require('../assets/images/avatar.png')}
-                            style={[
-                              styles.friendAvatar,
-                              index > 0 && { marginLeft: -13 },
-                              { borderColor: theme.background },
-                            ]}
-                          />
-                        ))}
-                      </View>
-                    )}
-
-                    <ThemedText>
-                      {formatCountedPhrase({
-                        number: friendsCount || 0,
-                        singular: 'друг',
-                        few: 'друга',
-                        many: 'друзей',
-                      })}
+              <>
+                <ThemedText type="h2" style={styles.fullname} numberOfLines={1}>
+                  {profile?.name + ' ' + profile?.surname}
+                </ThemedText>
+                <View style={styles.details}>
+                  {profile?.username && (
+                    <ThemedText type="bodyLargeMedium">
+                      {profile.username.length > 10 ? `${profile.username.slice(0, 16)}...` : profile.username}
                     </ThemedText>
-                  </TouchableOpacity>
-                </Link>
-                {getFriendButton()}
-              </View>
+                  )}
+                  <Link asChild href={{ pathname: '/friends/[userId]', params: { userId: profile.userId } }}>
+                    <TouchableOpacity style={styles.friends}>
+                      {friendsAvatars && friendsAvatars.length > 0 && (
+                        <View style={styles.friendsAvatars}>
+                          {friendsAvatars.map((friendAvatar, index) => (
+                            <Image
+                              key={index}
+                              source={friendAvatar ? { uri: friendAvatar } : require('../assets/images/avatar.png')}
+                              style={[
+                                styles.friendAvatar,
+                                index > 0 && { marginLeft: -13 },
+                                { borderColor: theme.background },
+                              ]}
+                            />
+                          ))}
+                        </View>
+                      )}
+
+                      <ThemedText>
+                        {formatCountedPhrase({
+                          number: friendsCount || 0,
+                          singular: 'друг',
+                          few: 'друга',
+                          many: 'друзей',
+                        })}
+                      </ThemedText>
+                    </TouchableOpacity>
+                  </Link>
+                  {getFriendButton()}
+                </View>
+              </>
             )}
           </ThemedView>
 
@@ -249,7 +243,7 @@ const styles = StyleSheet.create({
     padding: 20,
     borderRadius: 40,
     borderWidth: 1,
-    minHeight: 135,
+    minHeight: 105,
   },
   fullname: {
     textAlign: 'center',

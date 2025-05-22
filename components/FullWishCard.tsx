@@ -203,19 +203,23 @@ export function FullWishCard({ wish, onLayout }: Props) {
       <View style={styles.infoContainer}>
         <View style={styles.textContainer}>
           <ThemedText type="h2">{wish.name}</ThemedText>
-          <View style={styles.price}>
-            {Number(wish.price) > 0 && <ThemedText type="h5">{`${wish.price} ${wish.currency?.symbol}`}</ThemedText>}
-            {wish.link && (
-              <ExternalLink href={wish.link}>
-                <View style={styles.externalLinkContainer}>
-                  <ThemedText type="bodyLargeMedium" style={[styles.externalLinkText, { color: theme.primary }]}>
-                    Где купить
-                  </ThemedText>
-                  <Icon name="bag" size={20} style={styles.externalLinkIcon} color={theme.primary} />
-                </View>
-              </ExternalLink>
-            )}
-          </View>
+          {(!!wish.price || !!wish.link) && (
+            <View style={styles.price}>
+              {Number(wish.price) > 0 && (
+                <ThemedText type="h5">{`${wish.price} ${wish.currency?.transcription}`}</ThemedText>
+              )}
+              {!!wish.link && (
+                <ExternalLink href={wish.link}>
+                  <View style={styles.externalLinkContainer}>
+                    <ThemedText type="bodyLargeMedium" style={[styles.externalLinkText, { color: theme.primary }]}>
+                      Где купить
+                    </ThemedText>
+                    <Icon name="bag" size={20} style={styles.externalLinkIcon} color={theme.primary} />
+                  </View>
+                </ExternalLink>
+              )}
+            </View>
+          )}
         </View>
 
         {(isCurrentUser || isFriend) && (

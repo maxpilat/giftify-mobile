@@ -42,6 +42,7 @@ export interface Profile {
   surname: string;
   username?: string;
   avatar?: string;
+  isPrivate?: boolean;
 }
 
 export interface Friend {

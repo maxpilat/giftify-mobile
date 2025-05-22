@@ -35,18 +35,11 @@ export default function PickCustomColorsScreen() {
     (tabIndex === 0 ? setPrimaryColor : setSecondaryColor)(color);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = (primaryColor: string, secondaryColor: string) => {
     updateCustomColors(primaryColor, secondaryColor)
       .then(() => showToast('success', 'Цвета обновлены'))
       .catch(() => showToast('error', 'Не удалось обновить цвета'));
     router.back();
-  };
-
-  const resetColors = () => {
-    setError('');
-    setTextInputValue(tabIndex === 0 ? Colors.blue : Colors.orange);
-    setPrimaryColor(Colors.blue);
-    setSecondaryColor(Colors.orange);
   };
 
   return (
@@ -97,14 +90,14 @@ export default function PickCustomColorsScreen() {
             Отмена
           </ThemedText>
         </PlatformButton>
-        <PlatformButton style={styles.button} onPress={handleSubmit}>
+        <PlatformButton style={styles.button} onPress={() => handleSubmit(primaryColor, secondaryColor)}>
           <ThemedText type="bodyLargeMedium" style={styles.buttonText}>
             Применить
           </ThemedText>
         </PlatformButton>
       </View>
 
-      <TouchableOpacity onPress={resetColors}>
+      <TouchableOpacity onPress={() => handleSubmit(Colors.blue, Colors.orange)}>
         <ThemedText type="bodyLargeMedium" style={{ color: theme.primary }}>
           Сбросить настройки цвета
         </ThemedText>

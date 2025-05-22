@@ -126,6 +126,8 @@ export default function ProfileScreen() {
         endpoint: API.profile.getBackground(+userId),
         token: authUser.token,
       }).then((serverBackground) => {
+        console.log(serverBackground);
+
         if (!serverBackground.backgroundImage && !serverBackground.backgroundColor) {
           setBackground(getDefaultBackground(themeType === 'system' ? systemThemeType : themeType));
         } else {
@@ -333,7 +335,7 @@ export default function ProfileScreen() {
       onPress: async () => {
         try {
           await apiFetchData({
-            endpoint: booking ? API.booking.cancel(booking.bookingId) : API.booking.create,
+            endpoint: booking ? API.booking.cancel(booking.wish.wishId) : API.booking.create,
             method: booking ? 'DELETE' : 'POST',
             body: booking ? undefined : { wishId, bookerId: authUser.id },
             token: authUser.token,
@@ -425,7 +427,7 @@ export default function ProfileScreen() {
   );
 
   return (
-    <View style={styles.wrapper}>
+    <>
       <Stack.Screen
         options={{
           headerTransparent: true,
@@ -436,262 +438,289 @@ export default function ProfileScreen() {
           },
         }}
       />
-      <ParallaxScrollView
-        header={
-          <ProfileHeader
-            profile={profile}
-            avatar={avatar}
-            background={background}
-            friendsAvatars={friends.slice(0, 3).map((friend) => friend.avatar)}
-            friendsCount={friends.length}
-            tabs={['Желания', 'Копилки', isCurrentUser ? 'Я дарю' : isFriend(+userId) ? 'Идеи' : ''].filter(Boolean)}
-            onTabChange={setCurrentTabIndex}
-          />
-        }
-        translateYFactor={[-0.5, 0, 0]}
-        scale={[1, 1, 1]}
-        refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />}
-      >
-        <ThemedView style={[styles.content, contentAnimatedStyle]}>
-          {currentVisibleTabIndex === 0 && (
-            <>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                ref={scrollRef}
-                contentContainerStyle={styles.categories}
-              >
-                <View style={styles.wishList}>
-                  <WishListTab
-                    name={`${isCurrentUser ? 'Мои' : 'Все'} желания`}
-                    count={wishes.length}
-                    isActive={!currentWishListId}
-                    onPress={() => setCurrentWishListId(null)}
-                    actions={isCurrentUser ? [{ label: 'Поделиться', onPress: shareWishList }] : []}
-                  />
-                </View>
-                {isCurrentUser && (
-                  <View style={[styles.wishList, styles.addWishListButton, { backgroundColor: theme.button }]}>
-                    <Link asChild href={'./wishListModal'}>
-                      <TouchableOpacity activeOpacity={0.7} style={styles.addWishListButtonTouchable}>
-                        <Icon name="plus" />
-                      </TouchableOpacity>
-                    </Link>
+      <View style={styles.wrapper}>
+        <ParallaxScrollView
+          header={
+            <ProfileHeader
+              profile={profile}
+              avatar={avatar}
+              background={background}
+              friendsAvatars={friends.slice(0, 3).map((friend) => friend.avatar)}
+              friendsCount={friends.length}
+              tabs={['Желания', 'Копилки', isCurrentUser ? 'Я дарю' : isFriend(+userId) ? 'Идеи' : ''].filter(Boolean)}
+              onTabChange={setCurrentTabIndex}
+            />
+          }
+          translateYFactor={[-0.5, 0, 0]}
+          scale={[1, 1, 1]}
+          refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />}
+        >
+          {profile && (
+            <ThemedView style={[styles.content, contentAnimatedStyle]}>
+              {currentVisibleTabIndex === 0 &&
+                (!isCurrentUser && profile?.isPrivate ? (
+                  <View style={styles.noWishesContainer}>
+                    <ThemedText style={styles.noWishesMessage} type="bodyLarge">
+                      У пользователя закрытый аккаунт
+                    </ThemedText>
                   </View>
-                )}
+                ) : (
+                  <>
+                    <ScrollView
+                      horizontal
+                      showsHorizontalScrollIndicator={false}
+                      ref={scrollRef}
+                      contentContainerStyle={styles.categories}
+                    >
+                      <View style={styles.wishList}>
+                        <WishListTab
+                          name={`${isCurrentUser ? 'Мои' : 'Все'} желания`}
+                          count={wishes.length}
+                          isActive={!currentWishListId}
+                          onPress={() => setCurrentWishListId(null)}
+                          actions={isCurrentUser ? [{ label: 'Поделиться', onPress: shareWishList }] : []}
+                        />
+                      </View>
+                      {isCurrentUser && (
+                        <View style={[styles.wishList, styles.addWishListButton, { backgroundColor: theme.button }]}>
+                          <Link asChild href={'./wishListModal'}>
+                            <TouchableOpacity activeOpacity={0.7} style={styles.addWishListButtonTouchable}>
+                              <Icon name="plus" />
+                            </TouchableOpacity>
+                          </Link>
+                        </View>
+                      )}
 
-                {wishLists.map((wishList) => (
-                  <View key={wishList.wishListId} style={styles.wishList}>
-                    <WishListTab
-                      name={wishList.name}
-                      count={wishList.wishes.length}
-                      isActive={currentWishListId === wishList.wishListId}
-                      onPress={() => setCurrentWishListId(wishList.wishListId)}
-                      actions={
-                        isCurrentUser
-                          ? [
-                              { label: 'Редактировать', onPress: () => editWishList(wishList.wishListId) },
-                              { label: 'Поделиться', onPress: shareWishList },
-                              { label: 'Удалить', onPress: () => deleteWishList(wishList.wishListId) },
-                            ]
-                          : []
-                      }
+                      {wishLists.map((wishList) => (
+                        <View key={wishList.wishListId} style={styles.wishList}>
+                          <WishListTab
+                            name={wishList.name}
+                            count={wishList.wishes.length}
+                            isActive={currentWishListId === wishList.wishListId}
+                            onPress={() => setCurrentWishListId(wishList.wishListId)}
+                            actions={
+                              isCurrentUser
+                                ? [
+                                    { label: 'Редактировать', onPress: () => editWishList(wishList.wishListId) },
+                                    { label: 'Поделиться', onPress: shareWishList },
+                                    { label: 'Удалить', onPress: () => deleteWishList(wishList.wishListId) },
+                                  ]
+                                : []
+                            }
+                          />
+                        </View>
+                      ))}
+                    </ScrollView>
+
+                    {wishListData.length ? (
+                      <MasonryList
+                        data={wishListData}
+                        keyExtractor={(wish: Wish) => wish.wishId.toString()}
+                        numColumns={2}
+                        contentContainerStyle={styles.list}
+                        renderItem={({ item, i }) => {
+                          const wish = item as Wish;
+                          const activeBooking = wish.activeBookingId ? getMyBookingById(wish.activeBookingId) : null;
+                          const showBooking = !isCurrentUser && Boolean(activeBooking);
+                          const booker =
+                            !isCurrentUser && activeBooking
+                              ? { booked: activeBooking.booked, avatar: myAvatar }
+                              : undefined;
+                          const wisher = isCurrentUser ? activeBooking?.wish.wisherProfileData : undefined;
+                          return (
+                            <Link
+                              asChild
+                              href={{ pathname: '/profile/wishes', params: { wishId: wish.wishId, userId } }}
+                              style={[
+                                { marginTop: [0, 1].includes(i) ? 0 : 16 },
+                                { [i % 2 === 0 ? 'marginRight' : 'marginLeft']: 8 },
+                              ]}
+                            >
+                              <Pressable>
+                                <WishCard
+                                  wish={
+                                    {
+                                      ...wish,
+                                      image: wishes.find((item) => item.wishId === wish.wishId)?.image,
+                                    } as Wish
+                                  }
+                                  actions={
+                                    isCurrentUser
+                                      ? [
+                                          { label: 'Редактировать', onPress: () => editWish(wish.wishId) },
+                                          { label: 'Поделиться', onPress: () => shareWish(wish) },
+                                          { label: 'Удалить', onPress: () => deleteWish(wish.wishId) },
+                                        ]
+                                      : ([
+                                          { label: 'Сохранить к себе', onPress: () => saveWish(wish) },
+                                          isFriend(+userId) ? getBookingAction(wish.wishId) : null,
+                                          { label: 'Поделиться', onPress: () => shareWish(wish) },
+                                        ].filter(Boolean) as Action[])
+                                  }
+                                  showBooking={showBooking}
+                                  booker={booker}
+                                  wisher={wisher}
+                                />
+                              </Pressable>
+                            </Link>
+                          );
+                        }}
+                      />
+                    ) : isCurrentUser ? (
+                      <View style={styles.noWishesContainer}>
+                        <ThemedText style={styles.noWishesMessage} type="bodyLarge">
+                          Пока пусто...
+                        </ThemedText>
+                        <ThemedText style={styles.noWishesMessage} type="bodyLarge">
+                          Может, это значит, что пора мечтать смелее?
+                        </ThemedText>
+                      </View>
+                    ) : (
+                      <View style={styles.noWishesContainer}>
+                        <ThemedText style={styles.noWishesMessage} type="bodyLarge">
+                          Eщё в раздумьях, что загадать
+                        </ThemedText>
+                      </View>
+                    )}
+                  </>
+                ))}
+
+              {currentVisibleTabIndex === 1 && (
+                <View style={[styles.list, styles.piggyBankList]}>
+                  {!isCurrentUser && profile?.isPrivate ? (
+                    <View style={styles.noWishesContainer}>
+                      <ThemedText style={styles.noWishesMessage} type="bodyLarge">
+                        У пользователя закрытый аккаунт
+                      </ThemedText>
+                    </View>
+                  ) : piggyBanks.length ? (
+                    piggyBanks.map((piggyBank) => (
+                      <Link
+                        asChild
+                        key={piggyBank.wishId}
+                        style={styles.piggyBank}
+                        href={{ pathname: '/profile/piggyBanks', params: { piggyBankId: piggyBank.wishId, userId } }}
+                      >
+                        <Pressable>
+                          <View style={styles.piggyBankBody}>
+                            <View style={styles.piggyBankInfo}>
+                              <ThemedText type="h3">{piggyBank.name}</ThemedText>
+                              <View style={styles.piggyBankPrice}>
+                                <ThemedText type="bodyBase" style={styles.piggyBankPriceLabel}>
+                                  Стоимость:
+                                </ThemedText>
+                                <ThemedText type="bodyLargeMedium">
+                                  {piggyBank.price} {piggyBank.currency?.symbol}
+                                </ThemedText>
+                              </View>
+                            </View>
+                            <View style={styles.piggyBankCard}>
+                              <WishCard
+                                imageAspectRatio={1}
+                                wish={piggyBank}
+                                actions={
+                                  isCurrentUser
+                                    ? [
+                                        { label: 'Редактировать', onPress: () => editPiggyBank(piggyBank.wishId) },
+                                        { label: 'Поделиться', onPress: () => sharePiggyBank(piggyBank) },
+                                        { label: 'Удалить', onPress: () => deletePiggyBank(piggyBank.wishId) },
+                                      ]
+                                    : [{ label: 'Поделиться', onPress: () => sharePiggyBank(piggyBank) }]
+                                }
+                                showInfo={false}
+                              />
+                            </View>
+                          </View>
+                          <ProgressBar
+                            currentAmount={piggyBank.deposit}
+                            targetAmount={piggyBank.price}
+                            currency={piggyBank.currency}
+                          />
+                        </Pressable>
+                      </Link>
+                    ))
+                  ) : isCurrentUser ? (
+                    <View style={styles.noWishesContainer}>
+                      <ThemedText style={styles.noWishesMessage} type="bodyLarge">
+                        Здесь пока только эхо...
+                      </ThemedText>
+                      <ThemedText style={styles.noWishesMessage} type="bodyLarge">
+                        Может стоит сделать первый шаг к большим целям?
+                      </ThemedText>
+                    </View>
+                  ) : (
+                    <View style={styles.noWishesContainer}>
+                      <ThemedText style={styles.noWishesMessage} type="bodyLarge">
+                        Пока копит не деньги, а терпение
+                      </ThemedText>
+                    </View>
+                  )}
+                </View>
+              )}
+
+              {currentVisibleTabIndex === 2 &&
+                (isCurrentUser ? (
+                  myBookings.length ? (
+                    <MasonryList
+                      data={myBookings}
+                      keyExtractor={(booking: Booking) => booking.bookingId.toString()}
+                      numColumns={2}
+                      contentContainerStyle={styles.list}
+                      renderItem={({ item, i }) => {
+                        const wish = (item as Booking).wish;
+                        return (
+                          <Link
+                            asChild
+                            href={{
+                              pathname: '/profile/wishes',
+                              params: { wishId: wish.wishId, isMyBookings: 'true' },
+                            }}
+                            style={[{ [i % 2 === 0 ? 'marginRight' : 'marginLeft']: 8 }]}
+                          >
+                            <Pressable>
+                              <WishCard
+                                wish={wish}
+                                wisher={wish.wisherProfileData}
+                                actions={
+                                  [
+                                    { label: 'Сохранить к себе', onPress: () => saveWish(wish) },
+                                    isFriend(wish.wisherProfileData.userId) ? getBookingAction(wish.wishId) : null,
+                                    { label: 'Поделиться', onPress: () => shareWish(wish) },
+                                  ].filter(Boolean) as Action[]
+                                }
+                              />
+                            </Pressable>
+                          </Link>
+                        );
+                      }}
                     />
+                  ) : (
+                    <View style={styles.noWishesContainer}>
+                      <ThemedText style={styles.noWishesMessage} type="bodyLarge">
+                        Забронируйте желание друга и оно появится здесь
+                      </ThemedText>
+                    </View>
+                  )
+                ) : (
+                  <View style={styles.noWishesContainer}>
+                    <ThemedText style={styles.noWishesMessage} type="bodyLarge">
+                      Мы работаем над этим 🙂
+                    </ThemedText>
                   </View>
                 ))}
-              </ScrollView>
-
-              {wishListData.length ? (
-                <MasonryList
-                  data={wishListData}
-                  keyExtractor={(wish: Wish) => wish.wishId.toString()}
-                  numColumns={2}
-                  contentContainerStyle={styles.list}
-                  renderItem={({ item, i }) => {
-                    const wish = item as Wish;
-                    const activeBooking = wish.activeBookingId ? getMyBookingById(wish.activeBookingId) : null;
-                    const showBooking = !isCurrentUser && Boolean(activeBooking);
-                    const booker =
-                      !isCurrentUser && activeBooking ? { booked: activeBooking.booked, avatar: myAvatar } : undefined;
-                    const wisher = isCurrentUser ? activeBooking?.wish.wisherProfileData : undefined;
-                    return (
-                      <Link
-                        asChild
-                        href={{ pathname: '/profile/wishes', params: { wishId: wish.wishId, userId } }}
-                        style={[
-                          { marginTop: [0, 1].includes(i) ? 0 : 16 },
-                          { [i % 2 === 0 ? 'marginRight' : 'marginLeft']: 8 },
-                        ]}
-                      >
-                        <Pressable>
-                          <WishCard
-                            wish={{ ...wish, image: wishes.find((item) => item.wishId === wish.wishId)?.image } as Wish}
-                            actions={
-                              isCurrentUser
-                                ? [
-                                    { label: 'Редактировать', onPress: () => editWish(wish.wishId) },
-                                    { label: 'Поделиться', onPress: () => shareWish(wish) },
-                                    { label: 'Удалить', onPress: () => deleteWish(wish.wishId) },
-                                  ]
-                                : ([
-                                    { label: 'Сохранить к себе', onPress: () => saveWish(wish) },
-                                    isFriend(+userId) ? getBookingAction(wish.wishId) : null,
-                                    { label: 'Поделиться', onPress: () => shareWish(wish) },
-                                  ].filter(Boolean) as Action[])
-                            }
-                            showBooking={showBooking}
-                            booker={booker}
-                            wisher={wisher}
-                          />
-                        </Pressable>
-                      </Link>
-                    );
-                  }}
-                />
-              ) : isCurrentUser ? (
-                <View style={styles.noWishesContainer}>
-                  <ThemedText style={styles.noWishesMessage} type="bodyLarge">
-                    Пока пусто...
-                  </ThemedText>
-                  <ThemedText style={styles.noWishesMessage} type="bodyLarge">
-                    Может, это значит, что пора мечтать смелее?
-                  </ThemedText>
-                </View>
-              ) : (
-                <View style={styles.noWishesContainer}>
-                  <ThemedText style={styles.noWishesMessage} type="bodyLarge">
-                    Eщё в раздумьях, что загадать
-                  </ThemedText>
-                </View>
-              )}
-            </>
+            </ThemedView>
           )}
+        </ParallaxScrollView>
 
-          {currentVisibleTabIndex === 1 && (
-            <View style={[styles.list, styles.piggyBankList]}>
-              {piggyBanks.length ? (
-                piggyBanks.map((piggyBank) => (
-                  <Link
-                    asChild
-                    key={piggyBank.wishId}
-                    style={styles.piggyBank}
-                    href={{ pathname: '/profile/piggyBanks', params: { piggyBankId: piggyBank.wishId, userId } }}
-                  >
-                    <Pressable>
-                      <View style={styles.piggyBankBody}>
-                        <View style={styles.piggyBankInfo}>
-                          <ThemedText type="h3">{piggyBank.name}</ThemedText>
-                          <View style={styles.piggyBankPrice}>
-                            <ThemedText type="bodyBase" style={styles.piggyBankPriceLabel}>
-                              Стоимость:
-                            </ThemedText>
-                            <ThemedText type="bodyLargeMedium">
-                              {piggyBank.price} {piggyBank.currency?.symbol}
-                            </ThemedText>
-                          </View>
-                        </View>
-                        <View style={styles.piggyBankCard}>
-                          <WishCard
-                            imageAspectRatio={1}
-                            wish={piggyBank}
-                            actions={
-                              isCurrentUser
-                                ? [
-                                    { label: 'Редактировать', onPress: () => editPiggyBank(piggyBank.wishId) },
-                                    { label: 'Поделиться', onPress: () => sharePiggyBank(piggyBank) },
-                                    { label: 'Удалить', onPress: () => deletePiggyBank(piggyBank.wishId) },
-                                  ]
-                                : [{ label: 'Поделиться', onPress: () => sharePiggyBank(piggyBank) }]
-                            }
-                            showInfo={false}
-                          />
-                        </View>
-                      </View>
-                      <ProgressBar
-                        currentAmount={piggyBank.deposit}
-                        targetAmount={piggyBank.price}
-                        currency={piggyBank.currency}
-                      />
-                    </Pressable>
-                  </Link>
-                ))
-              ) : isCurrentUser ? (
-                <View style={styles.noWishesContainer}>
-                  <ThemedText style={styles.noWishesMessage} type="bodyLarge">
-                    Здесь пока только эхо...
-                  </ThemedText>
-                  <ThemedText style={styles.noWishesMessage} type="bodyLarge">
-                    Может стоит сделать первый шаг к большим целям?
-                  </ThemedText>
-                </View>
-              ) : (
-                <View style={styles.noWishesContainer}>
-                  <ThemedText style={styles.noWishesMessage} type="bodyLarge">
-                    Пока копит не деньги, а терпение
-                  </ThemedText>
-                </View>
-              )}
-            </View>
-          )}
-
-          {currentVisibleTabIndex === 2 &&
-            (isCurrentUser ? (
-              myBookings.length ? (
-                <MasonryList
-                  data={myBookings}
-                  keyExtractor={(booking: Booking) => booking.bookingId.toString()}
-                  numColumns={2}
-                  contentContainerStyle={styles.list}
-                  renderItem={({ item, i }) => {
-                    const wish = (item as Booking).wish;
-                    return (
-                      <Link
-                        asChild
-                        href={{ pathname: '/profile/wishes', params: { wishId: wish.wishId, isMyBookings: 'true' } }}
-                        style={[{ [i % 2 === 0 ? 'marginRight' : 'marginLeft']: 8 }]}
-                      >
-                        <Pressable>
-                          <WishCard
-                            wish={wish}
-                            wisher={wish.wisherProfileData}
-                            actions={
-                              [
-                                { label: 'Сохранить к себе', onPress: () => saveWish(wish) },
-                                isFriend(wish.wisherProfileData.userId) ? getBookingAction(wish.wishId) : null,
-                                { label: 'Поделиться', onPress: () => shareWish(wish) },
-                              ].filter(Boolean) as Action[]
-                            }
-                          />
-                        </Pressable>
-                      </Link>
-                    );
-                  }}
-                />
-              ) : (
-                <View style={styles.noWishesContainer}>
-                  <ThemedText style={styles.noWishesMessage} type="bodyLarge">
-                    Забронируйте желание друга и оно появится здесь
-                  </ThemedText>
-                </View>
-              )
-            ) : (
-              <View style={styles.noWishesContainer}>
-                <ThemedText style={styles.noWishesMessage} type="bodyLarge">
-                  Мы работаем над этим 🙂
-                </ThemedText>
-              </View>
-            ))}
-        </ThemedView>
-      </ParallaxScrollView>
-
-      {isCurrentUser && (
-        <Animated.View style={[styles.addItemButton, { backgroundColor: theme.primary }, addItemButtonAnimatedStyle]}>
-          <Pressable onPress={addItem} style={styles.addItemButtonPressable}>
-            <Icon name="plus" />
-          </Pressable>
-        </Animated.View>
-      )}
-    </View>
+        {isCurrentUser && (
+          <Animated.View style={[styles.addItemButton, { backgroundColor: theme.primary }, addItemButtonAnimatedStyle]}>
+            <Pressable onPress={addItem} style={styles.addItemButtonPressable}>
+              <Icon name="plus" />
+            </Pressable>
+          </Animated.View>
+        )}
+      </View>
+    </>
   );
 }
 

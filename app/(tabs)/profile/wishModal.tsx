@@ -40,9 +40,8 @@ export default function WishModalScreen() {
   const [currency, setCurrency] = useState<Currency>();
   const [link, setLink] = useState<string>('');
   const [description, setDescription] = useState<string>('');
-  const [errors, setErrors] = useState<Record<'name' | 'link' | 'image', boolean>>({
+  const [errors, setErrors] = useState<Record<'name' | 'image', boolean>>({
     name: false,
-    link: false,
     image: false,
   });
   const [switchStates, setSwitchStates] = useState<SwitchState[]>([]);
@@ -155,7 +154,6 @@ export default function WishModalScreen() {
   const isValid = () => {
     const newErrors = {
       name: !name.trim(),
-      link: !link.trim(),
       image: !image?.trim(),
     };
     setErrors(newErrors);
@@ -186,6 +184,7 @@ export default function WishModalScreen() {
             setErrors((prev) => ({ ...prev, name: false }));
           }}
         />
+
         <View style={styles.fields}>
           <TextInput
             icon="star"
@@ -214,7 +213,6 @@ export default function WishModalScreen() {
             icon="out"
             placeholder="Ссылка"
             value={link}
-            valid={!errors.link}
             onChangeText={(value) => {
               setLink(value);
               setErrors((prev) => ({ ...prev, link: false }));

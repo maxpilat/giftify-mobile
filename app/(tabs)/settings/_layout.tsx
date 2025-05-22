@@ -22,28 +22,7 @@ export default function SettingsLayout() {
 
   return (
     <Stack>
-      <Stack.Screen
-        name="index"
-        options={{
-          title: 'Настройки',
-          headerTitleStyle: {
-            fontFamily: 'stolzl-medium',
-            color: theme.text,
-          },
-          headerLargeTitle: true,
-          headerLargeTitleShadowVisible: false,
-          headerLargeTitleStyle: {
-            fontFamily: 'stolzl-medium',
-            color: theme.text,
-          },
-          headerStyle: {
-            backgroundColor: theme.background,
-          },
-          contentStyle: {
-            backgroundColor: theme.background,
-          },
-        }}
-      />
+      <Stack.Screen name="index" />
       <Stack.Screen name="changeEmail" options={getScreenOptions()} />
       <Stack.Screen name="validateEmail" options={getScreenOptions()} />
       <Stack.Screen

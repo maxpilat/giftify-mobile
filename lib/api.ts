@@ -20,6 +20,8 @@ export const apiFetchData = async <T = void>({
       headers.Authorization = `Bearer ${token}`;
     }
 
+    console.log(token)
+
     const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}${endpoint}`, {
       method,
       headers,

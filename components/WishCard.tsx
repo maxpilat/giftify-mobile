@@ -93,9 +93,9 @@ export function WishCard({
       {showInfo && (
         <View style={styles.wishInfo}>
           <ThemedText type="h3">{wish.name}</ThemedText>
-          {wish.price && (
+          {!!wish.price && (
             <ThemedText type="bodyLarge" style={{ color: theme.subtext }}>
-              {wish.price} {wish.currency?.symbol}
+              {wish.price} {wish.currency?.transcription}
             </ThemedText>
           )}
           {wisher && (

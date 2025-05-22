@@ -84,7 +84,7 @@ export default function SignUpScreen() {
     typingTimeoutRef.current = setTimeout(() => {
       apiFetchData<boolean>({ endpoint: API.auth.uniqueEmail, method: 'POST', body: value })
         .then(
-          (isUnique) => isUnique && setErrors((prev) => ({ ...prev, email: 'Аккаунт с такой почтой уже существует' }))
+          (isUnique) => !isUnique && setErrors((prev) => ({ ...prev, email: 'Аккаунт с такой почтой уже существует' }))
         )
         .catch(() => {});
     }, 300);
