@@ -10,6 +10,7 @@ import { Wish } from '@/models';
 import { getDaysUntilBookingExpires } from '@/utils/getDaysUntil';
 import { Colors } from '@/constants/themes';
 import { Icon } from '@/components/Icon';
+import Animated, { Easing, FadeIn, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 
 const mask = `
   <svg width="88" height="86" viewBox="0 0 88 86" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -47,7 +48,7 @@ export function WishCard({
 }: Props) {
   const { theme } = useTheme();
 
-  const [computedAspectRatio, setComputedAspectRatio] = useState<number>(imageAspectRatio || 1);
+  const [computedAspectRatio, setComputedAspectRatio] = useState<number | null>(imageAspectRatio || null);
 
   useEffect(() => {
     if (wish.image) {
@@ -59,9 +60,26 @@ export function WishCard({
     }
   }, [wish.image]);
 
+  const opacity = useSharedValue(0);
+
+  useEffect(() => {
+    if (computedAspectRatio) {
+      requestAnimationFrame(() => {
+        opacity.value = withTiming(1, {
+          duration: 600,
+          easing: Easing.out(Easing.ease),
+        });
+      });
+    }
+  }, [computedAspectRatio]);
+
+  const animatedContainerStyle = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+  }));
+
   return (
     <View style={styles.container}>
-      <View style={styles.imageContainer}>
+      <View style={[styles.imageContainer]}>
         {wish.image && (
           <>
             {booker && (
@@ -82,12 +100,13 @@ export function WishCard({
             )}
           </>
         )}
-
-        <Image
-          source={{ uri: wish.image }}
-          style={[styles.image, { aspectRatio: computedAspectRatio }]}
-          resizeMode={'cover'}
-        />
+        {computedAspectRatio && (
+          <Animated.Image
+            source={{ uri: wish.image }}
+            style={[styles.image, { aspectRatio: computedAspectRatio }, animatedContainerStyle]}
+            resizeMode={'cover'}
+          />
+        )}
       </View>
 
       {showInfo && (
@@ -128,6 +147,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     overflow: 'hidden',
     borderRadius: 25,
+    minHeight: screenWidth / 2 - 40,
   },
   imageOverlay: {
     position: 'absolute',
@@ -148,8 +168,9 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: Colors.white,
   },
+
   image: {
-    minHeight: screenWidth / 2 - 40,
+    // minHeight: screenWidth / 2 - 40,
   },
   maskedView: {
     width: 88,
