@@ -142,9 +142,9 @@ export default function WishModalScreen() {
         router.back();
         await Promise.all([fetchWishes(), fetchWishLists()]);
 
-        showToast('success', wishId ? 'Желание обновлено' : 'Желание добавлено');
+        showToast('success', wishIdParam ? 'Желание обновлено' : 'Желание добавлено');
       } catch {
-        showToast('error', wishId ? 'Не удалось обновить желание' : 'Не удалось добавить желание');
+        showToast('error', wishIdParam ? 'Не удалось обновить желание' : 'Не удалось добавить желание');
       }
     }
 

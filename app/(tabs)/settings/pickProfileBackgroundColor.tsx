@@ -1,3 +1,4 @@
+import { ColorPickerThumb } from '@/components/ColorPickerThumb';
 import { PlatformButton } from '@/components/PlatformButton';
 import { TextInput } from '@/components/TextInput';
 import { ThemedText } from '@/components/ThemedText';
@@ -62,7 +63,11 @@ export default function PickProfileBackgroundColorScreen() {
         </View>
         <ColorPicker value={currentBackground.backgroundColor} onCompleteJS={(color) => handleColorChange(color.hex)}>
           <Panel2 style={{ borderRadius: 0 }} />
-          <BrightnessSlider style={{ borderRadius: 0 }} boundedThumb={true} />
+          <BrightnessSlider
+            sliderThickness={40}
+            style={{ borderRadius: 24, marginHorizontal: 16 }}
+            renderThumb={ColorPickerThumb}
+          />
         </ColorPicker>
       </View>
 

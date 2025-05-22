@@ -5,7 +5,12 @@ export const toastConfig = {
   success: (props: ToastProps) => (
     <SuccessToast
       {...props}
-      style={{ borderLeftWidth: 0, borderRadius: 40 }}
+      style={{
+        borderLeftWidth: 0,
+        width: '100%',
+        paddingHorizontal: 8,
+        backgroundColor: 'transparent',
+      }}
       contentContainerStyle={{
         backgroundColor: Colors.green,
         borderRadius: 40,
@@ -21,7 +26,12 @@ export const toastConfig = {
   error: (props: ToastProps) => (
     <ErrorToast
       {...props}
-      style={{ borderLeftWidth: 0, borderRadius: 40 }}
+      style={{
+        borderLeftWidth: 0,
+        width: '100%',
+        paddingHorizontal: 10,
+        backgroundColor: 'transparent',
+      }}
       contentContainerStyle={{
         backgroundColor: Colors.red,
         borderRadius: 40,
