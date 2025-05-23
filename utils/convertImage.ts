@@ -1,12 +1,9 @@
 import { EncodingType, readAsStringAsync } from 'expo-file-system';
 import { fromByteArray, toByteArray } from 'base64-js';
 
-export function arrayBufferToBase64(buffer: ArrayBuffer): string {
-  return `data:image;base64,${fromByteArray(new Uint8Array(buffer))}`;
-}
-
-export function binaryArrayToBase64(binaryArray: number[]): string {
-  return `data:image;base64,${fromByteArray(new Uint8Array(binaryArray))}`;
+export function binaryToBase64(binaryData: number[] | ArrayBuffer): string {
+  const base64Data = fromByteArray(new Uint8Array(binaryData));
+  return `data:image;base64,${base64Data}`;
 }
 
 export function base64ToBinaryArray(base64: string): number[] {

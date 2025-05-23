@@ -1,4 +1,4 @@
-import { arrayBufferToBase64 } from '@/utils/convertImage';
+import { binaryToBase64 } from '@/utils/convertImage';
 
 export type ApiFetchDataParams = {
   endpoint: string;
@@ -20,7 +20,7 @@ export const apiFetchData = async <T = void>({
       headers.Authorization = `Bearer ${token}`;
     }
 
-    console.log(token)
+    console.log(token);
 
     const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}${endpoint}`, {
       method,
@@ -63,7 +63,7 @@ export const apiFetchImage = async ({ endpoint, token }: ApiFetchImageParams): P
       throw new Error(`HTTP Error: ${response.status} - ${errorText}`);
     }
 
-    return arrayBufferToBase64(await response.arrayBuffer());
+    return binaryToBase64(await response.arrayBuffer());
   } catch (error) {
     console.error('Error in fetchImage:', error);
     throw error;

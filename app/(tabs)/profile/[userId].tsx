@@ -19,7 +19,7 @@ import { apiFetchData, apiFetchImage } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useStore';
 import { Action } from '@/components/ActionsButton';
-import { base64ToBinaryArray, binaryArrayToBase64 } from '@/utils/convertImage';
+import { base64ToBinaryArray, binaryToBase64 } from '@/utils/convertImage';
 import { getDefaultBackground } from '@/utils/profileBackground';
 import * as Linking from 'expo-linking';
 import { showToast } from '@/utils/showToast';
@@ -132,7 +132,7 @@ export default function ProfileScreen() {
           setBackground(getDefaultBackground(themeType === 'system' ? systemThemeType : themeType));
         } else {
           const backgroundUri = serverBackground.backgroundImage
-            ? binaryArrayToBase64(serverBackground.backgroundImage)
+            ? binaryToBase64(serverBackground.backgroundImage)
             : undefined;
           const background: ProfileBackground = { ...serverBackground, backgroundUri };
           setBackground(background);
