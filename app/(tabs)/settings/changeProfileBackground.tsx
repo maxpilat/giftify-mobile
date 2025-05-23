@@ -24,7 +24,9 @@ export default function ChangeProfileBackground() {
       background.backgroundId === newBackground.backgroundId
         ? getDefaultBackground(themeType === 'system' ? systemThemeType : themeType)
         : newBackground
-    ).catch(() => showToast('error', 'Не удалось изменить фон'));
+    )
+      .then(() => showToast('success', 'Фон изменён'))
+      .catch(() => showToast('error', 'Не удалось изменить фон'));
   };
 
   const pickImage = async () => {
@@ -38,6 +40,7 @@ export default function ChangeProfileBackground() {
       const uri = result.assets[0].uri;
       addBackgroundImage(uri)
         .then(changeBackground)
+        .then(() => showToast('success', 'Фон изменён'))
         .catch(() => showToast('error', 'Не удалось изменить фон'));
     }
   };

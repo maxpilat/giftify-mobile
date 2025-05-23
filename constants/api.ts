@@ -62,3 +62,5 @@ export const API = {
     getCurrencies: '/api/currency',
   },
 };
+
+export const SUPPORT_BOT_URL = 'https://t.me/GiftifyHelpBot';

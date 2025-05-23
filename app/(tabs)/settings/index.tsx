@@ -21,9 +21,9 @@ import { Switch } from '@/components/Switch';
 import { PlatformButton } from '@/components/PlatformButton';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import { useAuth } from '@/hooks/useAuth';
-import { router, Stack } from 'expo-router';
+import { Link, router, Stack } from 'expo-router';
 import { apiFetchData } from '@/lib/api';
-import { API } from '@/constants/api';
+import { API, SUPPORT_BOT_URL } from '@/constants/api';
 import { useProfile } from '@/hooks/useStore';
 import { launchImageLibraryAsync } from 'expo-image-picker';
 import { showToast } from '@/utils/showToast';
@@ -360,11 +360,13 @@ export default function SettingsScreen() {
                   </ThemedText>
                 </TouchableOpacity>
               </View>
-              <PlatformButton>
-                <ThemedText type="bodyLargeMedium" style={{ color: Colors.white }}>
-                  Связаться с нами
-                </ThemedText>
-              </PlatformButton>
+              <Link asChild href={SUPPORT_BOT_URL}>
+                <PlatformButton>
+                  <ThemedText type="bodyLargeMedium" style={{ color: Colors.white }}>
+                    Связаться с нами
+                  </ThemedText>
+                </PlatformButton>
+              </Link>
             </View>
           </View>
         </ScrollView>
