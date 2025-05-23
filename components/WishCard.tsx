@@ -10,7 +10,7 @@ import { Wish } from '@/models';
 import { getDaysUntilBookingExpires } from '@/utils/getDaysUntil';
 import { Colors } from '@/constants/themes';
 import { Icon } from '@/components/Icon';
-import Animated, { Easing, FadeIn, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
+import Animated, { Easing, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 
 const mask = `
   <svg width="88" height="86" viewBox="0 0 88 86" fill="none" xmlns="http://www.w3.org/2000/svg">
