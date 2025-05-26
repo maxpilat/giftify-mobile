@@ -16,7 +16,7 @@ export const Checkbox = ({ label, isSelected, onPress }: Props) => {
   return (
     <TouchableOpacity style={styles.container} onPress={onPress}>
       <View style={[styles.checkbox, isSelected && { borderColor: theme.primary, backgroundColor: theme.primary }]}>
-        {isSelected && <Icon name="accept" size={12} color={Colors.white} />}
+        {isSelected && <Icon name="accept" size={12} parentBackgroundColor={theme.primary} />}
       </View>
       <ThemedText type="bodyLarge">{label}</ThemedText>
     </TouchableOpacity>

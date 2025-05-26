@@ -88,51 +88,43 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
       token: user.token,
     });
 
-    setBookings(bookings);
+    const imagesMap = new Map(
+      await Promise.all(
+        bookings.map(async (booking) => {
+          const image = await apiFetchImage({
+            endpoint: API.wishes.getImage(booking.wish.wishId),
+            token: user.token,
+          });
+          return [booking.bookingId, image] as const;
+        })
+      )
+    );
 
-    Promise.all(
-      bookings.map(async (booking) => {
-        const image = await apiFetchImage({
-          endpoint: API.wishes.getImage(booking.wish.wishId),
-          token: user.token,
-        });
-        return [booking.bookingId, image] as const;
-      })
-    )
-      .then((entries) => new Map(entries))
-      .then((imagesMap) => {
-        setBookings((prevBookings) =>
-          prevBookings.map((booking) => ({
-            ...booking,
-            wish: { ...booking.wish, image: imagesMap.get(booking.bookingId) },
-          }))
-        );
-      });
+    const avatarsMap = new Map(
+      await Promise.all(
+        bookings.map(async (booking) => {
+          const avatar = await apiFetchImage({
+            endpoint: API.profile.getAvatar(booking.wish.wisherProfileData.userId),
+            token: user.token,
+          });
+          return [booking.bookingId, avatar] as const;
+        })
+      )
+    );
 
-    Promise.all(
-      bookings.map(async (booking) => {
-        const avatar = await apiFetchImage({
-          endpoint: API.profile.getAvatar(booking.wish.wisherProfileData.userId),
-          token: user.token,
-        });
-        return [booking.bookingId, avatar] as const;
-      })
-    )
-      .then((entries) => new Map(entries))
-      .then((avatarsMap) => {
-        setBookings((prevBookings) =>
-          prevBookings.map((booking) => ({
-            ...booking,
-            wish: {
-              ...booking.wish,
-              wisherProfileData: {
-                ...booking.wish.wisherProfileData,
-                avatar: avatarsMap.get(booking.bookingId),
-              },
-            },
-          }))
-        );
-      });
+    setBookings(
+      bookings.map((booking) => ({
+        ...booking,
+        wish: {
+          ...booking.wish,
+          image: imagesMap.get(booking.bookingId),
+          wisherProfileData: {
+            ...booking.wish.wisherProfileData,
+            avatar: avatarsMap.get(booking.bookingId),
+          },
+        },
+      }))
+    );
 
     return bookings;
   }, [user]);
@@ -153,26 +145,24 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
       token: user.token,
     });
 
-    setFriends(friends);
+    const avatarsMap = new Map(
+      await Promise.all(
+        friends.map(async (friend) => {
+          const image = await apiFetchImage({
+            endpoint: API.profile.getAvatar(friend.friendId),
+            token: user.token,
+          });
+          return [friend.friendId, image] as const;
+        })
+      )
+    );
 
-    Promise.all(
-      friends.map(async (friend) => {
-        const image = await apiFetchImage({
-          endpoint: API.profile.getAvatar(friend.friendId),
-          token: user.token,
-        });
-        return [friend.friendId, image] as const;
-      })
-    )
-      .then((entries) => new Map(entries))
-      .then((avatarsMap) => {
-        setFriends((prevFriends) =>
-          prevFriends.map((friend) => ({
-            ...friend,
-            avatar: avatarsMap.get(friend.friendId),
-          }))
-        );
-      });
+    setFriends(
+      friends.map((friend) => ({
+        ...friend,
+        avatar: avatarsMap.get(friend.friendId),
+      }))
+    );
 
     return friends;
   }, [user]);
@@ -183,26 +173,24 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
       token: user.token,
     });
 
-    setWishes(wishes);
+    const imagesMap = new Map(
+      await Promise.all(
+        wishes.map(async (wish) => {
+          const image = await apiFetchImage({
+            endpoint: API.wishes.getImage(wish.wishId),
+            token: user.token,
+          });
+          return [wish.wishId, image] as const;
+        })
+      )
+    );
 
-    Promise.all(
-      wishes.map(async (wish) => {
-        const image = await apiFetchImage({
-          endpoint: API.wishes.getImage(wish.wishId),
-          token: user.token,
-        });
-        return [wish.wishId, image] as const;
-      })
-    )
-      .then((entries) => new Map(entries))
-      .then((imagesMap) => {
-        setWishes((prevWishes) =>
-          prevWishes.map((wish) => ({
-            ...wish,
-            image: imagesMap.get(wish.wishId),
-          }))
-        );
-      });
+    setWishes(
+      wishes.map((wish) => ({
+        ...wish,
+        image: imagesMap.get(wish.wishId),
+      }))
+    );
 
     return wishes;
   }, [user]);
@@ -223,28 +211,26 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
       token: user.token,
     });
 
-    setPiggyBanks(piggyBanks);
+    const imagesMap = new Map(
+      await Promise.all(
+        piggyBanks.map(async (piggyBank) => {
+          const image = await apiFetchImage({
+            endpoint: API.wishes.getImage(piggyBank.wishId),
+            token: user.token,
+          });
+          return [piggyBank.wishId, image] as const;
+        })
+      )
+    );
 
-    Promise.all(
-      piggyBanks.map(async (piggyBank) => {
-        const image = await apiFetchImage({
-          endpoint: API.wishes.getImage(piggyBank.wishId),
-          token: user.token,
-        });
-        return [piggyBank.wishId, image] as const;
-      })
-    )
-      .then((entries) => new Map(entries))
-      .then((imagesMap) => {
-        setPiggyBanks((prevPiggyBanks) =>
-          prevPiggyBanks.map((piggyBank) => ({
-            ...piggyBank,
-            image: imagesMap.get(piggyBank.wishId),
-          }))
-        );
-      });
+    setPiggyBanks(
+      piggyBanks.map((piggyBank) => ({
+        ...piggyBank,
+        image: imagesMap.get(piggyBank.wishId),
+      }))
+    );
 
-    return wishes;
+    return piggyBanks;
   }, [user]);
 
   const isFriend = useCallback(

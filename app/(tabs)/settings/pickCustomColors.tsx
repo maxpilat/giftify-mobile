@@ -56,7 +56,7 @@ export default function PickCustomColorsScreen() {
           >
             <ThemedText
               type="bodyLargeMedium"
-              backgroundColor={tabIndex === index ? theme.secondary : theme.background}
+              parentBackgroundColor={tabIndex === index ? theme.secondary : theme.background}
             >
               {tab}
             </ThemedText>
@@ -96,7 +96,7 @@ export default function PickCustomColorsScreen() {
           </ThemedText>
         </PlatformButton>
         <PlatformButton style={styles.button} onPress={() => handleSubmit(primaryColor, secondaryColor)}>
-          <ThemedText type="bodyLargeMedium" style={styles.buttonText}>
+          <ThemedText type="bodyLargeMedium" parentBackgroundColor={theme.primary}>
             Применить
           </ThemedText>
         </PlatformButton>

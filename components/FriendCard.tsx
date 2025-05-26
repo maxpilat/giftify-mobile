@@ -88,7 +88,7 @@ export const FriendCard = ({ friend }: Props) => {
           style={[styles.friendButton, { backgroundColor: theme.button }]}
           onPress={handleRejectFriendRequest}
         >
-          <Icon name="accept" color={Colors.white} />
+          <Icon name="accept" parentBackgroundColor={theme.button} />
         </TouchableOpacity>
       );
     } else if (isReceiver(friend.friendId)) {
@@ -105,7 +105,7 @@ export const FriendCard = ({ friend }: Props) => {
     }
     return (
       <TouchableOpacity style={[styles.friendButton, { backgroundColor: theme.button }]} onPress={acceptFriendRequest}>
-        <Icon name="plus" color={Colors.white} />
+        <Icon name="plus" parentBackgroundColor={theme.button} />
       </TouchableOpacity>
     );
   };

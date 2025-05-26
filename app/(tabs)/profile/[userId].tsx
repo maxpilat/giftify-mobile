@@ -1,5 +1,15 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { View, StyleSheet, Pressable, ScrollView, TouchableOpacity, RefreshControl, Alert, Share } from 'react-native';
+import {
+  View,
+  StyleSheet,
+  Pressable,
+  ScrollView,
+  TouchableOpacity,
+  RefreshControl,
+  Alert,
+  Share,
+  Dimensions,
+} from 'react-native';
 import { ParallaxScrollView } from '@/components/ParallaxScrollView';
 import { ProfileHeader } from '@/components/ProfileHeader';
 import MasonryList from '@react-native-seoul/masonry-list';
@@ -24,6 +34,9 @@ import { getDefaultBackground } from '@/utils/profileBackground';
 import * as Linking from 'expo-linking';
 import { showToast } from '@/utils/showToast';
 import { BackButton } from '@/components/BackButton';
+import { Skeleton } from '@/components/Skeleton';
+
+const screenWidth = Dimensions.get('window').width;
 
 type SearchParams = {
   userId?: string;
@@ -41,7 +54,6 @@ export default function ProfileScreen() {
     wishLists: myWishLists,
     piggyBanks: myPiggyBanks,
     friends: myFriends,
-    isLoaded: isProfileLoaded,
     fetchAvatar: fetchMyAvatar,
     fetchBackground: fetchMyBackground,
     fetchBookings: fetchMyBookings,
@@ -65,6 +77,8 @@ export default function ProfileScreen() {
   const [avatar, setAvatar] = useState<string>();
   const [background, setBackground] = useState<ProfileBackground>();
   const [friends, setFriends] = useState<Friend[]>([]);
+
+  const [isWishesLoading, setIsWishesLoading] = useState(true);
 
   const scrollRef = useRef<ScrollView>(null);
 
@@ -93,7 +107,7 @@ export default function ProfileScreen() {
   }, [wishListId]);
 
   useEffect(() => {
-    if (isCurrentUser && isProfileLoaded) {
+    if (isCurrentUser) {
       setAvatar(myAvatar);
       setBackground(myBackground);
       setWishes(myWishes);
@@ -110,7 +124,7 @@ export default function ProfileScreen() {
       fetchMyAvatar();
       fetchMyBackground();
       const bookingsPromise = fetchMyBookings();
-      const wishesPromise = fetchMyWishes();
+      const wishesPromise = fetchMyWishes().then(() => setIsWishesLoading(false));
       const wishListsPromise = fetchMyWishLists().then(() => wishListId && setCurrentWishListId(+wishListId));
       const piggyBanksPromise = fetchMyPiggyBanks();
       const friendsPromise = fetchMyFriends();
@@ -142,28 +156,30 @@ export default function ProfileScreen() {
       const wishesPromise = apiFetchData<Wish[]>({
         endpoint: API.profile.getWishes(+userId),
         token: authUser.token,
-      }).then(async (data) => {
-        setWishes(data);
+      })
+        .then(async (data) => {
+          setWishes(data);
 
-        const imagesMap = new Map(
-          await Promise.all(
-            data.map(async (wish) => {
-              const image = await apiFetchImage({
-                endpoint: API.wishes.getImage(wish.wishId),
-                token: authUser.token,
-              });
-              return [wish.wishId, image] as const;
-            })
-          )
-        );
+          const imagesMap = new Map(
+            await Promise.all(
+              data.map(async (wish) => {
+                const image = await apiFetchImage({
+                  endpoint: API.wishes.getImage(wish.wishId),
+                  token: authUser.token,
+                });
+                return [wish.wishId, image] as const;
+              })
+            )
+          );
 
-        const updatedWishes = data.map((wish) => ({
-          ...wish,
-          image: imagesMap.get(wish.wishId),
-        }));
+          const updatedWishes = data.map((wish) => ({
+            ...wish,
+            image: imagesMap.get(wish.wishId),
+          }));
 
-        setWishes(updatedWishes);
-      });
+          setWishes(updatedWishes);
+        })
+        .then(() => setIsWishesLoading(false));
 
       const wishListsPromise = apiFetchData<WishList[]>({
         endpoint: API.profile.getWishLists(+userId),
@@ -485,7 +501,7 @@ export default function ProfileScreen() {
                         <View style={[styles.wishList, styles.addWishListButton, { backgroundColor: theme.button }]}>
                           <Link asChild href={'./wishListModal'}>
                             <TouchableOpacity activeOpacity={0.7} style={styles.addWishListButtonTouchable}>
-                              <Icon name="plus" />
+                              <Icon name="plus" parentBackgroundColor={theme.button} />
                             </TouchableOpacity>
                           </Link>
                         </View>
@@ -512,57 +528,70 @@ export default function ProfileScreen() {
                       ))}
                     </ScrollView>
 
-                    {wishListData.length ? (
+                    {wishListData.length || isWishesLoading ? (
                       <MasonryList
-                        data={wishListData}
+                        data={
+                          isWishesLoading ? [{ wishId: 1 }, { wishId: 2 }, { wishId: 3 }, { wishId: 4 }] : wishListData
+                        }
                         keyExtractor={(wish: Wish) => wish.wishId.toString()}
                         numColumns={2}
                         contentContainerStyle={styles.list}
                         renderItem={({ item, i }) => {
-                          const wish = item as Wish;
-                          const activeBooking = wish.activeBookingId ? getMyBookingById(wish.activeBookingId) : null;
-                          const showBooking = !isCurrentUser && Boolean(activeBooking);
-                          const booker =
-                            !isCurrentUser && activeBooking
-                              ? { booked: activeBooking.booked, avatar: myAvatar }
-                              : undefined;
-                          const wisher = isCurrentUser ? activeBooking?.wish.wisherProfileData : undefined;
+                          if (!isWishesLoading) {
+                            const wish = item as Wish;
+                            const activeBooking = wish.activeBookingId ? getMyBookingById(wish.activeBookingId) : null;
+                            const showBooking = !isCurrentUser && Boolean(activeBooking);
+                            const booker =
+                              !isCurrentUser && activeBooking
+                                ? { booked: activeBooking.booked, avatar: myAvatar }
+                                : undefined;
+                            const wisher = isCurrentUser ? activeBooking?.wish.wisherProfileData : undefined;
+                            return (
+                              <Link
+                                asChild
+                                href={{ pathname: '/profile/wishes', params: { wishId: wish.wishId, userId } }}
+                                style={[
+                                  { marginTop: [0, 1].includes(i) ? 0 : 16 },
+                                  { [i % 2 === 0 ? 'marginRight' : 'marginLeft']: 8 },
+                                ]}
+                              >
+                                <Pressable>
+                                  <WishCard
+                                    wish={
+                                      {
+                                        ...wish,
+                                        image: wishes.find((item) => item.wishId === wish.wishId)?.image,
+                                      } as Wish
+                                    }
+                                    actions={
+                                      isCurrentUser
+                                        ? [
+                                            { label: 'Редактировать', onPress: () => editWish(wish.wishId) },
+                                            { label: 'Поделиться', onPress: () => shareWish(wish) },
+                                            { label: 'Удалить', onPress: () => deleteWish(wish.wishId) },
+                                          ]
+                                        : ([
+                                            { label: 'Сохранить к себе', onPress: () => saveWish(wish) },
+                                            isFriend(+userId) ? getBookingAction(wish.wishId) : null,
+                                            { label: 'Поделиться', onPress: () => shareWish(wish) },
+                                          ].filter(Boolean) as Action[])
+                                    }
+                                    showBooking={showBooking}
+                                    booker={booker}
+                                    wisher={wisher}
+                                  />
+                                </Pressable>
+                              </Link>
+                            );
+                          }
                           return (
-                            <Link
-                              asChild
-                              href={{ pathname: '/profile/wishes', params: { wishId: wish.wishId, userId } }}
-                              style={[
-                                { marginTop: [0, 1].includes(i) ? 0 : 16 },
-                                { [i % 2 === 0 ? 'marginRight' : 'marginLeft']: 8 },
-                              ]}
-                            >
-                              <Pressable>
-                                <WishCard
-                                  wish={
-                                    {
-                                      ...wish,
-                                      image: wishes.find((item) => item.wishId === wish.wishId)?.image,
-                                    } as Wish
-                                  }
-                                  actions={
-                                    isCurrentUser
-                                      ? [
-                                          { label: 'Редактировать', onPress: () => editWish(wish.wishId) },
-                                          { label: 'Поделиться', onPress: () => shareWish(wish) },
-                                          { label: 'Удалить', onPress: () => deleteWish(wish.wishId) },
-                                        ]
-                                      : ([
-                                          { label: 'Сохранить к себе', onPress: () => saveWish(wish) },
-                                          isFriend(+userId) ? getBookingAction(wish.wishId) : null,
-                                          { label: 'Поделиться', onPress: () => shareWish(wish) },
-                                        ].filter(Boolean) as Action[])
-                                  }
-                                  showBooking={showBooking}
-                                  booker={booker}
-                                  wisher={wisher}
-                                />
-                              </Pressable>
-                            </Link>
+                            <Skeleton
+                              style={{
+                                height: screenWidth / 2 + Math.random() * 100,
+                                [i % 2 === 0 ? 'marginRight' : 'marginLeft']: 8,
+                                marginTop: [0, 1].includes(i) ? 0 : 16,
+                              }}
+                            />
                           );
                         }}
                       />
@@ -715,7 +744,7 @@ export default function ProfileScreen() {
         {isCurrentUser && (
           <Animated.View style={[styles.addItemButton, { backgroundColor: theme.primary }, addItemButtonAnimatedStyle]}>
             <Pressable onPress={addItem} style={styles.addItemButtonPressable}>
-              <Icon name="plus" />
+              <Icon name="plus" parentBackgroundColor={theme.primary} />
             </Pressable>
           </Animated.View>
         )}

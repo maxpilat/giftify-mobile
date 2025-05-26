@@ -50,18 +50,21 @@ export function ProgressBar({ currentAmount = 0, targetAmount = 100, currency }:
 
   return (
     <View>
-      <View style={styles.progressBar} onLayout={(event) => setBarWidth(event.nativeEvent.layout.width)}>
+      <View
+        style={[styles.progressBar, { backgroundColor: theme.subBackground }]}
+        onLayout={(event) => setBarWidth(event.nativeEvent.layout.width)}
+      >
         <Animated.View style={[styles.progressFill, barStyle, { backgroundColor: theme.secondary }]} />
       </View>
 
       {currency && (
         <View style={styles.textContainer}>
-          <Animated.Text
+          <ThemedText
             style={[labelStyle, { color: theme.secondary }]}
             onLayout={(event) => setLabelWidth(event.nativeEvent.layout.width)}
           >
             {currentAmount} {currency.symbol}
-          </Animated.Text>
+          </ThemedText>
           <ThemedText type="labelLarge">
             {targetAmount} {currency.symbol}
           </ThemedText>
@@ -74,7 +77,6 @@ export function ProgressBar({ currentAmount = 0, targetAmount = 100, currency }:
 const styles = StyleSheet.create({
   progressBar: {
     height: 10,
-    backgroundColor: '#d3d3d3',
     borderRadius: 10,
     overflow: 'hidden',
   },

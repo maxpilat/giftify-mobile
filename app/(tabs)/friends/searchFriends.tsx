@@ -65,10 +65,10 @@ export default function SearchFriendsScreen() {
         returnKeyType="search"
       />
       <PlatformButton onPress={inviteFriend}>
-        <ThemedText type="bodyLargeMedium" style={styles.buttonText}>
+        <ThemedText type="bodyLargeMedium" style={styles.buttonText} parentBackgroundColor={theme.primary}>
           Пригласить в приложение
         </ThemedText>
-        <Icon name="addUser" color={Colors.white} />
+        <Icon name="addUser" parentBackgroundColor={theme.primary} />
       </PlatformButton>
       <ThemedView>
         {filteredUsers.map((user, index) => (

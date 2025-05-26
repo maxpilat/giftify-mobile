@@ -362,7 +362,7 @@ export default function SettingsScreen() {
               </View>
               <Link asChild href={SUPPORT_BOT_URL}>
                 <PlatformButton>
-                  <ThemedText type="bodyLargeMedium" style={{ color: Colors.white }}>
+                  <ThemedText type="bodyLargeMedium" parentBackgroundColor={theme.primary}>
                     Связаться с нами
                   </ThemedText>
                 </PlatformButton>

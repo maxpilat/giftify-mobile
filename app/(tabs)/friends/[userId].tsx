@@ -139,22 +139,18 @@ export default function FriendsScreen() {
                   >
                     <ThemedText
                       type="bodyLargeMedium"
-                      backgroundColor={currentTabIndex === index ? theme.secondary : theme.background}
+                      parentBackgroundColor={currentTabIndex === index ? theme.secondary : theme.background}
                     >
                       {tab}
                     </ThemedText>
                   </TouchableOpacity>
                 ))}
               </View>
-              <PlatformButton
-                style={styles.button}
-                hapticFeedback="none"
-                onPress={() => router.push('/friends/searchFriends')}
-              >
-                <ThemedText type="bodyLargeMedium" style={styles.buttonText}>
+              <PlatformButton hapticFeedback="none" onPress={() => router.push('/friends/searchFriends')}>
+                <ThemedText type="bodyLargeMedium" parentBackgroundColor={theme.primary}>
                   Найти друзей
                 </ThemedText>
-                <Icon name="search" color={Colors.white} />
+                <Icon name="search" parentBackgroundColor={theme.primary} />
               </PlatformButton>
             </View>
           )}
@@ -206,10 +202,7 @@ const styles = StyleSheet.create({
     borderRadius: 40,
     alignItems: 'center',
   },
-  button: {},
-  buttonText: {
-    color: Colors.white,
-  },
+
   friends: {},
   divider: {
     height: 1,

@@ -47,20 +47,31 @@ export default function WishModalScreen() {
   const [switchStates, setSwitchStates] = useState<SwitchState[]>([]);
   const [currencies, setCurrencies] = useState<Currency[]>([]);
 
+  const [prevWishLists, setPrevWishLists] = useState(wishLists);
+
   useEffect(() => {
     apiFetchData<Currency[]>({ endpoint: API.currencies.getCurrencies, token: user.token }).then((currencies) => {
       setCurrencies(currencies);
       if (!currency) setCurrency(currencies[0]);
     });
+
+    setSwitchStates(() =>
+      wishLists.map((wishList) => ({
+        id: wishList.wishListId,
+        enabled: !!wishIdParam && wishList.wishes.some((wish) => wish.wishId === +wishIdParam),
+      }))
+    );
   }, []);
 
   useEffect(() => {
-    setSwitchStates(() =>
-      wishLists.map(({ wishListId, wishes }) => ({
-        id: wishListId,
-        enabled: !!wishIdParam && wishes.some(({ wishId }) => wishId === +wishIdParam),
-      }))
+    const newWishList = wishLists.find(
+      (wishList) => !prevWishLists.some((prevWishList) => prevWishList.wishListId === wishList.wishListId)
     );
+
+    if (newWishList) {
+      setSwitchStates((prev) => [...prev, { id: newWishList.wishListId, enabled: true }]);
+      setPrevWishLists(wishLists);
+    }
   }, [wishLists]);
 
   useEffect(() => {
@@ -114,30 +125,30 @@ export default function WishModalScreen() {
             token: user.token,
             body: { ...payload, image: binaryImage },
           });
-
-          await Promise.all(
-            switchStates.map((state) => {
-              const wishList = wishLists.find((item) => item.wishListId === state.id)!;
-              const isWishInWishList = wishList.wishes.some((wish) => wish.wishId === wishId);
-
-              if (state.enabled && !isWishInWishList) {
-                return apiFetchData({
-                  endpoint: API.wishes.addToWishList,
-                  method: 'POST',
-                  body: { wishId, wishListId: state.id },
-                  token: user.token,
-                });
-              } else if (!state.enabled && isWishInWishList) {
-                return apiFetchData({
-                  endpoint: API.wishes.deleteFromWishList,
-                  method: 'DELETE',
-                  body: { wishId, wishListId: state.id },
-                  token: user.token,
-                });
-              }
-            })
-          );
         }
+
+        await Promise.all(
+          switchStates.map((state) => {
+            const wishList = wishLists.find((item) => item.wishListId === state.id)!;
+            const isWishInWishList = wishList.wishes.some((wish) => wish.wishId === wishId);
+
+            if (state.enabled && !isWishInWishList) {
+              return apiFetchData({
+                endpoint: API.wishes.addToWishList,
+                method: 'POST',
+                body: { wishId, wishListId: state.id },
+                token: user.token,
+              });
+            } else if (!state.enabled && isWishInWishList) {
+              return apiFetchData({
+                endpoint: API.wishes.deleteFromWishList,
+                method: 'DELETE',
+                body: { wishId, wishListId: state.id },
+                token: user.token,
+              });
+            }
+          })
+        );
 
         router.back();
         await Promise.all([fetchWishes(), fetchWishLists()]);
@@ -238,7 +249,7 @@ export default function WishModalScreen() {
           <ThemedText type="bodyLargeMedium" style={styles.addWishListButtonText}>
             Новый список
           </ThemedText>
-          <Icon name="plus" />
+          <Icon name="plus" parentBackgroundColor={theme.button} />
         </PlatformButton>
 
         <View style={styles.wishListsContainer}>

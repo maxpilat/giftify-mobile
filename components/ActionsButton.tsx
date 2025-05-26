@@ -13,10 +13,18 @@ type Props = {
   size?: number;
   pressOpacity?: number;
   disabled?: boolean;
+  parentBackgroundColor?: string;
   style?: StyleProp<ViewStyle>;
 };
 
-export function ActionButton({ actions, size = 50, pressOpacity = 0.9, disabled, style }: Props) {
+export function ActionButton({
+  actions,
+  size = 50,
+  pressOpacity = 0.9,
+  disabled,
+  parentBackgroundColor,
+  style,
+}: Props) {
   const { showActionSheetWithOptions } = useActionSheet();
   const { theme } = useTheme();
 
@@ -53,7 +61,7 @@ export function ActionButton({ actions, size = 50, pressOpacity = 0.9, disabled,
       onPress={handleActions}
       activeOpacity={pressOpacity}
     >
-      <Icon name="actions" />
+      <Icon name="actions" parentBackgroundColor={parentBackgroundColor} />
     </TouchableOpacity>
   );
 }

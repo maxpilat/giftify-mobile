@@ -63,6 +63,8 @@ export const apiFetchImage = async ({ endpoint, token }: ApiFetchImageParams): P
       throw new Error(`HTTP Error: ${response.status} - ${errorText}`);
     }
 
+    console.log('binary');
+
     return binaryToBase64(await response.arrayBuffer());
   } catch (error) {
     console.error('Error in fetchImage:', error);

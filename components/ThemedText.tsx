@@ -18,17 +18,17 @@ type Props = TextProps & {
     | 'labelLarge'
     | 'labelBase'
     | 'labelSmall';
-  backgroundColor?: string;
+  parentBackgroundColor?: string;
   style?: StyleProp<TextStyle> | StyleProp<AnimatedStyle<StyleProp<TextStyle>>>;
 };
 
-export function ThemedText({ style, type = 'bodyBase', backgroundColor, ...rest }: Props) {
+export function ThemedText({ style, type = 'bodyBase', parentBackgroundColor, ...rest }: Props) {
   const { theme } = useTheme();
 
   return (
     <Animated.Text
       style={[
-        { color: backgroundColor ? (colorKit.isDark(backgroundColor) ? Colors.white : Colors.black) : theme.text },
+        { color: parentBackgroundColor ? (colorKit.isDark(parentBackgroundColor) ? Colors.white : Colors.black) : theme.text },
         type === 'bodyBase' ? styles.bodyBase : undefined,
         type === 'h1' ? styles.h1 : undefined,
         type === 'h2' ? styles.h2 : undefined,

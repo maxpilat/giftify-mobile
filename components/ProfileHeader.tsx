@@ -96,7 +96,7 @@ export function ProfileHeader({ profile, avatar, background, friendsCount, frien
 
     return (
       <TouchableOpacity style={[styles.friendButton, { backgroundColor: theme.primary }]} onPress={acceptFriendRequest}>
-        <Icon name="plus" color={Colors.white} />
+        <Icon name="plus" parentBackgroundColor={theme.primary} />
       </TouchableOpacity>
     );
   };
@@ -191,7 +191,7 @@ export function ProfileHeader({ profile, avatar, background, friendsCount, frien
               >
                 <ThemedText
                   type="bodyLargeMedium"
-                  backgroundColor={currentTabIndex === index ? theme.secondary : theme.background}
+                  parentBackgroundColor={currentTabIndex === index ? theme.secondary : theme.background}
                 >
                   {tab}
                 </ThemedText>

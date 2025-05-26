@@ -140,7 +140,7 @@ export function FullWishCard({ wish, onLayout }: Props) {
     if (wish.wisherProfileData.userId === authUser.id) {
       return (
         <PlatformButton onPress={fulfillWish} hapticFeedback="Heavy">
-          <ThemedText type="bodyLargeMedium" style={{ color: Colors.white }}>
+          <ThemedText type="bodyLargeMedium" parentBackgroundColor={theme.primary}>
             Исполнено
           </ThemedText>
         </PlatformButton>
@@ -251,18 +251,20 @@ export function FullWishCard({ wish, onLayout }: Props) {
           </ThemedText>
         </View>
 
-        <View style={styles.descriptionContainer}>
-          <ThemedText type="bodyLarge" numberOfLines={isCollapsed ? 3 : undefined}>
-            {wish.description}
-          </ThemedText>
-          {descriptionNumLines > 3 && (
-            <TouchableOpacity onPress={() => setIsCollapsed((prev) => !prev)}>
-              <ThemedText type="bodyLargeMedium" style={[styles.detailsLink, { color: theme.primary }]}>
-                {isCollapsed ? 'Подробнее' : 'Свернуть'}
-              </ThemedText>
-            </TouchableOpacity>
-          )}
-        </View>
+        {wish.description && (
+          <View style={styles.descriptionContainer}>
+            <ThemedText type="bodyLarge" numberOfLines={isCollapsed ? 3 : undefined}>
+              {wish.description}
+            </ThemedText>
+            {descriptionNumLines > 3 && (
+              <TouchableOpacity onPress={() => setIsCollapsed((prev) => !prev)}>
+                <ThemedText type="bodyLargeMedium" style={[styles.detailsLink, { color: theme.primary }]}>
+                  {isCollapsed ? 'Подробнее' : 'Свернуть'}
+                </ThemedText>
+              </TouchableOpacity>
+            )}
+          </View>
+        )}
       </View>
     </View>
   );
