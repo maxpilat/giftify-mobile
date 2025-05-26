@@ -102,6 +102,8 @@ export default function ProfileScreen() {
 
   const isCurrentUser = +userId === authUser.id;
 
+  const listPaddingBottom = isCurrentUser && currentTabIndex !== 2 ? 130 : 80;
+
   useEffect(() => {
     if (wishListId && wishLists.length) setCurrentWishListId(+wishListId);
   }, [wishListId]);
@@ -535,7 +537,7 @@ export default function ProfileScreen() {
                         }
                         keyExtractor={(wish: Wish) => wish.wishId.toString()}
                         numColumns={2}
-                        contentContainerStyle={styles.list}
+                        contentContainerStyle={[styles.list, { paddingBottom: listPaddingBottom }]}
                         renderItem={({ item, i }) => {
                           if (!isWishesLoading) {
                             const wish = item as Wish;
@@ -615,7 +617,7 @@ export default function ProfileScreen() {
                 ))}
 
               {currentVisibleTabIndex === 1 && (
-                <View style={[styles.list, styles.piggyBankList]}>
+                <View style={[styles.list, styles.piggyBankList, { paddingBottom: listPaddingBottom }]}>
                   {!isCurrentUser && profile?.isPrivate ? (
                     <View style={styles.noWishesContainer}>
                       <ThemedText style={styles.noWishesMessage} type="bodyLarge">
@@ -694,7 +696,7 @@ export default function ProfileScreen() {
                       data={myBookings}
                       keyExtractor={(booking: Booking) => booking.bookingId.toString()}
                       numColumns={2}
-                      contentContainerStyle={styles.list}
+                      contentContainerStyle={[styles.list, { paddingBottom: listPaddingBottom }]}
                       renderItem={({ item, i }) => {
                         const wish = (item as Booking).wish;
                         return (
@@ -794,7 +796,6 @@ const styles = StyleSheet.create({
   },
   list: {
     paddingHorizontal: 16,
-    paddingBottom: 130,
   },
   piggyBankList: {
     gap: 32,
