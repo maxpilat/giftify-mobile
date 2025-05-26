@@ -5,7 +5,6 @@ import { SvgXml } from 'react-native-svg';
 import { ThemedView } from '@/components/ThemedView';
 import { Action, ActionButton } from '@/components/ActionsButton';
 import { ThemedText } from '@/components/ThemedText';
-import { useTheme } from '@/hooks/useTheme';
 import { Wish } from '@/models';
 import { getDaysUntilBookingExpires } from '@/utils/getDaysUntil';
 import { Colors } from '@/constants/themes';
