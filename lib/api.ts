@@ -20,15 +20,13 @@ export const apiFetchData = async <T = void>({
       headers.Authorization = `Bearer ${token}`;
     }
 
-    // console.log(token);
+    console.log(token);
 
     const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}${endpoint}`, {
       method,
       headers,
       body: body ? JSON.stringify(body) : undefined,
     });
-
-    console.log(response);
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -55,8 +53,6 @@ export const apiFetchImage = async ({ endpoint, token }: ApiFetchImageParams): P
       headers.Authorization = `Bearer ${token}`;
     }
 
-    // console.log(endpoint);
-
     const response = await fetch(`${process.env.EXPO_PUBLIC_API_URL}${endpoint}`, {
       method: 'GET',
       headers,
@@ -66,8 +62,6 @@ export const apiFetchImage = async ({ endpoint, token }: ApiFetchImageParams): P
       const errorText = await response.text();
       throw new Error(`HTTP Error: ${response.status} - ${errorText}`);
     }
-
-    // console.log('binary');
 
     return binaryToBase64(await response.arrayBuffer());
   } catch (error) {

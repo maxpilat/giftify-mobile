@@ -1,6 +1,6 @@
 export interface Wish {
   wishId: number;
-  wisherProfileData: Profile,
+  wisherProfileData: Profile;
   wishType: WishType;
   name: string;
   description?: string;
@@ -99,3 +99,25 @@ export interface ProfileBackground {
   backgroundUri?: string;
   backgroundColor?: string;
 }
+
+export interface Chat {
+  chatType: ChatType;
+  userOneId: number;
+  userOneDisplayName: string;
+  userTwoId: number;
+  lastMessage?: Message;
+  unreadMessageCount?: number;
+}
+
+export type ChatType = 'TYPE_PERSONAL' | 'TYPE_ANONYMOUS';
+
+export interface Message {
+  id: number;
+  fromUserId: number;
+  messageType: MessageType;
+  text: string;
+  sent: string;
+  isRead: boolean;
+}
+
+export type MessageType = 'TYPE_TEXT' | 'TYPE_IMAGE';

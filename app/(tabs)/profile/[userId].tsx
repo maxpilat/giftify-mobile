@@ -1,15 +1,5 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-import {
-  View,
-  StyleSheet,
-  Pressable,
-  ScrollView,
-  TouchableOpacity,
-  RefreshControl,
-  Alert,
-  Share,
-  Dimensions,
-} from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { View, StyleSheet, Pressable, ScrollView, TouchableOpacity, Alert, Share, Dimensions, RefreshControl } from 'react-native';
 import { ParallaxScrollView } from '@/components/ParallaxScrollView';
 import { ProfileHeader } from '@/components/ProfileHeader';
 import MasonryList from '@react-native-seoul/masonry-list';
@@ -17,7 +7,7 @@ import { WishCard } from '@/components/WishCard';
 import { WishListTab } from '@/components/WishListTab';
 import { Icon } from '@/components/Icon';
 import { ThemedView } from '@/components/ThemedView';
-import { Link, router, Stack, useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { Link, router, Stack, useLocalSearchParams } from 'expo-router';
 import { useTheme } from '@/hooks/useTheme';
 import Animated, { runOnJS, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { ThemedText } from '@/components/ThemedText';

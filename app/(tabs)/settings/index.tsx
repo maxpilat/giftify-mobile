@@ -1,5 +1,5 @@
 import { ThemedText } from '@/components/ThemedText';
-import { StyleSheet, View, Image, TouchableOpacity, Alert, RefreshControl } from 'react-native';
+import { StyleSheet, View, Image, TouchableOpacity, Alert } from 'react-native';
 import { useEffect, useState } from 'react';
 import { Gender, SettingsData } from '@/models';
 import { TextInput } from '@/components/TextInput';
@@ -18,7 +18,7 @@ import { API, SUPPORT_BOT_URL } from '@/constants/api';
 import { useProfile } from '@/hooks/useStore';
 import { launchImageLibraryAsync } from 'expo-image-picker';
 import { showToast } from '@/utils/showToast';
-import { GestureHandlerRootView, ScrollView } from 'react-native-gesture-handler';
+import { GestureHandlerRootView, RefreshControl, ScrollView } from 'react-native-gesture-handler';
 
 export default function SettingsScreen() {
   const { theme } = useTheme();

@@ -61,6 +61,14 @@ export const API = {
   currencies: {
     getCurrencies: '/api/currency',
   },
+  chats: {
+    getMessage: (messageId: number) => `/api/chat/message/${messageId}`,
+    markAsRead: (messageId: number) => `/api/chat/message/${messageId}`,
+    sendMessage: '/api/chat/message',
+    createChat: '/api/chat',
+    getMessages: (chatId: number) => `/api/chat/${chatId}/messages`,
+    getUserChats: (userId: number) => `/api/chat/user/${userId}`,
+  },
 };
 
 export const SUPPORT_BOT_URL = 'https://t.me/GiftifyHelpBot';

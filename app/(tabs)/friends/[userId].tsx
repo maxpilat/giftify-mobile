@@ -1,5 +1,5 @@
 import { ThemedText } from '@/components/ThemedText';
-import { View, StyleSheet, TouchableOpacity, RefreshControl } from 'react-native';
+import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { useTheme } from '@/hooks/useTheme';
 import { useEffect, useState, Fragment } from 'react';
 import { useAnimatedStyle, withTiming, useSharedValue, runOnJS } from 'react-native-reanimated';
@@ -14,7 +14,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useStore';
 import { ThemedView } from '@/components/ThemedView';
 import { FriendCard } from '@/components/FriendCard';
-import { GestureHandlerRootView, ScrollView } from 'react-native-gesture-handler';
+import { GestureHandlerRootView, RefreshControl, ScrollView } from 'react-native-gesture-handler';
 
 type SearchParams = {
   userId?: string;
@@ -58,11 +58,7 @@ export default function FriendsScreen() {
 
   const onRefresh = () => {
     setIsRefreshing(true);
-    fetchData().finally(() => {
-      if (!isCurrentUser) {
-        setIsRefreshing(false);
-      }
-    });
+    fetchData().finally(() => setIsRefreshing(false));
   };
 
   const fetchData = async () => {
