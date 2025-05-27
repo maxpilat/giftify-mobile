@@ -64,11 +64,13 @@ export function WishCard({
   }, [isLoading]);
 
   useEffect(() => {
-    if (wish.image && !imageAspectRatio) {
-      Image.getSize(wish.image, (width, height) => {
-        setComputedAspectRatio(Math.min(width / height, 1));
-      });
-    }
+    setTimeout(() => {
+      if (wish.image && !imageAspectRatio) {
+        Image.getSize(wish.image, (width, height) => {
+          setComputedAspectRatio(Math.min(width / height, 1));
+        });
+      }
+    }, 300);
   }, [wish.image]);
 
   return (
