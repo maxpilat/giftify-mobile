@@ -142,8 +142,6 @@ export default function ProfileScreen() {
         endpoint: API.profile.getBackground(+userId),
         token: authUser.token,
       }).then((serverBackground) => {
-        console.log(serverBackground);
-
         if (!serverBackground.backgroundImage && !serverBackground.backgroundColor) {
           setBackground(getDefaultBackground(themeType === 'system' ? systemThemeType : themeType));
         } else {
@@ -438,11 +436,11 @@ export default function ProfileScreen() {
     return myBookings.find((booking) => booking.bookingId === bookingId);
   };
 
-  useFocusEffect(
-    useCallback(() => {
-      fetchMyBookings();
-    }, [fetchMyBookings])
-  );
+  // useFocusEffect(
+  //   useCallback(() => {
+  //     fetchMyBookings();
+  //   }, [fetchMyBookings])
+  // );
 
   return (
     <>
@@ -618,7 +616,7 @@ export default function ProfileScreen() {
 
               {currentVisibleTabIndex === 1 && (
                 <View style={[styles.list, styles.piggyBankList, { paddingBottom: listPaddingBottom }]}>
-                  {!isCurrentUser && profile?.isPrivate ? (
+                  {!isCurrentUser && !isFriend(profile.userId) && profile?.isPrivate ? (
                     <View style={styles.noWishesContainer}>
                       <ThemedText style={styles.noWishesMessage} type="bodyLarge">
                         У пользователя закрытый аккаунт
@@ -641,7 +639,7 @@ export default function ProfileScreen() {
                                   Стоимость:
                                 </ThemedText>
                                 <ThemedText type="bodyLargeMedium">
-                                  {piggyBank.price} {piggyBank.currency?.symbol}
+                                  {piggyBank.price} {piggyBank.currency?.transcription}
                                 </ThemedText>
                               </View>
                             </View>

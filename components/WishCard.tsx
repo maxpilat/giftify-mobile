@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { View, StyleSheet, Dimensions } from 'react-native';
+import { View, StyleSheet, Dimensions, Image } from 'react-native';
 import MaskedView from '@react-native-masked-view/masked-view';
 import { SvgXml } from 'react-native-svg';
 import { ThemedView } from '@/components/ThemedView';
@@ -11,7 +11,6 @@ import { Colors } from '@/constants/themes';
 import { Icon } from '@/components/Icon';
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { Skeleton } from '@/components/Skeleton';
-import { Image, useImage } from 'expo-image';
 
 const mask = `
   <svg width="88" height="86" viewBox="0 0 88 86" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -48,8 +47,7 @@ export function WishCard({
   showBooking = booker || wisher ? true : false,
 }: Props) {
   const [isLoading, setIsLoading] = useState(true);
-
-  const image = useImage(wish?.image || '');
+  const [computedAspectRatio, setComputedAspectRatio] = useState<number | null>(imageAspectRatio || null);
 
   const opacity = useSharedValue(0);
   const animatedContainerStyle = useAnimatedStyle(() => ({
@@ -65,10 +63,20 @@ export function WishCard({
     }
   }, [isLoading]);
 
+  useEffect(() => {
+    if (wish.image) {
+      if (!imageAspectRatio) {
+        Image.getSize(wish.image, (width, height) => {
+          setComputedAspectRatio(Math.min(width / height, 1));
+        });
+      }
+    }
+  }, [wish.image]);
+
   return (
     <View style={[styles.container, { minHeight: screenWidth / 2 - (wish.wishType === 'TYPE_PIGGY_BANK' ? 40 : 0) }]}>
       <Animated.View style={[styles.imageContainer, animatedContainerStyle]}>
-        {image && (
+        {computedAspectRatio && (
           <>
             {booker && (
               <View style={styles.imageOverlay}>
@@ -88,8 +96,8 @@ export function WishCard({
             )}
             <Image
               source={{ uri: wish.image }}
-              style={[styles.image, { aspectRatio: imageAspectRatio || Math.min(image.width / image.height, 1) }]}
-              contentFit={'cover'}
+              style={[styles.image, { aspectRatio: computedAspectRatio }]}
+              resizeMode={'cover'}
               onLoad={() => setIsLoading(false)}
             />
           </>

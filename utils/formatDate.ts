@@ -1,6 +1,6 @@
 export function stringToDate(dateString: string): Date {
   const [year, month, day] = dateString.split('-').map(Number);
-  return new Date(year, month - 1, day);
+  return new Date(Date.UTC(year, month - 1, day));
 }
 
 export function dateToString(date: Date): string {

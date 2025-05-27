@@ -77,7 +77,7 @@ export function FullWishCard({ wish, onLayout }: Props) {
 
   const handleBookWish = () => {
     apiFetchData({
-      endpoint: booking ? API.booking.cancel(booking.bookingId) : API.booking.create,
+      endpoint: booking ? API.booking.cancel(booking.wish.wishId) : API.booking.create,
       method: booking ? 'DELETE' : 'POST',
       body: booking ? undefined : { wishId: wish.wishId, bookerId: authUser.id },
       token: authUser.token,
@@ -146,8 +146,6 @@ export function FullWishCard({ wish, onLayout }: Props) {
         </PlatformButton>
       );
     } else {
-      const booking = myBookings.find((item) => item.wish.wishId === wish.wishId);
-
       return (
         <PlatformButton
           onPress={handleBookWish}

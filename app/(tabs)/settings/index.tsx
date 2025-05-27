@@ -1,14 +1,5 @@
 import { ThemedText } from '@/components/ThemedText';
-import {
-  SafeAreaView,
-  ScrollView,
-  StyleSheet,
-  View,
-  Image,
-  TouchableOpacity,
-  Alert,
-  RefreshControl,
-} from 'react-native';
+import { StyleSheet, View, Image, TouchableOpacity, Alert, RefreshControl } from 'react-native';
 import { useEffect, useState } from 'react';
 import { Gender, SettingsData } from '@/models';
 import { TextInput } from '@/components/TextInput';
@@ -27,6 +18,7 @@ import { API, SUPPORT_BOT_URL } from '@/constants/api';
 import { useProfile } from '@/hooks/useStore';
 import { launchImageLibraryAsync } from 'expo-image-picker';
 import { showToast } from '@/utils/showToast';
+import { GestureHandlerRootView, ScrollView } from 'react-native-gesture-handler';
 
 export default function SettingsScreen() {
   const { theme } = useTheme();
@@ -217,8 +209,9 @@ export default function SettingsScreen() {
           ),
         }}
       />
-      <SafeAreaView style={styles.container}>
+      <GestureHandlerRootView>
         <ScrollView
+          contentInsetAdjustmentBehavior="automatic"
           style={styles.scrollView}
           refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />}
         >
@@ -370,15 +363,12 @@ export default function SettingsScreen() {
             </View>
           </View>
         </ScrollView>
-      </SafeAreaView>
+      </GestureHandlerRootView>
     </>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
   scrollView: {
     paddingHorizontal: 16,
   },

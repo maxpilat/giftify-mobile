@@ -48,8 +48,7 @@ export default function PiggyBankDepositModalScreen() {
         token: user.token,
         body: { piggyBankId: +piggyBankId, amount },
       })
-        .then(fetchPiggyBanks)
-
+        .then(() => {})
         .then(() => showToast('success', 'Копилка пополнена'))
         .catch(() => showToast('error', 'Не удалось пополнить копилку'));
 

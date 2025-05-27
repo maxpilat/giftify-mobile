@@ -91,7 +91,7 @@ export function FullPiggyBankCard({ piggyBank, onLayout }: Props) {
               Стоимость:
             </ThemedText>
             <ThemedText type="h5">
-              {piggyBank.price} {piggyBank.currency?.symbol}
+              {piggyBank.price} {piggyBank.currency?.transcription}
             </ThemedText>
           </View>
         </View>
@@ -130,18 +130,20 @@ export function FullPiggyBankCard({ piggyBank, onLayout }: Props) {
           </ThemedText>
         </View>
 
-        <View style={styles.descriptionContainer}>
-          <ThemedText type="bodyLarge" numberOfLines={isCollapsed ? 3 : undefined}>
-            {piggyBank.description}
-          </ThemedText>
-          {descriptionNumLines > 3 && (
-            <TouchableOpacity onPress={() => setIsCollapsed((prev) => !prev)}>
-              <ThemedText type="bodyLargeMedium" style={[styles.detailsLink, { color: theme.primary }]}>
-                {isCollapsed ? 'Подробнее' : 'Свернуть'}
-              </ThemedText>
-            </TouchableOpacity>
-          )}
-        </View>
+        {piggyBank.description && (
+          <View style={styles.descriptionContainer}>
+            <ThemedText type="bodyLarge" numberOfLines={isCollapsed ? 3 : undefined}>
+              {piggyBank.description}
+            </ThemedText>
+            {descriptionNumLines > 3 && (
+              <TouchableOpacity onPress={() => setIsCollapsed((prev) => !prev)}>
+                <ThemedText type="bodyLargeMedium" style={[styles.detailsLink, { color: theme.primary }]}>
+                  {isCollapsed ? 'Подробнее' : 'Свернуть'}
+                </ThemedText>
+              </TouchableOpacity>
+            )}
+          </View>
+        )}
       </View>
     </View>
   );

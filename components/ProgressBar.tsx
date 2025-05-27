@@ -36,7 +36,7 @@ export function ProgressBar({ currentAmount = 0, targetAmount = 100, currency }:
       animatedBar.value = withTiming(progress, options);
 
       const offset = ((barWidth / 100) * progress) / 2 - labelWidth / 2;
-      animatedLabel.value = withTiming(offset, options);
+      animatedLabel.value = withTiming(Math.max(offset, 0), options);
     }
   }, [barWidth, labelWidth, progress]);
 
@@ -60,13 +60,14 @@ export function ProgressBar({ currentAmount = 0, targetAmount = 100, currency }:
       {currency && (
         <View style={styles.textContainer}>
           <ThemedText
+            type="labelLarge"
             style={[labelStyle, { color: theme.secondary }]}
             onLayout={(event) => setLabelWidth(event.nativeEvent.layout.width)}
           >
-            {currentAmount} {currency.symbol}
+            {currentAmount} {currency.transcription}
           </ThemedText>
           <ThemedText type="labelLarge">
-            {targetAmount} {currency.symbol}
+            {targetAmount} {currency.transcription}
           </ThemedText>
         </View>
       )}

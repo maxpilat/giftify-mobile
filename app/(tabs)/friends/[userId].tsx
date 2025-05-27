@@ -1,5 +1,5 @@
 import { ThemedText } from '@/components/ThemedText';
-import { View, StyleSheet, TouchableOpacity, ScrollView, RefreshControl, SafeAreaView } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, RefreshControl } from 'react-native';
 import { useTheme } from '@/hooks/useTheme';
 import { useEffect, useState, Fragment } from 'react';
 import { useAnimatedStyle, withTiming, useSharedValue, runOnJS } from 'react-native-reanimated';
@@ -14,6 +14,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useProfile } from '@/hooks/useStore';
 import { ThemedView } from '@/components/ThemedView';
 import { FriendCard } from '@/components/FriendCard';
+import { GestureHandlerRootView, ScrollView } from 'react-native-gesture-handler';
 
 type SearchParams = {
   userId?: string;
@@ -122,8 +123,9 @@ export default function FriendsScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <GestureHandlerRootView>
       <ScrollView
+        contentInsetAdjustmentBehavior="automatic"
         style={styles.scrollView}
         refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />}
       >
@@ -173,16 +175,14 @@ export default function FriendsScreen() {
           </ThemedView>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </GestureHandlerRootView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
   scrollView: {
     paddingHorizontal: 16,
+    paddingBottom: 100,
   },
   body: {
     marginTop: 16,
