@@ -9,12 +9,11 @@ type Props = {
   chatId: number;
   userTwoName: string;
   userTwoAvatar?: string;
-  timeStamp?: string;
   lastMessage?: Message;
   unreadMessageCount?: number;
 };
 
-export const ChatCard = ({ chatId, userTwoName, userTwoAvatar, timeStamp, lastMessage, unreadMessageCount }: Props) => {
+export const ChatCard = ({ chatId, userTwoName, userTwoAvatar, lastMessage, unreadMessageCount }: Props) => {
   const { theme } = useTheme();
   const { user } = useAuth();
 
@@ -26,21 +25,30 @@ export const ChatCard = ({ chatId, userTwoName, userTwoAvatar, timeStamp, lastMe
           source={userTwoAvatar ? { uri: userTwoAvatar } : require('@/assets/images/avatar.png')}
         />
         <View style={styles.row}>
-          <ThemedText type="bodyLargeMedium">{userTwoName}</ThemedText>
-          {timeStamp && (
-            <ThemedText>
-              {new Intl.DateTimeFormat('ru-RU', { hour: '2-digit', minute: '2-digit' }).format(new Date(timeStamp))}
-            </ThemedText>
-          )}
+          <ThemedText type="bodyLargeMedium">{userTwoName}</ThemedText>(
+          <ThemedText>
+            {lastMessage
+              ? new Intl.DateTimeFormat('ru-RU', { hour: '2-digit', minute: '2-digit' }).format(
+                  new Date(lastMessage?.sent)
+                )
+              : ''}
+          </ThemedText>
+          )
         </View>
-        {timeStamp && (
-          <View style={styles.row}>
-            <ThemedText type="bodySmall">{lastMessage}</ThemedText>
-            <View style={[styles.unreadMessagesCountLabel, { backgroundColor: theme.secondary }]}>
+
+        <View style={styles.row}>
+          {<ThemedText type="bodySmall">{lastMessage ? lastMessage.text : ''}</ThemedText>}
+          {
+            <View
+              style={[
+                styles.unreadMessagesCountLabel,
+                { backgroundColor: theme.secondary, opacity: unreadMessageCount ? 1 : 0 },
+              ]}
+            >
               {unreadMessageCount}
             </View>
-          </View>
-        )}
+          }
+        </View>
       </TouchableOpacity>
     </Link>
   );

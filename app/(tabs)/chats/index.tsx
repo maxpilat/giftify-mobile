@@ -37,7 +37,9 @@ export default function ChatsScreen() {
         contentInsetAdjustmentBehavior="automatic"
         style={styles.scrollView}
         refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />}
-      ></ScrollView>
+      >
+        {}
+      </ScrollView>
     </GestureHandlerRootView>
   );
 }
