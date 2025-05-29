@@ -161,9 +161,12 @@ export default function FriendsScreen() {
             ) : (
               visibleFriends.map((friend, index) => (
                 <Fragment key={friend.friendId}>
-                  <FriendCard friend={friend} />
+                  <FriendCard
+                    friend={friend}
+                    link={{ pathname: '/profile/[userId]', params: { userId: friend.friendId } }}
+                  />
                   {index !== friends.length - 1 && (
-                    <View style={[styles.divider, { backgroundColor: theme.tabBarBorder }]}></View>
+                    <View style={[styles.divider, { backgroundColor: theme.tabBarBorder }]} />
                   )}
                 </Fragment>
               ))

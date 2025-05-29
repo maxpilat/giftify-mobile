@@ -101,12 +101,15 @@ export interface ProfileBackground {
 }
 
 export interface Chat {
+  chatId: number;
   chatType: ChatType;
   userOneId: number;
   userOneDisplayName: string;
   userTwoId: number;
   lastMessage?: Message;
   unreadMessageCount?: number;
+  friendName?: string;
+  friendAvatar?: string;
 }
 
 export type ChatType = 'TYPE_PERSONAL' | 'TYPE_ANONYMOUS';

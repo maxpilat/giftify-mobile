@@ -7,13 +7,13 @@ import { Message } from '@/models';
 
 type Props = {
   chatId: number;
-  userTwoName: string;
-  userTwoAvatar?: string;
+  friendName: string;
+  friendAvatar?: string;
   lastMessage?: Message;
   unreadMessageCount?: number;
 };
 
-export const ChatCard = ({ chatId, userTwoName, userTwoAvatar, lastMessage, unreadMessageCount }: Props) => {
+export const ChatCard = ({ chatId, friendName, friendAvatar, lastMessage, unreadMessageCount }: Props) => {
   const { theme } = useTheme();
   const { user } = useAuth();
 
@@ -22,10 +22,10 @@ export const ChatCard = ({ chatId, userTwoName, userTwoAvatar, lastMessage, unre
       <TouchableOpacity activeOpacity={0.7} style={styles.card}>
         <Image
           style={[styles.userTwoAvatar, { backgroundColor: theme.tabBarBorder }]}
-          source={userTwoAvatar ? { uri: userTwoAvatar } : require('@/assets/images/avatar.png')}
+          source={friendAvatar ? { uri: friendAvatar } : require('@/assets/images/avatar.png')}
         />
         <View style={styles.row}>
-          <ThemedText type="bodyLargeMedium">{userTwoName}</ThemedText>(
+          <ThemedText type="bodyLargeMedium">{friendName}</ThemedText>(
           <ThemedText>
             {lastMessage
               ? new Intl.DateTimeFormat('ru-RU', { hour: '2-digit', minute: '2-digit' }).format(
@@ -57,9 +57,9 @@ export const ChatCard = ({ chatId, userTwoName, userTwoAvatar, lastMessage, unre
 const styles = StyleSheet.create({
   card: {
     flexDirection: 'row',
+    alignItems: 'center',
     gap: 16,
     paddingVertical: 6,
-    alignItems: 'center',
   },
   userTwoAvatar: {
     width: 70,
