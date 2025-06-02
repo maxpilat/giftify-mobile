@@ -15,15 +15,16 @@ import { useAuth } from '@/hooks/useAuth';
 import { Link, router, Stack } from 'expo-router';
 import { apiFetchData } from '@/lib/api';
 import { API, SUPPORT_BOT_URL } from '@/constants/api';
-import { useProfile } from '@/hooks/useStore';
+import { useStore } from '@/hooks/useStore';
 import { launchImageLibraryAsync } from 'expo-image-picker';
 import { showToast } from '@/utils/showToast';
 import { GestureHandlerRootView, RefreshControl, ScrollView } from 'react-native-gesture-handler';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function SettingsScreen() {
   const { theme } = useTheme();
   const { user, signOut, deactivateAccount } = useAuth();
-  const { avatar: myAvatar, changeAvatar } = useProfile();
+  const { avatar: myAvatar, changeAvatar } = useStore();
 
   const [name, setName] = useState<string>('');
   const [surname, setSurname] = useState<string>('');
@@ -112,6 +113,7 @@ export default function SettingsScreen() {
         text: 'Выйти',
         style: 'destructive',
         onPress: () => {
+          AsyncStorage.clear();
           router.replace('/(auth)');
           signOut().catch(() => showToast('error', 'Не удалось выйти из аккаунта'));
         },

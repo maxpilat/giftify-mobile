@@ -63,7 +63,7 @@ export const API = {
   },
   chats: {
     getMessage: (messageId: number) => `/api/chat/message/${messageId}`,
-    markAsRead: (messageId: number) => `/api/chat/message/${messageId}`,
+    readMessage: '/api/chat/message/read',
     sendMessage: '/api/chat/message',
     createChat: '/api/chat',
     getMessages: (chatId: number) => `/api/chat/${chatId}/messages`,

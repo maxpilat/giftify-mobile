@@ -5,15 +5,15 @@ import { useTheme } from '@/hooks/useTheme';
 import { router } from 'expo-router';
 import { useEffect } from 'react';
 import { FlatList, StyleSheet, TouchableOpacity, View, Image, ScrollView, Pressable } from 'react-native';
-import { useProfile } from '@/hooks/useStore';
+import { useStore } from '@/hooks/useStore';
 import { ProfileBackground } from '@/models';
 import { getDefaultBackground } from '@/utils/profileBackground';
 import { launchImageLibraryAsync } from 'expo-image-picker';
 import { showToast } from '@/utils/showToast';
 
-export default function ChangeProfileBackground() {
+export default function ChangeProfileBackgroundScreen() {
   const { theme, themeType, systemThemeType } = useTheme();
-  const { allBackgrounds, background, fetchAllBackgrounds, changeBackground, addBackgroundImage } = useProfile();
+  const { allBackgrounds, background, fetchAllBackgrounds, changeBackground, addBackgroundImage } = useStore();
 
   useEffect(() => {
     fetchAllBackgrounds();
@@ -21,7 +21,7 @@ export default function ChangeProfileBackground() {
 
   const handleSelectBackground = (newBackground: ProfileBackground) => {
     changeBackground(
-      background.backgroundId === newBackground.backgroundId
+      background.id === newBackground.id
         ? getDefaultBackground(themeType === 'system' ? systemThemeType : themeType)
         : newBackground
     )
@@ -74,7 +74,7 @@ export default function ChangeProfileBackground() {
           <View style={[styles.backgroundWrapper, { [index % 2 === 0 ? 'marginRight' : 'marginLeft']: 5 }]}>
             <Pressable style={styles.background} onPress={() => handleSelectBackground(item)}>
               <Image style={styles.backgroundImage} source={{ uri: item.backgroundUri }} />
-              {item.backgroundId === background.backgroundId && (
+              {item.id === background.id && (
                 <View style={styles.acceptIcon}>
                   <Icon name="accept" color={Colors.white} />
                 </View>

@@ -3,52 +3,61 @@ import { TouchableOpacity, Image, View, StyleSheet } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { useTheme } from '@/hooks/useTheme';
 import { useAuth } from '@/hooks/useAuth';
-import { Message } from '@/models';
+import { Chat } from '@/models';
+import { Icon } from '@/components/Icon';
+import { Colors } from '@/constants/themes';
 
-type Props = {
-  chatId: number;
-  friendName: string;
-  friendAvatar?: string;
-  lastMessage?: Message;
-  unreadMessageCount?: number;
-};
+type Props = Chat;
 
-export const ChatCard = ({ chatId, friendName, friendAvatar, lastMessage, unreadMessageCount }: Props) => {
+export const ChatCard = ({ chatId, friendAvatar, lastMessage, friendName, unreadMessageCount, userOneId }: Props) => {
   const { theme } = useTheme();
-  const { user } = useAuth();
+  const { user: authUser } = useAuth();
 
   return (
     <Link asChild href={{ pathname: '/chats/[chatId]', params: { chatId } }}>
       <TouchableOpacity activeOpacity={0.7} style={styles.card}>
         <Image
           style={[styles.userTwoAvatar, { backgroundColor: theme.tabBarBorder }]}
-          source={friendAvatar ? { uri: friendAvatar } : require('@/assets/images/avatar.png')}
+          source={
+            friendAvatar
+              ? { uri: friendAvatar }
+              : friendAvatar === null
+              ? require('@/assets/images/inkognito.png')
+              : require('@/assets/images/avatar.png')
+          }
         />
-        <View style={styles.row}>
-          <ThemedText type="bodyLargeMedium">{friendName}</ThemedText>(
-          <ThemedText>
-            {lastMessage
-              ? new Intl.DateTimeFormat('ru-RU', { hour: '2-digit', minute: '2-digit' }).format(
-                  new Date(lastMessage?.sent)
-                )
-              : ''}
+
+        <View style={[styles.column, { flex: 1 }]}>
+          <ThemedText type="bodyLargeMedium">{friendName}</ThemedText>
+          <ThemedText type="bodySmall" numberOfLines={1} ellipsizeMode="tail">
+            {lastMessage?.text || ''}
           </ThemedText>
-          )
         </View>
 
-        <View style={styles.row}>
-          {<ThemedText type="bodySmall">{lastMessage ? lastMessage.text : ''}</ThemedText>}
-          {
-            <View
-              style={[
-                styles.unreadMessagesCountLabel,
-                { backgroundColor: theme.secondary, opacity: unreadMessageCount ? 1 : 0 },
-              ]}
-            >
-              {unreadMessageCount}
-            </View>
-          }
-        </View>
+        {lastMessage && (
+          <View style={[styles.column, { minWidth: 40, alignItems: 'flex-end' }]}>
+            <ThemedText style={{ color: Colors.grey }}>
+              {new Intl.DateTimeFormat('ru-RU', { hour: '2-digit', minute: '2-digit' }).format(
+                new Date(lastMessage.sent)
+              )}
+            </ThemedText>
+            {unreadMessageCount && lastMessage.fromUserId !== authUser.id ? (
+              <View style={[styles.unreadMessagesCountLabel, { backgroundColor: theme.secondary }]}>
+                <ThemedText type="labelBase" style={{ color: Colors.white }}>
+                  {unreadMessageCount}
+                </ThemedText>
+              </View>
+            ) : lastMessage.fromUserId === authUser.id ? (
+              <Icon
+                name={lastMessage[userOneId === authUser.id ? 'isReadBySecond' : 'isReadByFirst'] ? 'read' : 'done'}
+                size={20}
+                color={Colors.grey}
+              />
+            ) : (
+              <View style={{ height: 20 }} />
+            )}
+          </View>
+        )}
       </TouchableOpacity>
     </Link>
   );
@@ -66,9 +75,15 @@ const styles = StyleSheet.create({
     height: 70,
     borderRadius: 35,
   },
-  row: {},
+  column: {
+    flexShrink: 1,
+    gap: 6,
+  },
   unreadMessagesCountLabel: {
-    padding: 4,
-    borderRadius: 4,
+    borderRadius: 12,
+    width: 24,
+    height: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });

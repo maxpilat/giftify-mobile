@@ -10,11 +10,21 @@ import {
   useMemo,
 } from 'react';
 import { API } from '@/constants/api';
-import { Booking, Friend, FriendRequest, ProfileBackground, Wish, WishList } from '@/models';
+import {
+  ApiProfileBackground,
+  Booking,
+  Chat,
+  Friend,
+  FriendRequest,
+  Profile,
+  ProfileBackground,
+  Wish,
+  WishList,
+} from '@/models';
 import { useAuth } from './useAuth';
 import { apiFetchData, apiFetchImage } from '@/lib/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { base64ToBinaryArray, uriToBase64 } from '@/utils/convertImage';
+import { base64ToBinaryArray, binaryToBase64, uriToBase64 } from '@/utils/convertImage';
 import { getDefaultBackground, loadDefaultBackgrounds } from '@/utils/profileBackground';
 import { useTheme } from '@/hooks/useTheme';
 
@@ -28,6 +38,7 @@ const StoreContext = createContext<{
   wishes: Wish[];
   wishLists: WishList[];
   piggyBanks: Wish[];
+  chats: Chat[];
   isLoaded: boolean;
   fetchAvatar: () => Promise<string>;
   fetchBookings: () => Promise<Booking[]>;
@@ -45,6 +56,8 @@ const StoreContext = createContext<{
   addBackgroundImage: (backgroundUri: string) => Promise<ProfileBackground>;
   changeBackground: (background: ProfileBackground) => Promise<void>;
   changeAvatar: (avatar: string) => Promise<void>;
+  fetchChats: () => Promise<Chat[]>;
+  hotFetchChats: () => Promise<Chat[]>;
 } | null>(null);
 
 export const StoreProvider = ({ children }: { children: ReactNode }) => {
@@ -63,6 +76,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
   const [defaultBackgrounds, setDefaultBackgrounds] = useState<ProfileBackground[]>([]);
   const [allBackgrounds, setAllBackgrounds] = useState<ProfileBackground[]>([]);
   const [background, setBackground] = useState<ProfileBackground>(getDefaultBackground(themeTypeValue));
+  const [chats, setChats] = useState<Chat[]>([]);
   const [isLoaded, setIsLoaded] = useState<boolean>(false);
 
   useEffect(() => {
@@ -70,7 +84,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   useEffect(() => {
-    if (background.backgroundId === 0) {
+    if (background.id === 0) {
       setBackground(getDefaultBackground(themeTypeValue));
     }
   }, [themeTypeValue]);
@@ -80,7 +94,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
 
     setAvatar(image);
     return image;
-  }, [user]);
+  }, [user.id, user.token]);
 
   const fetchBookings = useCallback(async () => {
     const bookings = await apiFetchData<Booking[]>({
@@ -127,7 +141,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
     );
 
     return bookings;
-  }, [user]);
+  }, [user.id, user.token]);
 
   const fetchFriendRequests = useCallback(async () => {
     const friendRequests = await apiFetchData<FriendRequest[]>({
@@ -137,7 +151,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
 
     setFriendRequests(friendRequests);
     return friendRequests;
-  }, [user]);
+  }, [user.id, user.token]);
 
   const fetchFriends = useCallback(async () => {
     const friends = await apiFetchData<Friend[]>({
@@ -165,7 +179,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
     );
 
     return friends;
-  }, [user]);
+  }, [user.id, user.token]);
 
   const fetchWishes = useCallback(async () => {
     const wishes = await apiFetchData<Wish[]>({
@@ -193,7 +207,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
     );
 
     return wishes;
-  }, [user]);
+  }, [user.id, user.token]);
 
   const fetchWishLists = useCallback(async () => {
     const wishLists = await apiFetchData<WishList[]>({
@@ -203,7 +217,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
 
     setWishLists(wishLists);
     return wishLists;
-  }, [user]);
+  }, [user.id, user.token]);
 
   const fetchPiggyBanks = useCallback(async () => {
     const piggyBanks = await apiFetchData<Wish[]>({
@@ -231,7 +245,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
     );
 
     return piggyBanks;
-  }, [user]);
+  }, [user.id, user.token]);
 
   const isFriend = useCallback(
     (friendId: number) => {
@@ -264,14 +278,22 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
 
   const fetchBackground = useCallback(async () => {
     const storedBackground = await AsyncStorage.getItem('currentBackground');
-    const targetBackground: ProfileBackground = storedBackground ? JSON.parse(storedBackground) : background;
 
-    setBackground(targetBackground);
-    return targetBackground;
+    let newBackground: ProfileBackground;
+
+    if (storedBackground) {
+      newBackground = JSON.parse(storedBackground);
+    } else {
+      newBackground = background;
+    }
+
+    setBackground(newBackground);
+    return newBackground;
   }, [background]);
 
   const changeBackground = useCallback(
     async (background: ProfileBackground) => {
+      console.log(background);
       try {
         setBackground(background);
 
@@ -282,6 +304,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
           method: 'PUT',
           body: {
             email: user.email,
+            id: background.id,
             backgroundType: background.backgroundType,
             backgroundColor: background.backgroundColor,
             backgroundImage: background.backgroundUri
@@ -290,11 +313,18 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
           },
           token: user.token,
         });
+
+        const newBackground = await apiFetchData<ApiProfileBackground>({
+          endpoint: API.profile.getBackground(user.id),
+          token: user.token,
+        });
+
+        console.log(newBackground.backgroundImage?.slice(0, 10));
       } catch (error) {
         throw error;
       }
     },
-    [user]
+    [user.email, user.token]
   );
 
   const fetchAllBackgrounds = useCallback(async () => {
@@ -311,7 +341,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
     async (backgroundUri: string) => {
       const newBackground: ProfileBackground = {
         backgroundType: 'TYPE_IMAGE',
-        backgroundId: allBackgrounds.length + 1,
+        id: allBackgrounds.length + 1,
         backgroundUri,
       };
 
@@ -343,8 +373,98 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
         throw error;
       }
     },
-    [user]
+    [user.email, user.token]
   );
+
+  const fetchChats = useCallback(async () => {
+    const chats = await apiFetchData<Chat[]>({ endpoint: API.chats.getUserChats(user.id), token: user.token });
+
+    const friendsNamesMap = new Map(
+      await Promise.all(
+        chats.map(async (chat) => {
+          const friendId = chat.userOneId === user.id ? chat.userTwoId : chat.userOneId;
+          const { name, surname } = await apiFetchData<Profile>({
+            endpoint: API.profile.getProfile(friendId),
+            token: user.token,
+          });
+          return [chat.chatId, `${name} ${surname}`] as const;
+        })
+      )
+    );
+
+    setChats(
+      chats.map((chat) => ({
+        ...chat,
+        friendName: chat.userOneId === user.id ? friendsNamesMap.get(chat.chatId)! : chat.userOneDisplayName,
+      }))
+    );
+
+    const friendsAvatarsMap = new Map(
+      await Promise.all(
+        chats.map(async (chat) => {
+          if (chat.userOneId !== user.id) return [chat.chatId, null] as const;
+          const avatar = await apiFetchImage({ endpoint: API.profile.getAvatar(chat.userTwoId), token: user.token });
+          return [chat.chatId, avatar] as const;
+        })
+      )
+    );
+
+    setChats((prevChats) =>
+      prevChats.map((chat) => ({
+        ...chat,
+        friendAvatar: friendsAvatarsMap.get(chat.chatId),
+      }))
+    );
+
+    return chats;
+  }, [user.id, user.token]);
+
+  const hotFetchChats = useCallback(async () => {
+    try {
+      const prevAvatars = chats.map((chat) => ({ id: chat.chatId, avatar: chat.friendAvatar }));
+
+      let newChats = await apiFetchData<Chat[]>({ endpoint: API.chats.getUserChats(user.id), token: user.token });
+
+      const friendsNamesMap = new Map(
+        await Promise.all(
+          newChats.map(async (chat) => {
+            const friendId = chat.userOneId === user.id ? chat.userTwoId : chat.userOneId;
+            const { name, surname } = await apiFetchData<Profile>({
+              endpoint: API.profile.getProfile(friendId),
+              token: user.token,
+            });
+            return [chat.chatId, `${name} ${surname}`] as const;
+          })
+        )
+      );
+
+      const friendsAvatarsMap = new Map(
+        await Promise.all(
+          newChats.map(async (chat) => {
+            const prevItem = prevAvatars.find((item) => item.id === chat.chatId);
+            if (prevItem) return [chat.chatId, prevItem.avatar] as const;
+            const newAvatar = await apiFetchImage({
+              endpoint: API.profile.getAvatar(chat.userTwoId),
+              token: user.token,
+            });
+            return [chat.chatId, newAvatar] as const;
+          })
+        )
+      );
+
+      newChats = newChats.map((chat) => ({
+        ...chat,
+        friendName: chat.userOneId === user.id ? friendsNamesMap.get(chat.chatId)! : chat.userOneDisplayName,
+        friendAvatar: friendsAvatarsMap.get(chat.chatId),
+      }));
+
+      setChats(newChats);
+
+      return newChats;
+    } catch {
+      return [];
+    }
+  }, []);
 
   const providerValue = useMemo(
     () => ({
@@ -357,6 +477,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
       wishes,
       wishLists,
       piggyBanks,
+      chats,
       isLoaded,
       fetchAvatar,
       fetchBackground,
@@ -370,22 +491,24 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
       fetchWishes,
       fetchWishLists,
       fetchPiggyBanks,
+      fetchChats,
+      hotFetchChats,
       setIsLoaded,
       isFriend,
       isSender,
       isReceiver,
     }),
-    [avatar, allBackgrounds, background, bookings, friendRequests, wishes, wishLists, piggyBanks, isLoaded]
+    [avatar, allBackgrounds, background, bookings, friendRequests, wishes, wishLists, piggyBanks, chats, isLoaded]
   );
 
   return <StoreContext.Provider value={providerValue}>{children}</StoreContext.Provider>;
 };
 
-export const useProfile = () => {
+export const useStore = () => {
   const context = useContext(StoreContext);
 
   if (!context) {
-    throw new Error('useProfile must be used within a ProfileProvider');
+    throw new Error('useStore must be used within a StoreProvider');
   }
 
   return context;

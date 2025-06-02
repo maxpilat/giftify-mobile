@@ -12,7 +12,7 @@ import { Icon } from '@/components/Icon';
 import { Switch } from '@/components/Switch';
 import { API } from '@/constants/api';
 import { useAuth } from '@/hooks/useAuth';
-import { useProfile } from '@/hooks/useStore';
+import { useStore } from '@/hooks/useStore';
 import { base64ToBinaryArray } from '@/utils/convertImage';
 import { apiFetchData } from '@/lib/api';
 import { useTheme } from '@/hooks/useTheme';
@@ -32,7 +32,7 @@ export default function WishModalScreen() {
   const { theme } = useTheme();
   const { user } = useAuth();
   const { isSubmit, wishId: wishIdParam } = useLocalSearchParams<SearchParams>();
-  const { wishes, wishLists, fetchWishes, fetchWishLists } = useProfile();
+  const { wishes, wishLists, fetchWishes, fetchWishLists } = useStore();
 
   const [image, setImage] = useState<string>();
   const [name, setName] = useState<string>('');
@@ -238,6 +238,7 @@ export default function WishModalScreen() {
             value={description}
             onChangeText={setDescription}
             multiline={true}
+            inputStyle={{ height: 96 }}
           />
         </View>
 

@@ -5,7 +5,7 @@ import { TouchableOpacity } from 'react-native';
 import { NativeStackNavigationOptions } from '@react-navigation/native-stack';
 import { BackButton } from '@/components/BackButton';
 
-export default function IndexLayout() {
+export default function ProfileLayout() {
   const { theme } = useTheme();
 
   const getModalScreenOptions = (title: string): NativeStackNavigationOptions => ({
@@ -43,10 +43,7 @@ export default function IndexLayout() {
 
   return (
     <Stack>
-      <Stack.Screen
-        name="[userId]"
-        dangerouslySingular={() => `${Date.now()}-${Math.random().toString(36).slice(2)}`}
-      />
+      <Stack.Screen name="[userId]" />
       <Stack.Screen
         name="wishes"
         options={({ route }) =>

@@ -96,7 +96,7 @@ export function WishCard({
             )}
             <Image
               source={{ uri: wish.image }}
-              style={[styles.image, { aspectRatio: computedAspectRatio }]}
+              style={{ aspectRatio: computedAspectRatio }}
               resizeMode={'cover'}
               onLoad={() => setIsLoading(false)}
             />
@@ -160,12 +160,12 @@ const styles = StyleSheet.create({
   bookerAvatar: {
     width: 50,
     height: 50,
+    borderRadius: 25,
   },
   bookingLabel: {
     textAlign: 'center',
     color: Colors.white,
   },
-  image: {},
   maskedView: {
     width: 88,
     height: 88,
@@ -196,6 +196,7 @@ const styles = StyleSheet.create({
   wisherAvatar: {
     width: 32,
     height: 32,
+    borderRadius: 16,
   },
   skeleton: {
     position: 'absolute',

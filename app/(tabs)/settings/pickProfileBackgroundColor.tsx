@@ -3,7 +3,7 @@ import { PlatformButton } from '@/components/PlatformButton';
 import { TextInput } from '@/components/TextInput';
 import { ThemedText } from '@/components/ThemedText';
 import { Colors } from '@/constants/themes';
-import { useProfile } from '@/hooks/useStore';
+import { useStore } from '@/hooks/useStore';
 import { useTheme } from '@/hooks/useTheme';
 import { ProfileBackground } from '@/models';
 import { getDefaultBackground } from '@/utils/profileBackground';
@@ -17,7 +17,7 @@ export default function PickProfileBackgroundColorScreen() {
   const { theme, themeType, systemThemeType } = useTheme();
   const themeTypeValue = themeType === 'system' ? systemThemeType : themeType;
 
-  const { background, changeBackground } = useProfile();
+  const { background, changeBackground } = useStore();
 
   const [currentBackground, setCurrentBackground] = useState<ProfileBackground>(background);
   const [textInputValue, setTextInputValue] = useState(background.backgroundColor);

@@ -6,7 +6,7 @@ import { Currency } from '@/models';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { API } from '@/constants/api';
 import { useAuth } from '@/hooks/useAuth';
-import { useProfile } from '@/hooks/useStore';
+import { useStore } from '@/hooks/useStore';
 import { apiFetchData } from '@/lib/api';
 import { ThemedText } from '@/components/ThemedText';
 import { showToast } from '@/utils/showToast';
@@ -19,7 +19,7 @@ type SearchParams = {
 export default function PiggyBankDepositModalScreen() {
   const { user } = useAuth();
   const { isSubmit, piggyBankId } = useLocalSearchParams<SearchParams>();
-  const { piggyBanks, fetchPiggyBanks } = useProfile();
+  const { piggyBanks, fetchPiggyBanks } = useStore();
 
   const [amount, setAmount] = useState<string>('');
   const [currency, setCurrency] = useState<Currency | null>(null);

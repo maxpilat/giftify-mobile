@@ -9,7 +9,7 @@ import { Profile, ProfileBackground } from '@/models';
 import { formatCountedPhrase } from '@/utils/formatCountedPhrase';
 import { Link } from 'expo-router';
 import { Colors } from '@/constants/themes';
-import { useProfile } from '@/hooks/useStore';
+import { useStore } from '@/hooks/useStore';
 import { Icon } from '@/components/Icon';
 import { apiFetchData } from '@/lib/api';
 import { API } from '@/constants/api';
@@ -36,7 +36,7 @@ type Props = {
 export function ProfileHeader({ profile, avatar, background, friendsCount, friendsAvatars, tabs, onTabChange }: Props) {
   const { theme } = useTheme();
   const { user: authUser } = useAuth();
-  const { fetchFriendRequests, fetchFriends, isFriend, isReceiver, isSender } = useProfile();
+  const { fetchFriendRequests, fetchFriends, isFriend, isReceiver, isSender } = useStore();
 
   const [currentTabIndex, setCurrentTabIndex] = useState(0);
 

@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { RefreshControl, ScrollView, StyleSheet } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { API } from '@/constants/api';
-import { useProfile } from '@/hooks/useStore';
+import { useStore } from '@/hooks/useStore';
 import { useAuth } from '@/hooks/useAuth';
 import { Wish } from '@/models';
 import { apiFetchData, apiFetchImage } from '@/lib/api';
@@ -16,7 +16,7 @@ type SearchParams = {
 export default function PiggyBanksScreen() {
   const { user: authUser } = useAuth();
   const { userId = authUser.id, piggyBankId = 0 } = useLocalSearchParams<SearchParams>();
-  const { piggyBanks: myPiggyBanks, fetchPiggyBanks: fetchMyPiggyBanks } = useProfile();
+  const { piggyBanks: myPiggyBanks, fetchPiggyBanks: fetchMyPiggyBanks } = useStore();
   const scrollViewRef = useRef<ScrollView>(null);
   const itemsRef = useRef(new Map<number, number>());
 

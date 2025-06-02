@@ -4,7 +4,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { Friend } from '@/models';
 import { getDaysUntilBirthday } from '@/utils/getDaysUntil';
 import { Icon } from './Icon';
-import { useProfile } from '@/hooks/useStore';
+import { useStore } from '@/hooks/useStore';
 import { apiFetchData } from '@/lib/api';
 import { API } from '@/constants/api';
 import { useAuth } from '@/hooks/useAuth';
@@ -22,7 +22,7 @@ type Props = {
 export const FriendCard = ({ friend, link, enableFriendButton = true }: Props) => {
   const { theme } = useTheme();
   const { user } = useAuth();
-  const { fetchFriendRequests, fetchFriends, fetchBookings, isFriend, isReceiver, isSender } = useProfile();
+  const { fetchFriendRequests, fetchFriends, fetchBookings, isFriend, isReceiver, isSender } = useStore();
 
   const rejectFriendRequest = (isUserTwoAccept: boolean) => {
     return apiFetchData({
@@ -150,14 +150,10 @@ export const FriendCard = ({ friend, link, enableFriendButton = true }: Props) =
   };
 
   return (
-    <TouchableOpacity
-      activeOpacity={0.7}
-      style={styles.friend}
-      onPress={() => link && router.push({ pathname: '/profile/[userId]', params: { userId: friend.friendId } })}
-    >
+    <TouchableOpacity activeOpacity={0.7} style={styles.friend} onPress={() => link && router.replace(link)}>
       <Image
         style={[styles.friendAvatar, { backgroundColor: theme.tabBarBorder }]}
-        source={require('@/assets/images/avatar.png')}
+        source={friend.avatar ? { uri: friend.avatar } : require('@/assets/images/avatar.png')}
       />
       <View style={styles.friendInfo}>
         <ThemedText type="h5">{`${friend.name} ${friend.surname}`}</ThemedText>

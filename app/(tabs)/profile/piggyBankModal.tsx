@@ -7,7 +7,7 @@ import { Currency, WishType } from '@/models';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { API } from '@/constants/api';
 import { useAuth } from '@/hooks/useAuth';
-import { useProfile } from '@/hooks/useStore';
+import { useStore } from '@/hooks/useStore';
 import { base64ToBinaryArray } from '@/utils/convertImage';
 import { apiFetchData } from '@/lib/api';
 import { showToast } from '@/utils/showToast';
@@ -20,7 +20,7 @@ type SearchParams = {
 export default function WishModalScreen() {
   const { user } = useAuth();
   const { isSubmit, piggyBankId } = useLocalSearchParams<SearchParams>();
-  const { piggyBanks, fetchPiggyBanks } = useProfile();
+  const { piggyBanks, fetchPiggyBanks } = useStore();
 
   const [image, setImage] = useState<string>();
   const [name, setName] = useState<string>('');
@@ -147,6 +147,7 @@ export default function WishModalScreen() {
             value={description}
             onChangeText={setDescription}
             multiline={true}
+            inputStyle={{ height: 96 }}
           />
           <TextInput
             icon="ticketStart"

@@ -3,7 +3,7 @@ import { ScrollView, StyleSheet, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { TextInput } from '@/components/TextInput';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import { useProfile } from '@/hooks/useStore';
+import { useStore } from '@/hooks/useStore';
 import { API } from '@/constants/api';
 import { useAuth } from '@/hooks/useAuth';
 import { apiFetchData } from '@/lib/api';
@@ -17,7 +17,7 @@ type SearchParams = {
 export default function WishListModalScreen() {
   const { user } = useAuth();
   const { isSubmit, wishListId } = useLocalSearchParams<SearchParams>();
-  const { wishLists, fetchWishLists } = useProfile();
+  const { wishLists, fetchWishLists } = useStore();
 
   const [name, setName] = useState<string>('');
   const [errors, setErrors] = useState<Record<'name', boolean>>({ name: false });

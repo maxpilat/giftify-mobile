@@ -14,14 +14,14 @@ export async function loadDefaultBackgrounds(): Promise<ProfileBackground[]> {
 
   return assets.map((asset) => ({
     backgroundType: 'TYPE_IMAGE',
-    backgroundId: assets.indexOf(asset) + 1,
+    id: assets.indexOf(asset) + 1,
     backgroundUri: asset.localUri!,
   }));
 }
 
 export function getDefaultBackground(themeType: ThemeType): ProfileBackground {
   return {
-    backgroundId: 0,
+    id: 0,
     backgroundType: 'TYPE_COLOR',
     backgroundColor: themeType === 'light' ? Colors.light : Colors.darkBlue,
   };

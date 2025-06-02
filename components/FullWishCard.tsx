@@ -10,7 +10,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { router, usePathname } from 'expo-router';
 import { API } from '@/constants/api';
 import { apiFetchData } from '@/lib/api';
-import { useProfile } from '@/hooks/useStore';
+import { useStore } from '@/hooks/useStore';
 import { useState } from 'react';
 import { base64ToBinaryArray } from '@/utils/convertImage';
 import { Colors } from '@/constants/themes';
@@ -34,7 +34,7 @@ export function FullWishCard({ wish, onLayout }: Props) {
     fetchWishes: fetchMyWishes,
     fetchWishLists: fetchMyWishLists,
     isFriend: isFriendFunction,
-  } = useProfile();
+  } = useStore();
   const pathname = usePathname();
 
   const [isCollapsed, setIsCollapsed] = useState(true);

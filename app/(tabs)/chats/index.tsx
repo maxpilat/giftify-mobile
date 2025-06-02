@@ -2,21 +2,16 @@ import { ThemedText } from '@/components/ThemedText';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { GestureHandlerRootView, RefreshControl, ScrollView } from 'react-native-gesture-handler';
 import { useTheme } from '@/hooks/useTheme';
-import { useAuth } from '@/hooks/useAuth';
-import { useEffect, useState } from 'react';
-import { apiFetchData, apiFetchImage } from '@/lib/api';
-import { API } from '@/constants/api';
-import { Chat, Profile } from '@/models';
+import { Fragment, useEffect, useState } from 'react';
 import { Colors } from '@/constants/themes';
 import { ChatCard } from '@/components/ChatCard';
 import { router, Stack } from 'expo-router';
 import { Icon } from '@/components/Icon';
+import { useStore } from '@/hooks/useStore';
 
 export default function ChatsScreen() {
   const { theme } = useTheme();
-  const { user: authUser } = useAuth();
-
-  const [chats, setChats] = useState<Chat[]>([]);
+  const { chats, fetchChats, hotFetchChats } = useStore();
 
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -26,44 +21,18 @@ export default function ChatsScreen() {
   };
 
   useEffect(() => {
-    fetchChats();
+    let intervalId: number;
+
+    const pollChats = () => {
+      hotFetchChats()
+        .catch(() => {})
+        .finally(() => (intervalId = setTimeout(pollChats, 1000)));
+    };
+
+    pollChats();
+
+    return () => clearTimeout(intervalId);
   }, []);
-
-  const fetchChats = async () => {
-    const chats = await apiFetchData<Chat[]>({ endpoint: API.chats.getUserChats(authUser.id), token: authUser.token });
-
-    const friendsNamesMap = new Map(
-      await Promise.all(
-        chats.map(async (chat) => {
-          const friendId = chat.userOneId === authUser.id ? chat.userTwoId : chat.userOneId;
-          const { name, surname } = await apiFetchData<Profile>({ endpoint: API.profile.getProfile(friendId) });
-          return [chat.chatId, `${name} ${surname}`] as const;
-        })
-      )
-    );
-
-    setChats(
-      chats.map((chat) => ({
-        ...chat,
-        friendName: chat.userOneId === authUser.id ? friendsNamesMap.get(chat.chatId)! : chat.userOneDisplayName,
-      }))
-    );
-
-    Promise.all(
-      chats.map(async (chat) => {
-        if (chat.userOneId !== authUser.id) return [chat.chatId, undefined] as const;
-        const avatar = await apiFetchImage({ endpoint: API.profile.getAvatar(chat.userTwoId), token: authUser.token });
-        return [chat.chatId, avatar] as const;
-      })
-    ).then((friendsAvatarsMap) => {
-      setChats((prevChats) =>
-        prevChats.map((chat) => ({
-          ...chat,
-          friendAvatar: new Map(friendsAvatarsMap).get(chat.chatId),
-        }))
-      );
-    });
-  };
 
   const onWriteMessage = () => {
     router.push({ pathname: '/chats/writeMessageModal' });
@@ -72,6 +41,11 @@ export default function ChatsScreen() {
   const onHelp = () => {
     router.push({ pathname: '/chats/helpModal' });
   };
+
+  // const getDisplayedUnreadMessageCount = (unreadMessageCount: number) => {
+  //   console.log(chats.splice(-unreadMessageCount).map(chat => chat.));
+  //   return unreadMessageCount;
+  // };
 
   return (
     <>
@@ -110,18 +84,18 @@ export default function ChatsScreen() {
       <GestureHandlerRootView>
         <ScrollView
           contentInsetAdjustmentBehavior="automatic"
-          style={styles.scrollView}
-          contentContainerStyle={{ flex: chats.length ? 0 : 1 }}
+          contentContainerStyle={[styles.scrollViewContent, { flex: chats.length ? 0 : 1 }]}
           refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />}
         >
           <View style={[styles.chats, { marginBottom: chats.length ? 0 : 200 }]}>
             {chats.length ? (
-              chats.map((chat) => (
-                <ChatCard
-                  key={chat.chatId}
-                  chatId={chat.chatId}
-                  friendName={chat.userOneId === authUser.id ? chat.friendName! : chat.userOneDisplayName}
-                />
+              chats.map((chat, index) => (
+                <Fragment key={chat.chatId}>
+                  <ChatCard key={chat.chatId} {...chat} />
+                  {index !== chats.length - 1 && (
+                    <View style={[styles.divider, { backgroundColor: theme.tabBarBorder }]} />
+                  )}
+                </Fragment>
               ))
             ) : (
               <ThemedText type="bodyLarge" style={styles.noFriendsMessage}>
@@ -136,9 +110,10 @@ export default function ChatsScreen() {
 }
 
 const styles = StyleSheet.create({
-  scrollView: {
+  scrollViewContent: {
     paddingHorizontal: 16,
-    paddingBottom: 100,
+    paddingBottom: 70,
+    marginTop: 16,
   },
   chats: {
     flex: 1,
@@ -148,5 +123,9 @@ const styles = StyleSheet.create({
     marginTop: 10,
     textAlign: 'center',
     color: Colors.grey,
+  },
+  divider: {
+    height: 1,
+    marginLeft: 80,
   },
 });

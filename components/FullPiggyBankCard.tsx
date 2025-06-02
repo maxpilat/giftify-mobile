@@ -7,7 +7,7 @@ import { useState } from 'react';
 import { PlatformButton } from '@/components/PlatformButton';
 import { useTheme } from '@/hooks/useTheme';
 import { useAuth } from '@/hooks/useAuth';
-import { useProfile } from '@/hooks/useStore';
+import { useStore } from '@/hooks/useStore';
 import { router, usePathname } from 'expo-router';
 import { apiFetchData } from '@/lib/api';
 import { API } from '@/constants/api';
@@ -25,7 +25,7 @@ type Props = {
 export function FullPiggyBankCard({ piggyBank, onLayout }: Props) {
   const { theme } = useTheme();
   const { user: authUser } = useAuth();
-  const { fetchPiggyBanks: fetchMyPiggyBanks } = useProfile();
+  const { fetchPiggyBanks: fetchMyPiggyBanks } = useStore();
   const pathname = usePathname();
 
   const [isCollapsed, setIsCollapsed] = useState(true);

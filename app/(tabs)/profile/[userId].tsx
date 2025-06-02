@@ -1,5 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
-import { View, StyleSheet, Pressable, ScrollView, TouchableOpacity, Alert, Share, Dimensions, RefreshControl } from 'react-native';
+import {
+  View,
+  StyleSheet,
+  Pressable,
+  ScrollView,
+  TouchableOpacity,
+  Alert,
+  Share,
+  Dimensions,
+  RefreshControl,
+} from 'react-native';
 import { ParallaxScrollView } from '@/components/ParallaxScrollView';
 import { ProfileHeader } from '@/components/ProfileHeader';
 import MasonryList from '@react-native-seoul/masonry-list';
@@ -17,7 +27,7 @@ import { Colors } from '@/constants/themes';
 import { ProgressBar } from '@/components/ProgressBar';
 import { apiFetchData, apiFetchImage } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
-import { useProfile } from '@/hooks/useStore';
+import { useStore } from '@/hooks/useStore';
 import { Action } from '@/components/ActionsButton';
 import { base64ToBinaryArray, binaryToBase64 } from '@/utils/convertImage';
 import { getDefaultBackground } from '@/utils/profileBackground';
@@ -53,7 +63,7 @@ export default function ProfileScreen() {
     fetchPiggyBanks: fetchMyPiggyBanks,
     setIsLoaded: setIsProfileLoaded,
     isFriend,
-  } = useProfile();
+  } = useStore();
   const { userId = authUser.id, wishListId } = useLocalSearchParams<SearchParams>();
 
   const [currentTabIndex, setCurrentTabIndex] = useState(0);

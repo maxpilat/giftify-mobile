@@ -11,7 +11,7 @@ import { Friend, Profile } from '@/models';
 import { apiFetchData, apiFetchImage } from '@/lib/api';
 import { API } from '@/constants/api';
 import { useAuth } from '@/hooks/useAuth';
-import { useProfile } from '@/hooks/useStore';
+import { useStore } from '@/hooks/useStore';
 import { ThemedView } from '@/components/ThemedView';
 import { FriendCard } from '@/components/FriendCard';
 import { GestureHandlerRootView, RefreshControl, ScrollView } from 'react-native-gesture-handler';
@@ -24,7 +24,7 @@ export default function FriendsScreen() {
   const { theme } = useTheme();
   const { user: authUser } = useAuth();
   const { userId = authUser.id } = useLocalSearchParams<SearchParams>();
-  const { friendRequests, fetchFriends: fetchMyFriends, fetchFriendRequests, isFriend, isSender } = useProfile();
+  const { friendRequests, fetchFriends: fetchMyFriends, fetchFriendRequests, isFriend, isSender } = useStore();
 
   const [currentTabIndex, setCurrentTabIndex] = useState(0);
   const [currentVisibleTabIndex, setCurrentVisibleTabIndex] = useState(0);

@@ -15,6 +15,7 @@ type Props = TextProps & {
     | 'bodyLarge'
     | 'bodyBase'
     | 'bodySmall'
+    | 'bodyExtraSmall'
     | 'labelLarge'
     | 'labelBase'
     | 'labelSmall';
@@ -28,7 +29,13 @@ export function ThemedText({ style, type = 'bodyBase', parentBackgroundColor, ..
   return (
     <Animated.Text
       style={[
-        { color: parentBackgroundColor ? (colorKit.isDark(parentBackgroundColor) ? Colors.white : Colors.black) : theme.text },
+        {
+          color: parentBackgroundColor
+            ? colorKit.isDark(parentBackgroundColor)
+              ? Colors.white
+              : Colors.black
+            : theme.text,
+        },
         type === 'bodyBase' ? styles.bodyBase : undefined,
         type === 'h1' ? styles.h1 : undefined,
         type === 'h2' ? styles.h2 : undefined,
@@ -38,6 +45,7 @@ export function ThemedText({ style, type = 'bodyBase', parentBackgroundColor, ..
         type === 'bodyLargeMedium' ? styles.bodyLargeMedium : undefined,
         type === 'bodyLarge' ? styles.bodyLarge : undefined,
         type === 'bodySmall' ? styles.bodySmall : undefined,
+        type === 'bodyExtraSmall' ? styles.bodyExtraSmall : undefined,
         type === 'labelLarge' ? styles.labelLarge : undefined,
         type === 'labelBase' ? styles.labelBase : undefined,
         type === 'labelSmall' ? styles.labelSmall : undefined,
@@ -92,6 +100,11 @@ const styles = StyleSheet.create({
   bodySmall: {
     fontSize: 14,
     lineHeight: 20,
+    fontFamily: 'stolzl-regular',
+  },
+  bodyExtraSmall: {
+    fontSize: 12,
+    lineHeight: 16,
     fontFamily: 'stolzl-regular',
   },
   labelLarge: {
