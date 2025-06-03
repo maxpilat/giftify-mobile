@@ -590,6 +590,7 @@ export default function ProfileScreen() {
                                 height: screenWidth / 2 + Math.random() * 100,
                                 [i % 2 === 0 ? 'marginRight' : 'marginLeft']: 8,
                                 marginTop: [0, 1].includes(i) ? 0 : 16,
+                                borderRadius: 25,
                               }}
                             />
                           );

@@ -1,27 +1,26 @@
-import Animated, { useAnimatedStyle, useSharedValue, withRepeat, withTiming } from 'react-native-reanimated';
-import { StyleSheet, ViewStyle } from 'react-native';
+import Animated, { Easing, useAnimatedStyle, useSharedValue, withRepeat, withTiming } from 'react-native-reanimated';
+import { ViewStyle } from 'react-native';
 import { useTheme } from '@/hooks/useTheme';
+import { useEffect } from 'react';
 
 type Props = {
   style?: ViewStyle;
+  minOpacity?: number;
+  maxOpacity?: number;
 };
 
-export function Skeleton({ style }: Props) {
+export function Skeleton({ style, minOpacity = 0.4, maxOpacity = 1 }: Props) {
   const { theme } = useTheme();
 
-  const opacity = useSharedValue(0.4);
+  const opacity = useSharedValue(minOpacity);
 
   const animatedStyle = useAnimatedStyle(() => ({
     opacity: opacity.value,
   }));
 
-  opacity.value = withRepeat(withTiming(1, { duration: 800 }), -1, true);
+  useEffect(() => {
+    opacity.value = withRepeat(withTiming(maxOpacity, { duration: 800, easing: Easing.ease }), -1, true);
+  }, []);
 
-  return <Animated.View style={[styles.skeleton, { backgroundColor: theme.subBackground }, style, animatedStyle]} />;
+  return <Animated.View style={[{ backgroundColor: theme.subBackground }, style, animatedStyle]} />;
 }
-
-const styles = StyleSheet.create({
-  skeleton: {
-    borderRadius: 25,
-  },
-});

@@ -6,12 +6,17 @@ import { useAuth } from '@/hooks/useAuth';
 import { Chat } from '@/models';
 import { Icon } from '@/components/Icon';
 import { Colors } from '@/constants/themes';
+import { useEffect } from 'react';
 
 type Props = Chat;
 
 export const ChatCard = ({ chatId, friendAvatar, lastMessage, friendName, unreadMessageCount, userOneId }: Props) => {
   const { theme } = useTheme();
   const { user: authUser } = useAuth();
+
+  useEffect(() => {
+    console.log(friendAvatar?.slice(0, 10));
+  }, [friendAvatar]);
 
   return (
     <Link asChild href={{ pathname: '/chats/[chatId]', params: { chatId } }}>
@@ -30,7 +35,7 @@ export const ChatCard = ({ chatId, friendAvatar, lastMessage, friendName, unread
         <View style={[styles.column, { flex: 1 }]}>
           <ThemedText type="bodyLargeMedium">{friendName}</ThemedText>
           <ThemedText type="bodySmall" numberOfLines={1} ellipsizeMode="tail">
-            {lastMessage?.text || ''}
+            {lastMessage?.text || lastMessage?.messageType === 'TYPE_IMAGE' ? 'Фотография' : ''}
           </ThemedText>
         </View>
 

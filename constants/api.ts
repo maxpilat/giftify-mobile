@@ -62,7 +62,7 @@ export const API = {
     getCurrencies: '/api/currency',
   },
   chats: {
-    getMessage: (messageId: number) => `/api/chat/message/${messageId}`,
+    loadAttachment: (messageId: number) => `/api/chat/message/${messageId}`,
     readMessage: '/api/chat/message/read',
     sendMessage: '/api/chat/message',
     createChat: '/api/chat',

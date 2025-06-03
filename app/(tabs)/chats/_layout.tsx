@@ -8,6 +8,7 @@ export default function ChatsLayout() {
       <Stack.Screen name="helpModal" options={{ presentation: 'modal' }} />
       <Stack.Screen name="writeMessageModal" options={{ presentation: 'modal' }} />
       <Stack.Screen name="introductionModal" options={{ presentation: 'modal' }} />
+      <Stack.Screen name="attachImageModal" options={{ presentation: 'modal' }} />
     </Stack>
   );
 }

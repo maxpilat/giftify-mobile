@@ -42,11 +42,6 @@ export default function ChatsScreen() {
     router.push({ pathname: '/chats/helpModal' });
   };
 
-  // const getDisplayedUnreadMessageCount = (unreadMessageCount: number) => {
-  //   console.log(chats.splice(-unreadMessageCount).map(chat => chat.));
-  //   return unreadMessageCount;
-  // };
-
   return (
     <>
       <Stack.Screen
@@ -91,7 +86,7 @@ export default function ChatsScreen() {
             {chats.length ? (
               chats.map((chat, index) => (
                 <Fragment key={chat.chatId}>
-                  <ChatCard key={chat.chatId} {...chat} />
+                  <ChatCard {...chat}/>
                   {index !== chats.length - 1 && (
                     <View style={[styles.divider, { backgroundColor: theme.tabBarBorder }]} />
                   )}

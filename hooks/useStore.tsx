@@ -14,6 +14,7 @@ import {
   ApiProfileBackground,
   Booking,
   Chat,
+  ClientChatAttachment,
   Friend,
   FriendRequest,
   Profile,
@@ -24,9 +25,10 @@ import {
 import { useAuth } from './useAuth';
 import { apiFetchData, apiFetchImage } from '@/lib/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { base64ToBinaryArray, binaryToBase64, uriToBase64 } from '@/utils/convertImage';
+import { base64ToBinaryArray, uriToBase64 } from '@/utils/convertImage';
 import { getDefaultBackground, loadDefaultBackgrounds } from '@/utils/profileBackground';
 import { useTheme } from '@/hooks/useTheme';
+import { Image } from 'react-native';
 
 const StoreContext = createContext<{
   avatar?: string;
@@ -39,6 +41,8 @@ const StoreContext = createContext<{
   wishLists: WishList[];
   piggyBanks: Wish[];
   chats: Chat[];
+  currentChatId: number;
+  chatAttachments: Map<number, ClientChatAttachment>;
   isLoaded: boolean;
   fetchAvatar: () => Promise<string>;
   fetchBookings: () => Promise<Booking[]>;
@@ -47,6 +51,8 @@ const StoreContext = createContext<{
   fetchWishes: () => Promise<Wish[]>;
   fetchWishLists: () => Promise<WishList[]>;
   fetchPiggyBanks: () => Promise<Wish[]>;
+  switchChat: (chatId: number) => void;
+  loadChatAttachment: (messageId: number) => Promise<void>;
   setIsLoaded: Dispatch<SetStateAction<boolean>>;
   isFriend: (friendId: number) => boolean;
   isSender: (friendId: number) => boolean;
@@ -77,6 +83,8 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
   const [allBackgrounds, setAllBackgrounds] = useState<ProfileBackground[]>([]);
   const [background, setBackground] = useState<ProfileBackground>(getDefaultBackground(themeTypeValue));
   const [chats, setChats] = useState<Chat[]>([]);
+  const [currentChatId, setCurrentChatId] = useState<number>(-1);
+  const [chatAttachments, setChatAttachments] = useState<Map<number, ClientChatAttachment>>(new Map());
   const [isLoaded, setIsLoaded] = useState<boolean>(false);
 
   useEffect(() => {
@@ -428,9 +436,9 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
       const friendsNamesMap = new Map(
         await Promise.all(
           newChats.map(async (chat) => {
-            const friendId = chat.userOneId === user.id ? chat.userTwoId : chat.userOneId;
+            if (chat.userOneId !== user.id) return [chat.chatId, chat.userOneDisplayName] as const;
             const { name, surname } = await apiFetchData<Profile>({
-              endpoint: API.profile.getProfile(friendId),
+              endpoint: API.profile.getProfile(chat.userTwoId),
               token: user.token,
             });
             return [chat.chatId, `${name} ${surname}`] as const;
@@ -442,7 +450,8 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
         await Promise.all(
           newChats.map(async (chat) => {
             const prevItem = prevAvatars.find((item) => item.id === chat.chatId);
-            if (prevItem) return [chat.chatId, prevItem.avatar] as const;
+            if (prevItem !== undefined) return [chat.chatId, prevItem.avatar] as const;
+            if (chat.userOneId !== user.id) return [chat.chatId, null] as const;
             const newAvatar = await apiFetchImage({
               endpoint: API.profile.getAvatar(chat.userTwoId),
               token: user.token,
@@ -454,7 +463,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
 
       newChats = newChats.map((chat) => ({
         ...chat,
-        friendName: chat.userOneId === user.id ? friendsNamesMap.get(chat.chatId)! : chat.userOneDisplayName,
+        friendName: friendsNamesMap.get(chat.chatId)!,
         friendAvatar: friendsAvatarsMap.get(chat.chatId),
       }));
 
@@ -465,6 +474,23 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
       return [];
     }
   }, []);
+
+  const loadChatAttachment = useCallback(
+    async (messageId: number) => {
+      try {
+        const image = await apiFetchImage({ endpoint: API.chats.loadAttachment(messageId), token: user.token });
+        Image.getSize(image, (width, height) => {
+          setChatAttachments((prev) => new Map(prev).set(messageId, { uri: image, aspectRatio: width / height }));
+        });
+      } catch {}
+    },
+    [user.token]
+  );
+
+  const switchChat = (chatId: number) => {
+    chatAttachments.clear();
+    setCurrentChatId(chatId);
+  };
 
   const providerValue = useMemo(
     () => ({
@@ -478,6 +504,8 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
       wishLists,
       piggyBanks,
       chats,
+      currentChatId,
+      chatAttachments,
       isLoaded,
       fetchAvatar,
       fetchBackground,
@@ -492,13 +520,28 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
       fetchWishLists,
       fetchPiggyBanks,
       fetchChats,
+      switchChat,
+      loadChatAttachment,
       hotFetchChats,
       setIsLoaded,
       isFriend,
       isSender,
       isReceiver,
     }),
-    [avatar, allBackgrounds, background, bookings, friendRequests, wishes, wishLists, piggyBanks, chats, isLoaded]
+    [
+      avatar,
+      allBackgrounds,
+      background,
+      bookings,
+      friendRequests,
+      wishes,
+      wishLists,
+      piggyBanks,
+      chats,
+      currentChatId,
+      chatAttachments,
+      isLoaded,
+    ]
   );
 
   return <StoreContext.Provider value={providerValue}>{children}</StoreContext.Provider>;

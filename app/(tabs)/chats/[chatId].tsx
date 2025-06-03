@@ -9,21 +9,22 @@ import {
 } from 'react-native';
 import { useAuth } from '@/hooks/useAuth';
 import { useTheme } from '@/hooks/useTheme';
-import { Stack, useLocalSearchParams } from 'expo-router';
+import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { ThemedText } from '@/components/ThemedText';
 import { BackButton } from '@/components/BackButton';
 import { useEffect, useMemo, useState } from 'react';
 import { apiFetchData } from '@/lib/api';
 import { API } from '@/constants/api';
-import { Message } from '@/models';
+import { ChatMessage as ChatMessageType } from '@/models';
 import { useStore } from '@/hooks/useStore';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { TextInput } from '@/components/TextInput';
-import { ThemedView } from '@/components/ThemedView';
 import { Icon } from '@/components/Icon';
 import Animated, { Easing, useSharedValue, withTiming } from 'react-native-reanimated';
 import { FlatList, GestureHandlerRootView } from 'react-native-gesture-handler';
-import { Colors } from '@/constants/themes';
+import { launchImageLibraryAsync } from 'expo-image-picker';
+import { showToast } from '@/utils/showToast';
+import { ChatMessage } from '@/components/chatMessage';
 
 const screenWidth = Dimensions.get('window').width;
 
@@ -35,10 +36,10 @@ export default function ChatScreen() {
   const { theme } = useTheme();
   const { chatId } = useLocalSearchParams<SearchParams>();
   const { user: authUser } = useAuth();
-  const { chats } = useStore();
+  const { currentChatId, chats, chatAttachments, loadChatAttachment, switchChat } = useStore();
   const { bottom } = useSafeAreaInsets();
 
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<ChatMessageType[]>([]);
   const [message, setMessage] = useState<string>('');
   const [isKeyboardOpen, setIsKeyboardOpen] = useState<boolean>(false);
 
@@ -46,13 +47,14 @@ export default function ChatScreen() {
   const keyboardHeight = useSharedValue(0);
 
   useEffect(() => {
+    if (currentChatId !== +chatId) switchChat(+chatId);
+
     let intervalId: number;
 
     const pollMessages = () => {
-      apiFetchData<Message[]>({ endpoint: API.chats.getMessages(+chatId), token: authUser.token })
+      apiFetchData<ChatMessageType[]>({ endpoint: API.chats.getMessages(+chatId), token: authUser.token })
         .then((messages) => {
           setMessages(messages.reverse());
-          console.log(messages);
 
           apiFetchData({
             endpoint: API.chats.readMessage,
@@ -60,6 +62,12 @@ export default function ChatScreen() {
             body: { messageId: messages[0].id, readerId: authUser.id },
             token: authUser.token,
           }).catch(() => {});
+
+          messages.forEach((message) => {
+            if (message.messageType === 'TYPE_IMAGE' && !chatAttachments.has(message.id)) {
+              loadChatAttachment(message.id);
+            }
+          });
         })
         .catch(() => {})
         .finally(() => (intervalId = setTimeout(pollMessages, 1000)));
@@ -85,30 +93,44 @@ export default function ChatScreen() {
   }, []);
 
   const sendMessage = () => {
+    const trimmedMessage = message.trim();
+    if (!trimmedMessage) return;
+
     apiFetchData({
       endpoint: API.chats.sendMessage,
       body: {
         chatId,
         messageType: 'TYPE_TEXT',
         fromUserId: authUser.id,
-        text: message.trim(),
-        // attachment: '*бинарный массив*',
+        text: trimmedMessage,
       },
       method: 'POST',
       token: authUser.token,
-    }).then(() =>
-      apiFetchData<Message[]>({ endpoint: API.chats.getMessages(+chatId), token: authUser.token }).then((messages) => {
-        setMessages(messages.reverse());
-      })
-    );
+    })
+      .then(() =>
+        apiFetchData<ChatMessageType[]>({ endpoint: API.chats.getMessages(+chatId), token: authUser.token }).then(
+          (messages) => {
+            setMessages(messages.reverse());
+          }
+        )
+      )
+      .catch(() => showToast('error', 'Не удалось отправить сообщение'));
 
     setMessage('');
   };
 
-  const getMessageMargin = (messageIndex: number) => {
-    const prevMessage = messages[messageIndex + 1];
-    if (prevMessage) return prevMessage.fromUserId === messages[messageIndex].fromUserId ? 5 : 10;
-    return 0;
+  const attachImage = async () => {
+    const result = await launchImageLibraryAsync({
+      mediaTypes: 'images',
+      allowsEditing: false,
+      quality: 1,
+    });
+
+    const imageUri = result.assets?.[0]?.uri;
+
+    if (!result.canceled && imageUri) {
+      router.push({ pathname: '/chats/attachImageModal', params: { chatId, imageUri, message } });
+    }
   };
 
   return (
@@ -138,50 +160,24 @@ export default function ChatScreen() {
               inverted={true}
               data={messages}
               keyExtractor={(_, index) => index.toString()}
-              renderItem={({ item: message, index }: { item: Message; index: number }) => (
-                <View
-                  style={[
-                    styles.messageContainer,
-                    {
-                      alignItems: message.fromUserId === authUser.id ? 'flex-end' : 'flex-start',
-                      marginTop: getMessageMargin(index),
-                    },
-                  ]}
-                >
-                  <ThemedView
-                    style={[
-                      styles.message,
-                      {
-                        borderBottomLeftRadius: message.fromUserId === authUser.id ? 20 : 0,
-                        borderBottomRightRadius: message.fromUserId === authUser.id ? 0 : 20,
-                      },
-                    ]}
-                  >
-                    <ThemedText style={styles.messageText}>{message.text}</ThemedText>
-                    <View style={styles.messageInfo}>
-                      <ThemedText type="bodyExtraSmall" style={{ color: Colors.grey }}>
-                        {new Intl.DateTimeFormat('ru-RU', { hour: '2-digit', minute: '2-digit' }).format(
-                          new Date(message.sent)
-                        )}
-                      </ThemedText>
-                      {message.fromUserId === authUser.id && (
-                        <Icon
-                          name={
-                            message[chat?.userOneId === authUser.id ? 'isReadBySecond' : 'isReadByFirst']
-                              ? 'read'
-                              : 'done'
-                          }
-                          size={16}
-                          color={Colors.grey}
-                        />
-                      )}
-                    </View>
-                  </ThemedView>
-                </View>
+              renderItem={({ item, index }: { item: ChatMessageType; index: number }) => (
+                <ChatMessage
+                  message={item}
+                  attachment={chatAttachments.get(item.id)}
+                  prevMessageUserId={messages[index + 1]?.fromUserId}
+                  isUserOne={authUser.id === chat?.userOneId}
+                />
               )}
             />
           </GestureHandlerRootView>
-          <ThemedView style={[styles.bottomPanel, { paddingBottom: isKeyboardOpen ? 16 : bottom }]}>
+          <View style={[styles.bottomPanel, { paddingBottom: isKeyboardOpen ? 16 : bottom }]}>
+            <TouchableOpacity
+              activeOpacity={0.7}
+              style={[styles.button, { backgroundColor: theme.button }]}
+              onPress={attachImage}
+            >
+              <Icon name="camera" />
+            </TouchableOpacity>
             <View style={styles.textInputContainer}>
               <TextInput
                 multiline={true}
@@ -194,12 +190,12 @@ export default function ChatScreen() {
             </View>
             <TouchableOpacity
               activeOpacity={0.7}
-              style={[styles.sendButton, { backgroundColor: theme.primary }]}
+              style={[styles.button, { backgroundColor: theme.primary }]}
               onPress={sendMessage}
             >
               <Icon name="arrowUp" />
             </TouchableOpacity>
-          </ThemedView>
+          </View>
         </Animated.View>
       </TouchableWithoutFeedback>
     </>
@@ -223,26 +219,9 @@ const styles = StyleSheet.create({
   textInputContainer: {
     flex: 1,
   },
-  sendButton: {
+  button: {
     padding: 15,
     borderRadius: 40,
-    alignSelf: 'flex-end',
-  },
-  messageContainer: {},
-  message: {
-    paddingHorizontal: 14,
-    paddingVertical: 7,
-    borderTopRightRadius: 20,
-    borderTopLeftRadius: 20,
-    flexDirection: 'row',
-    gap: 12,
-  },
-  messageText: {
-    maxWidth: '60%',
-  },
-  messageInfo: {
-    flexDirection: 'row',
-    gap: 5,
     alignSelf: 'flex-end',
   },
 });

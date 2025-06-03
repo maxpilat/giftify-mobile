@@ -107,7 +107,7 @@ export interface Chat {
   userOneId: number;
   userOneDisplayName: string;
   userTwoId: number;
-  lastMessage?: Message;
+  lastMessage?: ChatMessage;
   unreadMessageCount?: number;
   friendName?: string;
   friendAvatar?: string | null;
@@ -115,7 +115,7 @@ export interface Chat {
 
 export type ChatType = 'TYPE_PERSONAL' | 'TYPE_ANONYMOUS';
 
-export interface Message {
+export interface ChatMessage {
   id: number;
   fromUserId: number;
   messageType: MessageType;
@@ -126,3 +126,8 @@ export interface Message {
 }
 
 export type MessageType = 'TYPE_TEXT' | 'TYPE_IMAGE';
+
+export interface ClientChatAttachment {
+  uri: string;
+  aspectRatio: number;
+}
