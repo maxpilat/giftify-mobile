@@ -86,7 +86,7 @@ export default function ChatsScreen() {
             {chats.length ? (
               chats.map((chat, index) => (
                 <Fragment key={chat.chatId}>
-                  <ChatCard {...chat}/>
+                  <ChatCard {...chat} />
                   {index !== chats.length - 1 && (
                     <View style={[styles.divider, { backgroundColor: theme.tabBarBorder }]} />
                   )}
@@ -122,5 +122,6 @@ const styles = StyleSheet.create({
   divider: {
     height: 1,
     marginLeft: 80,
+    marginVertical: 2,
   },
 });

@@ -141,6 +141,18 @@ export default function FriendsScreen() {
                     >
                       {tab}
                     </ThemedText>
+                    {index === 1 && pendingFriends.length > 0 && (
+                      <View
+                        style={[
+                          styles.pendingFriendsIndicator,
+                          { backgroundColor: currentTabIndex === index ? theme.button : theme.secondary },
+                        ]}
+                      >
+                        <ThemedText type="labelLarge" parentBackgroundColor={theme.secondary}>
+                          {pendingFriends.length}
+                        </ThemedText>
+                      </View>
+                    )}
                   </TouchableOpacity>
                 ))}
               </View>
@@ -201,7 +213,16 @@ const styles = StyleSheet.create({
     borderRadius: 40,
     alignItems: 'center',
   },
-
+  pendingFriendsIndicator: {
+    borderRadius: 12,
+    width: 24,
+    height: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'absolute',
+    right: 0,
+    top: 0,
+  },
   friends: {},
   divider: {
     height: 1,

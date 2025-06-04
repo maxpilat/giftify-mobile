@@ -70,7 +70,7 @@ export function WishCard({
           setComputedAspectRatio(Math.min(width / height, 1));
         });
       }
-    }, 300);
+    }, 100);
   }, [wish.image]);
 
   return (
@@ -94,12 +94,16 @@ export function WishCard({
                 </ThemedText>
               </View>
             )}
-            <Image
-              source={{ uri: wish.image }}
-              style={{ aspectRatio: computedAspectRatio }}
-              resizeMode={'cover'}
-              onLoad={() => setIsLoading(false)}
-            />
+            {wish.image ? (
+              <Image
+                source={{ uri: wish.image }}
+                style={{ aspectRatio: computedAspectRatio }}
+                resizeMode={'cover'}
+                onLoad={() => setIsLoading(false)}
+              />
+            ) : (
+              <Skeleton style={{ aspectRatio: computedAspectRatio }} />
+            )}
           </>
         )}
       </Animated.View>

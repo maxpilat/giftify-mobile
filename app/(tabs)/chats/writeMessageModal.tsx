@@ -29,7 +29,7 @@ export default function WriteMessageModalScreen() {
     }
   };
 
-  const getChatLink = (friendId: number): Href => {
+  const getChatHref = (friendId: number): Href => {
     const chat = chats.find((chat) => chat.userTwoId === friendId);
     if (chat) return { pathname: '/chats/[chatId]', params: { chatId: chat.chatId } };
     return { pathname: '/chats/introductionModal', params: { friendId } };
@@ -39,6 +39,7 @@ export default function WriteMessageModalScreen() {
     <>
       <Stack.Screen
         options={{
+          presentation: 'modal',
           headerShadowVisible: false,
           headerStyle: {
             backgroundColor: theme.background,
@@ -73,7 +74,7 @@ export default function WriteMessageModalScreen() {
         <View style={styles.friends}>
           {filteredFriends.map((friend, index) => (
             <Fragment key={friend.friendId}>
-              <FriendCard friend={friend} enableFriendButton={false} link={getChatLink(friend.friendId)} />
+              <FriendCard friend={friend} enableFriendButton={false} link={getChatHref(friend.friendId)} />
               {index !== friends.length - 1 && (
                 <View style={[styles.divider, { backgroundColor: theme.tabBarBorder }]} />
               )}

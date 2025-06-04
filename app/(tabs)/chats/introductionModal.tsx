@@ -64,6 +64,7 @@ export default function IntroductionModalScreen() {
     <>
       <Stack.Screen
         options={{
+          presentation: 'modal',
           headerShadowVisible: false,
           headerStyle: {
             backgroundColor: theme.background,

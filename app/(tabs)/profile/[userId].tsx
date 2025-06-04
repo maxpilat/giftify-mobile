@@ -9,6 +9,8 @@ import {
   Share,
   Dimensions,
   RefreshControl,
+  NativeSyntheticEvent,
+  NativeScrollEvent,
 } from 'react-native';
 import { ParallaxScrollView } from '@/components/ParallaxScrollView';
 import { ProfileHeader } from '@/components/ProfileHeader';
@@ -35,6 +37,8 @@ import * as Linking from 'expo-linking';
 import { showToast } from '@/utils/showToast';
 import { BackButton } from '@/components/BackButton';
 import { Skeleton } from '@/components/Skeleton';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { colorKit } from 'reanimated-color-picker';
 
 const screenWidth = Dimensions.get('window').width;
 
@@ -79,15 +83,11 @@ export default function ProfileScreen() {
   const [friends, setFriends] = useState<Friend[]>([]);
 
   const [isWishesLoading, setIsWishesLoading] = useState(true);
-
-  const scrollRef = useRef<ScrollView>(null);
-
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const onRefresh = () => {
-    setIsRefreshing(true);
-    fetchData().then(() => setIsRefreshing(false));
-  };
+  const [isHeaderVisible, setIsHeaderVisible] = useState(false);
+
+  const scrollRef = useRef<ScrollView>(null);
 
   const contentOpacity = useSharedValue(1);
   const contentAnimatedStyle = useAnimatedStyle(() => ({
@@ -100,9 +100,37 @@ export default function ProfileScreen() {
     transform: [{ scale: addItemButtonOpacity.value }],
   }));
 
+  const headerBackgroundOpacity = useSharedValue(0);
+
+  // const headerAnimatedStyle = useAnimatedStyle(() => {
+
+  //   backgroundColor: colorKit.setAlpha(theme.background, headerBackgroundOpacity.value).hex(),
+  // });
+
   const isCurrentUser = +userId === authUser.id;
 
   const listPaddingBottom = isCurrentUser && currentTabIndex !== 2 ? 130 : 80;
+
+  const themeTypeValue = themeType === 'system' ? systemThemeType : themeType;
+
+  const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const scrollY = event.nativeEvent.contentOffset.y;
+
+    if (scrollY > 150 && !isHeaderVisible) {
+      setIsHeaderVisible(true);
+    } else if (scrollY < 150 && isHeaderVisible) {
+      setIsHeaderVisible(false);
+    }
+  };
+
+  const onRefresh = () => {
+    setIsRefreshing(true);
+    fetchData().then(() => setIsRefreshing(false));
+  };
+
+  useEffect(() => {
+    headerBackgroundOpacity.value = withTiming(isHeaderVisible ? 1 : 0, { duration: 300 });
+  }, [isHeaderVisible]);
 
   useEffect(() => {
     if (wishListId && wishLists.length) setCurrentWishListId(+wishListId);
@@ -118,6 +146,12 @@ export default function ProfileScreen() {
       setFriends(myFriends);
     }
   }, [myAvatar, myBackground, myWishes, myWishLists, myPiggyBanks, myFriends]);
+
+  useEffect(() => {
+    if (background?.id === 0) {
+      setBackground(getDefaultBackground(themeTypeValue));
+    }
+  }, [themeTypeValue]);
 
   const fetchData = async () => {
     const promises: Promise<any>[] = [];
@@ -436,18 +470,14 @@ export default function ProfileScreen() {
     return myBookings.find((booking) => booking.bookingId === bookingId);
   };
 
-  // useFocusEffect(
-  //   useCallback(() => {
-  //     fetchMyBookings();
-  //   }, [fetchMyBookings])
-  // );
-
   return (
     <>
       <Stack.Screen
         options={{
+          headerShown: true,
           headerTransparent: true,
-          headerTitle: '',
+          // headerBackground: () => <Animated.View style={[StyleSheet.absoluteFill, headerAnimatedStyle]} />,
+          headerTitle: () => <ThemedText type="bodyLargeMedium"></ThemedText>,
           headerLeft: () => !isCurrentUser && <BackButton />,
           contentStyle: {
             backgroundColor: theme.background,
@@ -470,6 +500,7 @@ export default function ProfileScreen() {
           translateYFactor={[-0.5, 0, 0]}
           scale={[1, 1, 1]}
           refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />}
+          onScroll={handleScroll}
         >
           {profile && (
             <ThemedView style={[styles.content, contentAnimatedStyle]}>

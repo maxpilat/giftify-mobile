@@ -7,7 +7,7 @@ import { SvgXml } from 'react-native-svg';
 import { useTheme } from '@/hooks/useTheme';
 import { Profile, ProfileBackground } from '@/models';
 import { formatCountedPhrase } from '@/utils/formatCountedPhrase';
-import { Link } from 'expo-router';
+import { Href, Link, router } from 'expo-router';
 import { Colors } from '@/constants/themes';
 import { useStore } from '@/hooks/useStore';
 import { Icon } from '@/components/Icon';
@@ -16,6 +16,8 @@ import { API } from '@/constants/api';
 import { useAuth } from '@/hooks/useAuth';
 import { showToast } from '@/utils/showToast';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Skeleton } from './Skeleton';
+import { PlatformButton } from './PlatformButton';
 
 const mask = `
   <svg width="280" height="130" viewBox="100 -0.5 280 161" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -36,7 +38,7 @@ type Props = {
 export function ProfileHeader({ profile, avatar, background, friendsCount, friendsAvatars, tabs, onTabChange }: Props) {
   const { theme } = useTheme();
   const { user: authUser } = useAuth();
-  const { fetchFriendRequests, fetchFriends, isFriend, isReceiver, isSender } = useStore();
+  const { chats, fetchFriendRequests, fetchFriends, isFriend, isReceiver, isSender } = useStore();
 
   const [currentTabIndex, setCurrentTabIndex] = useState(0);
 
@@ -80,8 +82,24 @@ export function ProfileHeader({ profile, avatar, background, friendsCount, frien
       .catch(() => showToast('error', 'Не удалось отменить запрос в друзья'));
   };
 
+  const goToChat = (friendId: number) => {
+    const chat = chats.find((chat) => chat.userTwoId === friendId);
+    if (chat) router.push({ pathname: '/chats/[chatId]', params: { chatId: chat.chatId } });
+    else router.push({ pathname: '/chats/introductionModal', params: { friendId } });
+  };
+
   const getFriendButton = () => {
-    if (!profile || profile.userId === authUser.id || isFriend(profile.userId)) return null;
+    if (!profile || profile.userId === authUser.id) return null;
+
+    if (isFriend(profile.userId)) {
+      return (
+        <PlatformButton style={{ paddingVertical: 10, paddingHorizontal: 12 }} onPress={() => goToChat(profile.userId)}>
+          <ThemedText type="labelLarge" parentBackgroundColor={theme.primary}>
+            Написать
+          </ThemedText>
+        </PlatformButton>
+      );
+    }
 
     if (isReceiver(profile.userId)) {
       return (
@@ -127,10 +145,7 @@ export function ProfileHeader({ profile, avatar, background, friendsCount, frien
             }
           >
             <ThemedView style={[styles.avatarWrapper]}>
-              <Image
-                source={avatar ? { uri: avatar } : require('@/assets/images/avatar.png')}
-                style={[styles.avatar, { backgroundColor: theme.tabBarBorder }]}
-              />
+              {avatar ? <Image source={{ uri: avatar }} style={styles.avatar} /> : <Skeleton style={styles.avatar} />}
             </ThemedView>
           </MaskedView>
           <ThemedView style={[styles.info, { borderColor: theme.background }]}>
@@ -149,20 +164,23 @@ export function ProfileHeader({ profile, avatar, background, friendsCount, frien
                     <TouchableOpacity style={styles.friends}>
                       {friendsAvatars && friendsAvatars.length > 0 && (
                         <View style={styles.friendsAvatars}>
-                          {friendsAvatars.map((friendAvatar, index) => (
-                            <Image
-                              key={index}
-                              source={friendAvatar ? { uri: friendAvatar } : require('../assets/images/avatar.png')}
-                              style={[
-                                styles.friendAvatar,
-                                index > 0 && { marginLeft: -13 },
-                                { borderColor: theme.background },
-                              ]}
-                            />
-                          ))}
+                          {friendsAvatars.map((friendAvatar, index) =>
+                            friendAvatar ? (
+                              <Image
+                                key={index}
+                                source={{ uri: friendAvatar }}
+                                style={[
+                                  styles.friendAvatar,
+                                  index > 0 && { marginLeft: -13 },
+                                  { borderColor: theme.background },
+                                ]}
+                              />
+                            ) : (
+                              <Skeleton key={index} style={[styles.friendAvatar, { borderColor: theme.background }]} />
+                            )
+                          )}
                         </View>
                       )}
-
                       <ThemedText>
                         {formatCountedPhrase({
                           number: friendsCount || 0,

@@ -12,6 +12,7 @@ import { Colors } from '@/constants/themes';
 import { router, Href } from 'expo-router';
 import { formatCountedPhrase } from '@/utils/formatCountedPhrase';
 import { showToast } from '@/utils/showToast';
+import { Skeleton } from './Skeleton';
 
 type Props = {
   friend: Friend;
@@ -151,10 +152,11 @@ export const FriendCard = ({ friend, link, enableFriendButton = true }: Props) =
 
   return (
     <TouchableOpacity activeOpacity={0.7} style={styles.friend} onPress={() => link && router.replace(link)}>
-      <Image
-        style={[styles.friendAvatar, { backgroundColor: theme.tabBarBorder }]}
-        source={friend.avatar ? { uri: friend.avatar } : require('@/assets/images/avatar.png')}
-      />
+      {friend.avatar ? (
+        <Image style={styles.friendAvatar} source={{ uri: friend.avatar }} />
+      ) : (
+        <Skeleton style={styles.friendAvatar} />
+      )}
       <View style={styles.friendInfo}>
         <ThemedText type="h5">{`${friend.name} ${friend.surname}`}</ThemedText>
         {getExtraInfo()}

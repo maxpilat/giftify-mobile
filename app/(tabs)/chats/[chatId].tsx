@@ -144,7 +144,16 @@ export default function ChatScreen() {
           ),
           headerLeft: BackButton,
           headerRight: () => (
-            <Image source={{ uri: chat?.friendAvatar || undefined }} style={{ width: 35, height: 35 }} />
+            <Image
+              source={
+                chat?.friendAvatar
+                  ? { uri: chat.friendAvatar }
+                  : chat?.friendAvatar === null
+                  ? require('@/assets/images/inkognito.png')
+                  : require('@/assets/images/avatar.png')
+              }
+              style={{ width: 34, height: 34, borderRadius: 17 }}
+            />
           ),
           headerStyle: { backgroundColor: theme.background },
           headerShadowVisible: false,

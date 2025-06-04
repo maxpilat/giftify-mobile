@@ -6,7 +6,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Chat } from '@/models';
 import { Icon } from '@/components/Icon';
 import { Colors } from '@/constants/themes';
-import { useEffect } from 'react';
+import { Skeleton } from './Skeleton';
 
 type Props = Chat;
 
@@ -14,28 +14,28 @@ export const ChatCard = ({ chatId, friendAvatar, lastMessage, friendName, unread
   const { theme } = useTheme();
   const { user: authUser } = useAuth();
 
-  useEffect(() => {
-    console.log(friendAvatar?.slice(0, 10));
-  }, [friendAvatar]);
-
   return (
     <Link asChild href={{ pathname: '/chats/[chatId]', params: { chatId } }}>
       <TouchableOpacity activeOpacity={0.7} style={styles.card}>
-        <Image
-          style={[styles.userTwoAvatar, { backgroundColor: theme.tabBarBorder }]}
-          source={
-            friendAvatar
-              ? { uri: friendAvatar }
-              : friendAvatar === null
-              ? require('@/assets/images/inkognito.png')
-              : require('@/assets/images/avatar.png')
-          }
-        />
+        {friendAvatar !== undefined ? (
+          <Image
+            style={[styles.userTwoAvatar, { backgroundColor: theme.tabBarBorder }]}
+            source={
+              friendAvatar
+                ? { uri: friendAvatar }
+                : friendAvatar === null
+                ? require('@/assets/images/inkognito.png')
+                : require('@/assets/images/avatar.png')
+            }
+          />
+        ) : (
+          <Skeleton style={{ width: 70, height: 70, borderRadius: 35 }} />
+        )}
 
         <View style={[styles.column, { flex: 1 }]}>
           <ThemedText type="bodyLargeMedium">{friendName}</ThemedText>
           <ThemedText type="bodySmall" numberOfLines={1} ellipsizeMode="tail">
-            {lastMessage?.text || lastMessage?.messageType === 'TYPE_IMAGE' ? 'Фотография' : ''}
+            {lastMessage?.text || (lastMessage?.messageType === 'TYPE_IMAGE' ? 'Фотография' : '')}
           </ThemedText>
         </View>
 
@@ -48,7 +48,7 @@ export const ChatCard = ({ chatId, friendAvatar, lastMessage, friendName, unread
             </ThemedText>
             {unreadMessageCount && lastMessage.fromUserId !== authUser.id ? (
               <View style={[styles.unreadMessagesCountLabel, { backgroundColor: theme.secondary }]}>
-                <ThemedText type="labelBase" style={{ color: Colors.white }}>
+                <ThemedText type="labelBase" parentBackgroundColor={theme.secondary}>
                   {unreadMessageCount}
                 </ThemedText>
               </View>

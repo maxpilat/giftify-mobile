@@ -1,10 +1,10 @@
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withRepeat, withTiming } from 'react-native-reanimated';
-import { ViewStyle } from 'react-native';
+import { StyleProp, ViewStyle } from 'react-native';
 import { useTheme } from '@/hooks/useTheme';
 import { useEffect } from 'react';
 
 type Props = {
-  style?: ViewStyle;
+  style?: StyleProp<ViewStyle>;
   minOpacity?: number;
   maxOpacity?: number;
 };
