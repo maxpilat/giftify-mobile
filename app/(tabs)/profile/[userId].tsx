@@ -37,8 +37,6 @@ import * as Linking from 'expo-linking';
 import { showToast } from '@/utils/showToast';
 import { BackButton } from '@/components/BackButton';
 import { Skeleton } from '@/components/Skeleton';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { colorKit } from 'reanimated-color-picker';
 
 const screenWidth = Dimensions.get('window').width;
 
@@ -88,6 +86,10 @@ export default function ProfileScreen() {
   const [isHeaderVisible, setIsHeaderVisible] = useState(false);
 
   const scrollRef = useRef<ScrollView>(null);
+  const themeTypeValue = themeType === 'system' ? systemThemeType : themeType;
+  const isCurrentUser = +userId === authUser.id;
+  const listPaddingBottom = isCurrentUser && currentTabIndex !== 2 ? 130 : 80;
+  const wishListData = wishLists.find(({ wishListId }) => wishListId === currentWishListId)?.wishes ?? wishes;
 
   const contentOpacity = useSharedValue(1);
   const contentAnimatedStyle = useAnimatedStyle(() => ({
@@ -101,32 +103,16 @@ export default function ProfileScreen() {
   }));
 
   const headerBackgroundOpacity = useSharedValue(0);
-
-  // const headerAnimatedStyle = useAnimatedStyle(() => {
-
-  //   backgroundColor: colorKit.setAlpha(theme.background, headerBackgroundOpacity.value).hex(),
-  // });
-
-  const isCurrentUser = +userId === authUser.id;
-
-  const listPaddingBottom = isCurrentUser && currentTabIndex !== 2 ? 130 : 80;
-
-  const themeTypeValue = themeType === 'system' ? systemThemeType : themeType;
-
-  const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-    const scrollY = event.nativeEvent.contentOffset.y;
-
-    if (scrollY > 150 && !isHeaderVisible) {
-      setIsHeaderVisible(true);
-    } else if (scrollY < 150 && isHeaderVisible) {
-      setIsHeaderVisible(false);
-    }
-  };
-
-  const onRefresh = () => {
-    setIsRefreshing(true);
-    fetchData().then(() => setIsRefreshing(false));
-  };
+  const headerAnimatedStyle = useAnimatedStyle(
+    () => ({
+      backgroundColor:
+        themeTypeValue === 'light'
+          ? `rgba(255, 255, 255, ${headerBackgroundOpacity.value})`
+          : `rgba(17, 19, 24, ${headerBackgroundOpacity.value})`,
+    }),
+    [theme.background]
+  );
+  const headerTitleAnimatedStyle = useAnimatedStyle(() => ({ opacity: headerBackgroundOpacity.value }));
 
   useEffect(() => {
     headerBackgroundOpacity.value = withTiming(isHeaderVisible ? 1 : 0, { duration: 300 });
@@ -152,6 +138,33 @@ export default function ProfileScreen() {
       setBackground(getDefaultBackground(themeTypeValue));
     }
   }, [themeTypeValue]);
+
+  useEffect(() => {
+    if (userId) fetchData();
+  }, [userId]);
+
+  useEffect(() => {
+    contentOpacity.value = withTiming(0, { duration: 50 }, (finished) => {
+      if (finished) {
+        runOnJS(setCurrentVisibleTabIndex)(currentTabIndex);
+      }
+    });
+  }, [currentTabIndex]);
+
+  useEffect(() => {
+    contentOpacity.value = withTiming(1, { duration: 300 });
+    const opacity = currentVisibleTabIndex === 2 ? 0 : 1;
+    addItemButtonOpacity.value = withTiming(opacity, { duration: 300 });
+  }, [currentVisibleTabIndex]);
+
+  const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    setIsHeaderVisible(event.nativeEvent.contentOffset.y > 210);
+  };
+
+  const onRefresh = () => {
+    setIsRefreshing(true);
+    fetchData().then(() => setIsRefreshing(false));
+  };
 
   const fetchData = async () => {
     const promises: Promise<any>[] = [];
@@ -288,24 +301,6 @@ export default function ProfileScreen() {
     await Promise.all(promises);
   };
 
-  useEffect(() => {
-    if (userId) fetchData();
-  }, [userId]);
-
-  useEffect(() => {
-    contentOpacity.value = withTiming(0, { duration: 50 }, (finished) => {
-      if (finished) {
-        runOnJS(setCurrentVisibleTabIndex)(currentTabIndex);
-      }
-    });
-  }, [currentTabIndex]);
-
-  useEffect(() => {
-    contentOpacity.value = withTiming(1, { duration: 300 });
-    const opacity = currentVisibleTabIndex === 2 ? 0 : 1;
-    addItemButtonOpacity.value = withTiming(opacity, { duration: 300 });
-  }, [currentVisibleTabIndex]);
-
   const addItem = () => {
     if (currentTabIndex === 0) {
       router.push({ pathname: '/profile/wishModal' });
@@ -313,8 +308,6 @@ export default function ProfileScreen() {
       router.push({ pathname: '/profile/piggyBankModal' });
     }
   };
-
-  const wishListData = wishLists.find(({ wishListId }) => wishListId === currentWishListId)?.wishes ?? wishes;
 
   const shareWishList = () => {
     const deepLink = Linking.createURL(`/profile/${userId}`, {
@@ -476,8 +469,13 @@ export default function ProfileScreen() {
         options={{
           headerShown: true,
           headerTransparent: true,
-          // headerBackground: () => <Animated.View style={[StyleSheet.absoluteFill, headerAnimatedStyle]} />,
-          headerTitle: () => <ThemedText type="bodyLargeMedium"></ThemedText>,
+          headerBackground: () => <Animated.View style={[StyleSheet.absoluteFill, headerAnimatedStyle]} />,
+          headerTitle: () => (
+            <ThemedText
+              type="bodyLargeMedium"
+              style={headerTitleAnimatedStyle}
+            >{`${profile?.name} ${profile?.surname}`}</ThemedText>
+          ),
           headerLeft: () => !isCurrentUser && <BackButton />,
           contentStyle: {
             backgroundColor: theme.background,
