@@ -32,7 +32,7 @@ export default function ProfileLayout() {
 
   const getFeedScreenOptions = (title: string): NativeStackNavigationOptions => ({
     headerTitle: () => <ThemedText type="bodyLargeMedium">{title}</ThemedText>,
-    headerLeft: BackButton,
+    headerLeft: () => <BackButton />,
     headerStyle: {
       backgroundColor: theme.background,
     },

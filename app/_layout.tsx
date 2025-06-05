@@ -63,6 +63,9 @@ export default function RootLayout() {
 
   if (!isLoaded) return;
 
+  console.warn = () => {};
+  console.error = () => {};
+
   return (
     <ActionSheetProvider>
       <AuthProvider initialUser={initialUser}>

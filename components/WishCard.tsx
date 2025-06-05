@@ -1,16 +1,17 @@
 import { useEffect, useState } from 'react';
-import { View, StyleSheet, Dimensions, Image } from 'react-native';
+import { View, StyleSheet, Dimensions, Image, TouchableOpacity } from 'react-native';
 import MaskedView from '@react-native-masked-view/masked-view';
 import { SvgXml } from 'react-native-svg';
 import { ThemedView } from '@/components/ThemedView';
 import { Action, ActionButton } from '@/components/ActionsButton';
 import { ThemedText } from '@/components/ThemedText';
-import { Wish } from '@/models';
+import { Profile, Wish } from '@/models';
 import { getDaysUntilBookingExpires } from '@/utils/getDaysUntil';
 import { Colors } from '@/constants/themes';
 import { Icon } from '@/components/Icon';
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { Skeleton } from '@/components/Skeleton';
+import { router } from 'expo-router';
 
 const mask = `
   <svg width="88" height="86" viewBox="0 0 88 86" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -30,11 +31,7 @@ type Props = {
     booked: string;
     avatar?: string;
   };
-  wisher?: {
-    name: string;
-    surname: string;
-    avatar?: string;
-  };
+  wisher?: Profile;
 };
 
 export function WishCard({
@@ -117,12 +114,15 @@ export function WishCard({
             </ThemedText>
           )}
           {wisher && (
-            <View style={styles.wisherContainer}>
+            <TouchableOpacity
+              style={styles.wisherContainer}
+              onPress={() => router.push({ pathname: '/profile/[userId]', params: { userId: wisher.userId } })}
+            >
               <Image style={styles.wisherAvatar} source={{ uri: wisher.avatar }} />
               <ThemedText type="labelLarge">
                 {wisher.name} {wisher.surname}
               </ThemedText>
-            </View>
+            </TouchableOpacity>
           )}
         </View>
       )}

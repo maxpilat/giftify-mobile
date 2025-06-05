@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { useAuth } from '@/hooks/useAuth';
 import { useTheme } from '@/hooks/useTheme';
-import { router, Stack, useLocalSearchParams } from 'expo-router';
+import { Link, router, Stack, useLocalSearchParams } from 'expo-router';
 import { ThemedText } from '@/components/ThemedText';
 import { BackButton } from '@/components/BackButton';
 import { useEffect, useMemo, useState } from 'react';
@@ -25,6 +25,7 @@ import { FlatList, GestureHandlerRootView } from 'react-native-gesture-handler';
 import { launchImageLibraryAsync } from 'expo-image-picker';
 import { showToast } from '@/utils/showToast';
 import { ChatMessage } from '@/components/chatMessage';
+import { Skeleton } from '@/components/Skeleton';
 
 const screenWidth = Dimensions.get('window').width;
 
@@ -142,18 +143,25 @@ export default function ChatScreen() {
               {chat?.friendName}
             </ThemedText>
           ),
-          headerLeft: BackButton,
+          headerLeft: () => <BackButton />,
           headerRight: () => (
-            <Image
-              source={
-                chat?.friendAvatar
-                  ? { uri: chat.friendAvatar }
-                  : chat?.friendAvatar === null
-                  ? require('@/assets/images/inkognito.png')
-                  : require('@/assets/images/avatar.png')
+            <TouchableOpacity
+              activeOpacity={chat?.userTwoId === authUser.id ? 1 : undefined}
+              onPress={() =>
+                chat?.userTwoId &&
+                chat?.userTwoId !== authUser.id &&
+                router.push({ pathname: '/profile/[userId]', params: { userId: chat.userTwoId } })
               }
-              style={{ width: 34, height: 34, borderRadius: 17 }}
-            />
+            >
+              {chat?.friendAvatar !== undefined ? (
+                <Image
+                  source={chat.friendAvatar ? { uri: chat.friendAvatar } : require('@/assets/images/inkognito.png')}
+                  style={styles.friendAvatar}
+                />
+              ) : (
+                <Skeleton style={styles.friendAvatar} />
+              )}
+            </TouchableOpacity>
           ),
           headerStyle: { backgroundColor: theme.background },
           headerShadowVisible: false,
@@ -212,6 +220,11 @@ export default function ChatScreen() {
 }
 
 const styles = StyleSheet.create({
+  friendAvatar: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+  },
   messagesArea: {
     flex: 1,
   },

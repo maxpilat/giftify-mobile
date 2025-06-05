@@ -17,7 +17,7 @@ export default function SettingsLayout() {
       backgroundColor: theme.background,
     },
     headerTitle: '',
-    headerLeft: BackButton,
+    headerLeft: () => <BackButton />,
   });
 
   return (

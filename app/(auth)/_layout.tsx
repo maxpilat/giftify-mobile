@@ -15,7 +15,7 @@ export default function AuthLayout() {
       backgroundColor: theme.background,
     },
     headerTitle: '',
-    headerLeft: BackButton,
+    headerLeft: () => <BackButton />,
   });
 
   return (
