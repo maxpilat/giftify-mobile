@@ -28,15 +28,16 @@ export default function SettingsScreen() {
 
   const [name, setName] = useState<string>('');
   const [surname, setSurname] = useState<string>('');
-  const [username, setUsername] = useState<string>();
+  const [username, setUsername] = useState<string>('');
   const [birthDate, setBirthDate] = useState<Date>(new Date(2000, 0, 1));
   const [gender, setGender] = useState<Gender | null>(null);
   const [isPrivateAccount, setIsPrivateAccount] = useState<boolean>(false);
   const [isDatePickerVisible, setIsDatePickerVisible] = useState<boolean>(false);
 
-  const [errors, setErrors] = useState<Record<'name' | 'surname', string | undefined>>({
+  const [errors, setErrors] = useState<Record<'name' | 'surname' | 'username', string | undefined>>({
     name: undefined,
     surname: undefined,
+    username: undefined,
   });
 
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -58,7 +59,7 @@ export default function SettingsScreen() {
 
     setName(settings.name);
     setSurname(settings.surname);
-    setUsername(settings.username);
+    setUsername(settings.username || user.email);
     settings.birthDate && setBirthDate(stringToDate(settings.birthDate));
     setGender(settings.isMan ? 'Male' : 'Female');
     setIsPrivateAccount(settings.isPrivate);
@@ -91,6 +92,7 @@ export default function SettingsScreen() {
 
   const handleUsernameChange = (value: string) => {
     setUsername(value);
+    setErrors((prev) => ({ ...prev, username: undefined }));
   };
 
   const handleBirthDateChange = (value: Date) => {
@@ -135,7 +137,30 @@ export default function SettingsScreen() {
     ]);
   };
 
+  const isValid = () => {
+    let isValid = true;
+
+    if (username.length < 2) {
+      setErrors((prev) => ({ ...prev, username: 'Минимум 2 символа' }));
+      isValid = false;
+    }
+
+    if (!name) {
+      setErrors((prev) => ({ ...prev, name: 'Обязательное поле' }));
+      isValid = false;
+    }
+
+    if (!surname) {
+      setErrors((prev) => ({ ...prev, surname: 'Обязательное поле' }));
+      isValid = false;
+    }
+
+    return isValid;
+  };
+
   const saveSettings = () => {
+    if (!isValid()) return;
+
     const namePromise = apiFetchData({
       endpoint: API.settings.updateName,
       method: 'PUT',
@@ -253,6 +278,8 @@ export default function SettingsScreen() {
                 placeholder="Никнейм"
                 value={username}
                 onChangeText={handleUsernameChange}
+                valid={!errors.username}
+                errorMessage={errors.username}
                 returnKeyType="done"
                 autoCapitalize="none"
               />

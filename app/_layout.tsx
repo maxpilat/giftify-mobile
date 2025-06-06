@@ -63,6 +63,7 @@ export default function RootLayout() {
 
   if (!isLoaded) return;
 
+  // DEMO
   console.warn = () => {};
   console.error = () => {};
 

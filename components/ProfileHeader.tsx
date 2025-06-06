@@ -7,7 +7,7 @@ import { SvgXml } from 'react-native-svg';
 import { useTheme } from '@/hooks/useTheme';
 import { Profile, ProfileBackground } from '@/models';
 import { formatCountedPhrase } from '@/utils/formatCountedPhrase';
-import { Href, Link, router } from 'expo-router';
+import { Link, router } from 'expo-router';
 import { Colors } from '@/constants/themes';
 import { useStore } from '@/hooks/useStore';
 import { Icon } from '@/components/Icon';
@@ -41,6 +41,9 @@ export function ProfileHeader({ profile, avatar, background, friendsCount, frien
   const { chats, fetchFriendRequests, fetchFriends, isFriend, isReceiver, isSender } = useStore();
 
   const [currentTabIndex, setCurrentTabIndex] = useState(0);
+
+  const { top } = useSafeAreaInsets();
+  const paddingTop = Platform.OS === 'ios' ? top : (StatusBar.currentHeight || 20) + 10;
 
   const acceptFriendRequest = () => {
     apiFetchData({
@@ -119,9 +122,6 @@ export function ProfileHeader({ profile, avatar, background, friendsCount, frien
     );
   };
 
-  const { top } = useSafeAreaInsets();
-  const paddingTop = Platform.OS === 'ios' ? top : (StatusBar.currentHeight || 20) + 10;
-
   return (
     <ImageBackground
       source={background?.backgroundType === 'TYPE_IMAGE' ? { uri: background.backgroundUri } : undefined}
@@ -155,11 +155,9 @@ export function ProfileHeader({ profile, avatar, background, friendsCount, frien
                   {profile?.name + ' ' + profile?.surname}
                 </ThemedText>
                 <View style={styles.details}>
-                  {profile?.username && (
-                    <ThemedText type="bodyLargeMedium">
-                      {profile.username.length > 10 ? `${profile.username.slice(0, 16)}...` : profile.username}
-                    </ThemedText>
-                  )}
+                  <ThemedText type="bodyLargeMedium" numberOfLines={1} style={styles.username}>
+                    {profile.username || authUser.email}
+                  </ThemedText>
                   <Link asChild href={{ pathname: '/friends/[userId]', params: { userId: profile.userId } }}>
                     <TouchableOpacity style={styles.friends}>
                       {friendsAvatars && friendsAvatars.length > 0 && (
@@ -262,6 +260,7 @@ const styles = StyleSheet.create({
     borderRadius: 40,
     borderWidth: 1,
     minHeight: 105,
+    maxWidth: '100%',
   },
   fullname: {
     textAlign: 'center',
@@ -271,6 +270,10 @@ const styles = StyleSheet.create({
     gap: 22,
     alignItems: 'center',
     marginTop: 10,
+    maxWidth: '100%',
+  },
+  username: {
+    flexShrink: 1,
   },
   friends: {
     flexDirection: 'row',
