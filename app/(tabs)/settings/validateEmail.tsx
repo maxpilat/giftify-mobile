@@ -60,7 +60,7 @@ export default function ValidateEmailScreen() {
   };
 
   return (
-    <KeyboardAwareScrollView extraScrollHeight={60} keyboardOpeningTime={0} enableOnAndroid>
+    <KeyboardAwareScrollView enableOnAndroid>
       <ThemedView style={styles.container}>
         <View style={styles.content}>
           <ThemedText type="h1" style={styles.tittle}>

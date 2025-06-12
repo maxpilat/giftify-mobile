@@ -78,12 +78,7 @@ export default function PiggyBankDepositModalScreen() {
             ),
         }}
       />
-      <KeyboardAwareScrollView
-        extraScrollHeight={80}
-        keyboardOpeningTime={0}
-        enableOnAndroid
-        contentContainerStyle={{ paddingBottom: 80 }}
-      >
+      <KeyboardAwareScrollView extraScrollHeight={80} enableOnAndroid contentContainerStyle={{ paddingBottom: 80 }}>
         <ScrollView contentContainerStyle={styles.container}>
           <ThemedText type="h2">Сколько вы хотите положить в копилку?</ThemedText>
           <View style={styles.fields}>

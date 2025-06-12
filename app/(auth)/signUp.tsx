@@ -51,7 +51,7 @@ export default function SignUpScreen() {
         body: email,
       });
 
-      router.push({ pathname: './validateEmail', params: { name, surname, email, password, friendEmail, code } });
+      router.push({ pathname: '/validateEmail', params: { name, surname, email, password, friendEmail, code } });
     } catch {
       showToast('error', 'Не удалось запросить код');
     }
@@ -89,12 +89,7 @@ export default function SignUpScreen() {
   };
 
   return (
-    <KeyboardAwareScrollView
-      extraScrollHeight={60}
-      keyboardOpeningTime={0}
-      enableOnAndroid
-      contentContainerStyle={styles.scrollViewContent}
-    >
+    <KeyboardAwareScrollView extraScrollHeight={60} enableOnAndroid contentContainerStyle={styles.scrollViewContent}>
       <View style={styles.content}>
         <ThemedText type="h1" style={styles.title}>
           Регистрация

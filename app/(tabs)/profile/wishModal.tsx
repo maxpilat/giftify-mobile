@@ -188,12 +188,7 @@ export default function WishModalScreen() {
         }}
       />
 
-      <KeyboardAwareScrollView
-        extraScrollHeight={80}
-        keyboardOpeningTime={0}
-        enableOnAndroid
-        contentContainerStyle={{ paddingBottom: 80 }}
-      >
+      <KeyboardAwareScrollView enableOnAndroid contentContainerStyle={{ paddingBottom: 40 }}>
         <ScrollView contentContainerStyle={styles.container}>
           <ImagePicker
             valid={!errors.image}
@@ -285,7 +280,7 @@ const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 16,
     paddingTop: 16,
-    paddingBottom: 32,
+    paddingBottom: 0,
     gap: 32,
   },
   fields: {

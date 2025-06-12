@@ -68,12 +68,7 @@ export default function ChangePasswordScreen() {
         }}
       />
 
-      <KeyboardAwareScrollView
-        extraScrollHeight={60}
-        keyboardOpeningTime={0}
-        enableOnAndroid
-        contentContainerStyle={styles.scrollViewContent}
-      >
+      <KeyboardAwareScrollView extraScrollHeight={60} enableOnAndroid contentContainerStyle={styles.scrollViewContent}>
         <View style={styles.content}>
           <ThemedText type="h1" style={styles.title}>
             Смена пароля

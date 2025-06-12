@@ -87,12 +87,7 @@ export default function WishListModalScreen() {
         }}
       />
 
-      <KeyboardAwareScrollView
-        extraScrollHeight={80}
-        keyboardOpeningTime={0}
-        enableOnAndroid
-        contentContainerStyle={{ paddingBottom: 80 }}
-      >
+      <KeyboardAwareScrollView enableOnAndroid>
         <ScrollView contentContainerStyle={styles.container}>
           <View style={styles.fields}>
             <TextInput

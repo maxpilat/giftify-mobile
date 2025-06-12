@@ -38,12 +38,7 @@ export default function ChangeEmailScreen() {
   };
 
   return (
-    <KeyboardAwareScrollView
-      extraScrollHeight={-180}
-      keyboardOpeningTime={0}
-      enableOnAndroid
-      contentContainerStyle={styles.scrollViewContent}
-    >
+    <KeyboardAwareScrollView extraScrollHeight={-250} enableOnAndroid contentContainerStyle={styles.scrollViewContent}>
       <View style={styles.content}>
         <ThemedText type="h1" style={styles.tittle}>
           Изменить электронную почту

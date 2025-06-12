@@ -56,12 +56,7 @@ export default function ForgotPasswordScreen() {
   };
 
   return (
-    <KeyboardAwareScrollView
-      extraScrollHeight={-180}
-      keyboardOpeningTime={0}
-      enableOnAndroid
-      contentContainerStyle={styles.scrollViewContent}
-    >
+    <KeyboardAwareScrollView extraScrollHeight={-250} enableOnAndroid contentContainerStyle={styles.scrollViewContent}>
       <ThemedText type="h1" style={styles.tittle}>
         Сбросить пароль
       </ThemedText>

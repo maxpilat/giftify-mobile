@@ -128,12 +128,7 @@ export default function WishModalScreen() {
         }}
       />
 
-      <KeyboardAwareScrollView
-        extraScrollHeight={80}
-        keyboardOpeningTime={0}
-        enableOnAndroid
-        contentContainerStyle={{ paddingBottom: 80 }}
-      >
+      <KeyboardAwareScrollView extraScrollHeight={80} enableOnAndroid>
         <ScrollView contentContainerStyle={styles.container}>
           <ImagePicker
             valid={!errors.image}

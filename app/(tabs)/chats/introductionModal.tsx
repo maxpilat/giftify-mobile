@@ -91,12 +91,7 @@ export default function IntroductionModalScreen() {
         }}
       />
 
-      <KeyboardAwareScrollView
-        extraScrollHeight={80}
-        keyboardOpeningTime={0}
-        enableOnAndroid
-        contentContainerStyle={{ paddingBottom: 80 }}
-      >
+      <KeyboardAwareScrollView enableOnAndroid>
         <ScrollView contentContainerStyle={styles.container}>
           <ThemedText type="h2">Как нам представить тебя другу?</ThemedText>
           <View style={styles.fields}>

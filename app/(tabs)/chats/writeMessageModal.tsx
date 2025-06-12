@@ -55,12 +55,7 @@ export default function WriteMessageModalScreen() {
           },
         }}
       />
-      <KeyboardAwareScrollView
-        extraScrollHeight={60}
-        keyboardOpeningTime={0}
-        enableOnAndroid
-        contentContainerStyle={styles.scrollViewContent}
-      >
+      <KeyboardAwareScrollView extraScrollHeight={60} enableOnAndroid contentContainerStyle={styles.scrollViewContent}>
         <TextInput
           icon="search"
           placeholder="Поиск"
