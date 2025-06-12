@@ -230,8 +230,8 @@ export default function SettingsScreen() {
             backgroundColor: theme.background,
           },
           headerRight: () => (
-            <TouchableOpacity onPress={saveSettings}>
-              <ThemedText style={{ color: theme.primary }}>Готово</ThemedText>
+            <TouchableOpacity style={{ width: 135 }} onPress={saveSettings}>
+              <ThemedText style={{ color: theme.primary }}>Сохранить</ThemedText>
             </TouchableOpacity>
           ),
         }}

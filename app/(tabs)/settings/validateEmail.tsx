@@ -8,6 +8,9 @@ import { useTheme } from '@/hooks/useTheme';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useAuth } from '@/hooks/useAuth';
 import { showToast } from '@/utils/showToast';
+import { useSharedValue, withSequence, withTiming } from 'react-native-reanimated';
+import * as Haptics from 'expo-haptics';
+import { useState } from 'react';
 
 type SearchParams = {
   newEmail: string;
@@ -19,13 +22,41 @@ export default function ValidateEmailScreen() {
   const { code, newEmail } = useLocalSearchParams<SearchParams>();
   const { changeEmail } = useAuth();
 
-  const submit = (value: string) => {
+  const [isValid, setIsValid] = useState(true);
+
+  const handleTextChange = () => {
+    setIsValid(true);
+  };
+
+  const handleSubmit = (value: string) => {
     if (value === code) {
       changeEmail(newEmail)
         .then(() => showToast('success', 'Почта изменена'))
         .catch(() => showToast('error', 'Не удалось изменить почту'));
       router.replace('/settings');
+    } else {
+      setIsValid(false);
+      shakeOtpInput();
     }
+  };
+
+  const shakeX = useSharedValue(0);
+
+  const shakeOtpInput = () => {
+    shakeX.value = withSequence(
+      withTiming(-8, { duration: 50 }),
+      withTiming(8, { duration: 50 }),
+      withTiming(-4, { duration: 50 }),
+      withTiming(4, { duration: 50 }),
+      withTiming(-3, { duration: 50 }),
+      withTiming(3, { duration: 50 }),
+      withTiming(0, { duration: 50 })
+    );
+
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+    setTimeout(() => {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+    }, 150);
   };
 
   return (
@@ -40,13 +71,14 @@ export default function ValidateEmailScreen() {
           </ThemedText>
           <OtpInput
             numberOfDigits={4}
-            onFilled={submit}
+            onTextChange={handleTextChange}
+            onFilled={handleSubmit}
             hideStick
             theme={{
               containerStyle: styles.pinCode,
-              pinCodeContainerStyle: styles.pinCodeContainer,
+              pinCodeContainerStyle: { ...styles.pinCodeContainer, borderColor: isValid ? Colors.grey : Colors.red },
               pinCodeTextStyle: { color: theme.text, ...styles.pinCodeText },
-              focusedPinCodeContainerStyle: styles.focusedPinCodeContainer,
+              focusedPinCodeContainerStyle: { borderColor: isValid ? Colors.blue : Colors.red },
             }}
           />
         </View>
@@ -77,15 +109,11 @@ const styles = StyleSheet.create({
     gap: 20,
   },
   pinCodeContainer: {
-    borderColor: Colors.grey,
     width: 64,
     height: 64,
   },
   pinCodeText: {
     fontSize: 32,
     fontFamily: 'stolzl-regular',
-  },
-  focusedPinCodeContainer: {
-    borderColor: Colors.blue,
   },
 });
