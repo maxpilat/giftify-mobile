@@ -9,7 +9,7 @@ import { Share, StyleSheet, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { Colors } from 'react-native/Libraries/NewAppScreen';
 import { Friend } from '@/models';
-import { apiFetchData } from '@/lib/api';
+import { apiFetchData, apiFetchImage } from '@/lib/api';
 import { API } from '@/constants/api';
 import { useAuth } from '@/hooks/useAuth';
 import { useTheme } from '@/hooks/useTheme';
@@ -23,8 +23,36 @@ export default function SearchFriendsScreen() {
   const [filteredUsers, setFilteredUsers] = useState<Friend[]>([]);
 
   useEffect(() => {
-    apiFetchData<Friend[]>({ endpoint: API.friends.getAllUsers(authUser.id), token: authUser.token }).then(setUsers);
+    fetchUsers();
   }, []);
+
+  const fetchUsers = async () => {
+    const users = await apiFetchData<Friend[]>({
+      endpoint: API.friends.getAllUsers(authUser.id),
+      token: authUser.token,
+    });
+
+    setUsers(users);
+
+    const avatarsMap = new Map(
+      await Promise.all(
+        users.map(async (user) => {
+          const avatar = await apiFetchImage({
+            endpoint: API.profile.getAvatar(user.friendId),
+            token: authUser.token,
+          });
+          return [user.friendId, avatar] as const;
+        })
+      )
+    );
+
+    setUsers((prev) =>
+      prev.map((user) => ({
+        ...user,
+        avatar: avatarsMap.get(user.friendId),
+      }))
+    );
+  };
 
   const filterUsers = (value: string) => {
     if (!value) {

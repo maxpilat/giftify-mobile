@@ -1,11 +1,11 @@
-import { Alert, StyleSheet, View } from 'react-native';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { TextInput } from '@/components/TextInput';
 import { useState } from 'react';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { PlatformButton } from '@/components/PlatformButton';
 import { Colors } from '@/constants/themes';
-import { Link, router } from 'expo-router';
+import { router } from 'expo-router';
 import { useAuth } from '@/hooks/useAuth';
 import { showToast } from '@/utils/showToast';
 
@@ -75,11 +75,11 @@ export default function SignInScreen() {
               }}
               keyboardType="visible-password"
             />
-            <Link href="./forgotPassword">
+            <TouchableOpacity onPress={() => router.push('/forgotPassword')}>
               <ThemedText type="bodyLargeMedium" style={styles.forgotPasswordLink}>
                 Забыли пароль?
               </ThemedText>
-            </Link>
+            </TouchableOpacity>
           </View>
         </View>
         <PlatformButton onPress={submit}>
@@ -91,11 +91,11 @@ export default function SignInScreen() {
 
       <View style={styles.footer}>
         <ThemedText>Не зарегистрированы?</ThemedText>
-        <Link href="./signUp">
+        <TouchableOpacity onPress={() => router.push('/signUp')}>
           <ThemedText type="bodyLargeMedium" style={styles.signUpLink}>
             Создать аккаунт
           </ThemedText>
-        </Link>
+        </TouchableOpacity>
       </View>
     </KeyboardAwareScrollView>
   );

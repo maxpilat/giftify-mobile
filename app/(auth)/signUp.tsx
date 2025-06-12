@@ -1,11 +1,11 @@
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { TextInput } from '@/components/TextInput';
 import { useRef, useState } from 'react';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { PlatformButton } from '@/components/PlatformButton';
 import { Colors } from '@/constants/themes';
-import { Link, router, useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { API } from '@/constants/api';
 import { apiFetchData } from '@/lib/api';
 import { showToast } from '@/utils/showToast';
@@ -155,11 +155,11 @@ export default function SignUpScreen() {
 
       <View style={styles.footer}>
         <ThemedText>Уже есть аккаунт?</ThemedText>
-        <Link href="./signIn">
+        <TouchableOpacity onPress={() => router.push('/signIn')}>
           <ThemedText type="bodyLargeMedium" style={styles.signInLink}>
             Войти
           </ThemedText>
-        </Link>
+        </TouchableOpacity>
       </View>
     </KeyboardAwareScrollView>
   );

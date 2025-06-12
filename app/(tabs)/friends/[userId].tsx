@@ -78,14 +78,27 @@ export default function FriendsScreen() {
     const friends = isCurrentUser
       ? await fetchMyFriends()
       : await apiFetchData<Friend[]>({ endpoint: API.friends.getFriends(+userId), token: authUser.token });
+
     setFriends(friends);
 
-    friends.forEach(async (friend) => {
-      const avatar = await apiFetchImage({ endpoint: API.profile.getAvatar(friend.friendId), token: authUser.token });
-      setFriends((prev) =>
-        prev.map((prevFriend) => (prevFriend.friendId === friend.friendId ? { ...prevFriend, avatar } : prevFriend))
-      );
-    });
+    const avatarsMap = new Map(
+      await Promise.all(
+        friends.map(async (friend) => {
+          const avatar = await apiFetchImage({
+            endpoint: API.profile.getAvatar(friend.friendId),
+            token: authUser.token,
+          });
+          return [friend.friendId, avatar] as const;
+        })
+      )
+    );
+
+    setFriends((prev) =>
+      prev.map((friend) => ({
+        ...friend,
+        avatar: avatarsMap.get(friend.friendId),
+      }))
+    );
   };
 
   const fetchPendingFriends = async () => {

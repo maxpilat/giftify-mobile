@@ -290,15 +290,15 @@ export default function ProfileScreen() {
       promises.push(wishesPromise, wishListsPromise, piggyBanksPromise, friendsPromise);
     }
 
-    Promise.all(promises).then(() => setIsProfileLoaded(true));
-
     const profilePromise = apiFetchData<Profile>({
       endpoint: API.profile.getProfile(+userId),
       token: authUser.token,
     }).then(setProfile);
 
     promises.push(profilePromise);
+
     await Promise.all(promises);
+    setIsProfileLoaded(true);
   };
 
   const addItem = () => {

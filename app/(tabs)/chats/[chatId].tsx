@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { useAuth } from '@/hooks/useAuth';
 import { useTheme } from '@/hooks/useTheme';
-import { Link, router, Stack, useLocalSearchParams } from 'expo-router';
+import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { ThemedText } from '@/components/ThemedText';
 import { BackButton } from '@/components/BackButton';
 import { useEffect, useMemo, useState } from 'react';
@@ -24,7 +24,7 @@ import Animated, { Easing, useSharedValue, withTiming } from 'react-native-reani
 import { FlatList, GestureHandlerRootView } from 'react-native-gesture-handler';
 import { launchImageLibraryAsync } from 'expo-image-picker';
 import { showToast } from '@/utils/showToast';
-import { ChatMessage } from '@/components/chatMessage';
+import { ChatMessage } from '@/components/ChatMessage';
 import { Skeleton } from '@/components/Skeleton';
 
 const screenWidth = Dimensions.get('window').width;
