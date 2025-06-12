@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { StyleSheet, ImageBackground, View, TouchableOpacity, Image, Platform, StatusBar } from 'react-native';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
@@ -124,7 +124,7 @@ export function ProfileHeader({ profile, avatar, background, friendsCount, frien
 
   return (
     <ImageBackground
-      source={background?.backgroundType === 'TYPE_IMAGE' ? { uri: background.backgroundUri } : undefined}
+      source={background?.backgroundType === 'TYPE_IMAGE' ? { uri: background.backgroundImage } : undefined}
       style={styles.background}
       imageStyle={[
         styles.backgroundImage,

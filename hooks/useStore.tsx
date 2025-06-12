@@ -11,7 +11,6 @@ import {
 } from 'react';
 import { API } from '@/constants/api';
 import {
-  ApiProfileBackground,
   Booking,
   Chat,
   ClientChatAttachment,
@@ -286,14 +285,27 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
 
   const fetchBackground = useCallback(async () => {
     const storedBackground = await AsyncStorage.getItem('currentBackground');
-
-    let newBackground: ProfileBackground;
-
     if (storedBackground) {
-      newBackground = JSON.parse(storedBackground);
-    } else {
-      newBackground = background;
+      const parsedBackground = JSON.parse(storedBackground);
+      setBackground(parsedBackground);
+      return parsedBackground;
     }
+
+    const serverBackground = await apiFetchData<ProfileBackground>({
+      endpoint: API.profile.getBackground(user.id),
+      token: user.token,
+    });
+
+    if (!serverBackground.backgroundImage && !serverBackground.backgroundColor) {
+      return background;
+    }
+
+    const newBackground = {
+      ...serverBackground,
+      backgroundImage: serverBackground.backgroundImage
+        ? `data:image;base64,${serverBackground.backgroundImage}`
+        : undefined,
+    };
 
     setBackground(newBackground);
     return newBackground;
@@ -301,7 +313,6 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
 
   const changeBackground = useCallback(
     async (background: ProfileBackground) => {
-      console.log(background);
       try {
         setBackground(background);
 
@@ -315,19 +326,12 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
             id: background.id,
             backgroundType: background.backgroundType,
             backgroundColor: background.backgroundColor,
-            backgroundImage: background.backgroundUri
-              ? base64ToBinaryArray(await uriToBase64(background.backgroundUri))
+            backgroundImage: background.backgroundImage
+              ? base64ToBinaryArray(await uriToBase64(background.backgroundImage))
               : undefined,
           },
           token: user.token,
         });
-
-        const newBackground = await apiFetchData<ApiProfileBackground>({
-          endpoint: API.profile.getBackground(user.id),
-          token: user.token,
-        });
-
-        console.log(newBackground.backgroundImage?.slice(0, 10));
       } catch (error) {
         throw error;
       }
@@ -350,7 +354,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
       const newBackground: ProfileBackground = {
         backgroundType: 'TYPE_IMAGE',
         id: allBackgrounds.length + 1,
-        backgroundUri,
+        backgroundImage: backgroundUri,
       };
 
       setAllBackgrounds((prev) => [...prev, newBackground]);

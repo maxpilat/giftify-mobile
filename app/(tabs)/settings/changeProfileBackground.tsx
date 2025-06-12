@@ -73,7 +73,7 @@ export default function ChangeProfileBackgroundScreen() {
         renderItem={({ item, index }) => (
           <View style={[styles.backgroundWrapper, { [index % 2 === 0 ? 'marginRight' : 'marginLeft']: 5 }]}>
             <Pressable style={styles.background} onPress={() => handleSelectBackground(item)}>
-              <Image style={styles.backgroundImage} source={{ uri: item.backgroundUri }} />
+              <Image style={styles.backgroundImage} source={{ uri: item.backgroundImage }} />
               {item.id === background.id && (
                 <View style={styles.acceptIcon}>
                   <Icon name="accept" color={Colors.white} />

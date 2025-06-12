@@ -15,7 +15,7 @@ export async function loadDefaultBackgrounds(): Promise<ProfileBackground[]> {
   return assets.map((asset) => ({
     backgroundType: 'TYPE_IMAGE',
     id: assets.indexOf(asset) + 1,
-    backgroundUri: asset.localUri!,
+    backgroundImage: asset.localUri!,
   }));
 }
 

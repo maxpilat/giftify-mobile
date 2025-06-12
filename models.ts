@@ -87,17 +87,10 @@ export type ApiThemeType = 'TYPE_LIGHT' | 'TYPE_DARK' | 'TYPE_SYSTEM';
 
 export type BackgroundType = 'TYPE_COLOR' | 'TYPE_IMAGE';
 
-export interface ApiProfileBackground {
-  id?: number;
-  backgroundType: BackgroundType;
-  backgroundImage?: number[];
-  backgroundColor?: string;
-}
-
 export interface ProfileBackground {
   id?: number;
   backgroundType: BackgroundType;
-  backgroundUri?: string;
+  backgroundImage?: string;
   backgroundColor?: string;
 }
 

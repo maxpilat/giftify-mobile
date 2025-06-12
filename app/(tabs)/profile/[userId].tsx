@@ -23,7 +23,7 @@ import { Link, router, Stack, useLocalSearchParams } from 'expo-router';
 import { useTheme } from '@/hooks/useTheme';
 import Animated, { runOnJS, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { ThemedText } from '@/components/ThemedText';
-import { Booking, Friend, Profile, ProfileBackground, ApiProfileBackground, Wish, WishList } from '@/models';
+import { Booking, Friend, Profile, ProfileBackground, Wish, WishList } from '@/models';
 import { API } from '@/constants/api';
 import { Colors } from '@/constants/themes';
 import { ProgressBar } from '@/components/ProgressBar';
@@ -31,7 +31,7 @@ import { apiFetchData, apiFetchImage } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
 import { useStore } from '@/hooks/useStore';
 import { Action } from '@/components/ActionsButton';
-import { base64ToBinaryArray, binaryToBase64 } from '@/utils/convertImage';
+import { base64ToBinaryArray } from '@/utils/convertImage';
 import { getDefaultBackground } from '@/utils/profileBackground';
 import * as Linking from 'expo-linking';
 import { showToast } from '@/utils/showToast';
@@ -185,17 +185,19 @@ export default function ProfileScreen() {
         token: authUser.token,
       }).then(setAvatar);
 
-      apiFetchData<ApiProfileBackground>({
+      apiFetchData<ProfileBackground>({
         endpoint: API.profile.getBackground(+userId),
         token: authUser.token,
       }).then((serverBackground) => {
         if (!serverBackground.backgroundImage && !serverBackground.backgroundColor) {
           setBackground(getDefaultBackground(themeType === 'system' ? systemThemeType : themeType));
         } else {
-          const backgroundUri = serverBackground.backgroundImage
-            ? binaryToBase64(serverBackground.backgroundImage)
-            : undefined;
-          const background: ProfileBackground = { ...serverBackground, backgroundUri };
+          const background: ProfileBackground = {
+            ...serverBackground,
+            backgroundImage: serverBackground.backgroundImage
+              ? `data:image;base64,${serverBackground.backgroundImage}`
+              : undefined,
+          };
           setBackground(background);
         }
       });
