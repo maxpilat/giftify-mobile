@@ -491,7 +491,7 @@ export default function ProfileScreen() {
               background={background}
               friendsAvatars={friends.slice(0, 3).map((friend) => friend.avatar)}
               friendsCount={friends.length}
-              tabs={['Желания', 'Копилки', isCurrentUser ? 'Я дарю' : isFriend(+userId) ? 'Идеи' : ''].filter(Boolean)}
+              tabs={['Желания', 'Копилки', isCurrentUser ? 'Я дарю' : ''].filter(Boolean)}
               onTabChange={setCurrentTabIndex}
             />
           }
