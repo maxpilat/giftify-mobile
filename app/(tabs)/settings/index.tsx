@@ -20,6 +20,7 @@ import { launchImageLibraryAsync } from 'expo-image-picker';
 import { showToast } from '@/utils/showToast';
 import { GestureHandlerRootView, RefreshControl, ScrollView } from 'react-native-gesture-handler';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function SettingsScreen() {
   const { theme } = useTheme();
@@ -242,161 +243,173 @@ export default function SettingsScreen() {
         }}
       />
       <GestureHandlerRootView>
-        <ScrollView
-          contentInsetAdjustmentBehavior="automatic"
-          style={styles.scrollView}
-          refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />}
-        >
-          <View style={styles.content}>
-            <View style={styles.body}>
-              <View style={styles.mainInfo}>
-                <TouchableOpacity activeOpacity={0.7} onPress={pickAvatar}>
-                  <Image
-                    source={myAvatar ? { uri: myAvatar } : require('@/assets/images/avatar.png')}
-                    style={[styles.avatar, { backgroundColor: theme.tabBarBorder }]}
-                  />
-                </TouchableOpacity>
-                <View style={styles.fullnameContainer}>
-                  <TextInput
-                    icon="user"
-                    placeholder="Имя"
-                    value={name}
-                    valid={!errors.name}
-                    errorMessage={errors.name}
-                    onChangeText={handleNameChange}
-                    returnKeyType="done"
-                  />
-                  <TextInput
-                    icon="user"
-                    placeholder="Фамилия"
-                    value={surname}
-                    valid={!errors.surname}
-                    errorMessage={errors.surname}
-                    onChangeText={handleSurnameChange}
-                    returnKeyType="done"
-                  />
+        <SafeAreaView>
+          <ScrollView
+            contentInsetAdjustmentBehavior="automatic"
+            style={styles.scrollView}
+            refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />}
+          >
+            <View style={styles.content}>
+              <View style={styles.body}>
+                <View style={styles.mainInfo}>
+                  <TouchableOpacity activeOpacity={0.7} onPress={pickAvatar}>
+                    <Image
+                      source={myAvatar ? { uri: myAvatar } : require('@/assets/images/avatar.png')}
+                      style={[styles.avatar, { backgroundColor: theme.tabBarBorder }]}
+                    />
+                  </TouchableOpacity>
+                  <View style={styles.fullnameContainer}>
+                    <TextInput
+                      icon="user"
+                      placeholder="Имя"
+                      value={name}
+                      valid={!errors.name}
+                      errorMessage={errors.name}
+                      onChangeText={handleNameChange}
+                      returnKeyType="done"
+                    />
+                    <TextInput
+                      icon="user"
+                      placeholder="Фамилия"
+                      value={surname}
+                      valid={!errors.surname}
+                      errorMessage={errors.surname}
+                      onChangeText={handleSurnameChange}
+                      returnKeyType="done"
+                    />
+                  </View>
+                </View>
+
+                <TextInput
+                  icon="user"
+                  placeholder="Никнейм"
+                  value={username}
+                  onChangeText={handleUsernameChange}
+                  valid={!errors.username}
+                  errorMessage={errors.username}
+                  returnKeyType="done"
+                  autoCapitalize="none"
+                />
+
+                <View style={styles.actionsSection}>
+                  <TouchableOpacity
+                    style={styles.actionsSectionRow}
+                    onPress={() => router.push('/settings/changeEmail')}
+                  >
+                    <ThemedText type="bodyLarge" style={{ color: theme.primary }}>
+                      Изменить электронную почту
+                    </ThemedText>
+                    <Icon name="right" color={theme.primary} />
+                  </TouchableOpacity>
+                  <View style={styles.divider} />
+                  <TouchableOpacity
+                    style={styles.actionsSectionRow}
+                    onPress={() => router.push('/settings/changePassword')}
+                  >
+                    <ThemedText type="bodyLarge" style={{ color: theme.primary }}>
+                      Сменить пароль
+                    </ThemedText>
+                    <Icon name="right" color={theme.primary} />
+                  </TouchableOpacity>
+                </View>
+
+                <TextInput
+                  icon="user"
+                  placeholder="DD.MM.YYYY"
+                  value={birthDate && dateToString(birthDate)}
+                  editable={false}
+                  onPress={() => setIsDatePickerVisible(true)}
+                />
+                <DateTimePickerModal
+                  pickerComponentStyleIOS={{ minWidth: '100%' }}
+                  date={birthDate}
+                  isVisible={isDatePickerVisible}
+                  mode="date"
+                  onConfirm={handleBirthDateChange}
+                  onCancel={() => setIsDatePickerVisible(false)}
+                  accentColor={theme.primary}
+                  confirmTextIOS="Сохранить"
+                  cancelTextIOS="Отмена"
+                  locale="ru"
+                />
+
+                <View style={styles.genderPrivacyContainer}>
+                  <View style={styles.genderContainer}>
+                    <Checkbox
+                      isSelected={gender === 'Male'}
+                      onPress={() => handleGenderChange('Male')}
+                      label="Мужской"
+                    />
+                    <Checkbox
+                      isSelected={gender === 'Female'}
+                      onPress={() => handleGenderChange('Female')}
+                      label="Женский"
+                    />
+                  </View>
+
+                  <View style={styles.privacyContainer}>
+                    <ThemedText type="bodyLargeMedium">Закрытый аккаунт</ThemedText>
+                    <Switch value={isPrivateAccount} onChange={handlePrivacyChange} />
+                  </View>
+                </View>
+
+                <View style={styles.actionsSection}>
+                  <TouchableOpacity
+                    style={styles.actionsSectionRow}
+                    onPress={() => router.push('/settings/changeTheme')}
+                  >
+                    <ThemedText type="bodyLarge" style={{ color: theme.primary }}>
+                      Тема приложения
+                    </ThemedText>
+                    <Icon name="right" color={theme.primary} />
+                  </TouchableOpacity>
+                  <View style={styles.divider} />
+                  <TouchableOpacity
+                    style={styles.actionsSectionRow}
+                    onPress={() => router.push('/settings/pickCustomColors')}
+                  >
+                    <ThemedText type="bodyLarge" style={{ color: theme.primary }}>
+                      Изменить цвета
+                    </ThemedText>
+                    <Icon name="right" color={theme.primary} />
+                  </TouchableOpacity>
+                  <View style={styles.divider} />
+                  <TouchableOpacity
+                    style={styles.actionsSectionRow}
+                    onPress={() => router.push('/settings/changeProfileBackground')}
+                  >
+                    <ThemedText type="bodyLarge" style={{ color: theme.primary }}>
+                      Изменить фон профиля
+                    </ThemedText>
+                    <Icon name="right" color={theme.primary} />
+                  </TouchableOpacity>
                 </View>
               </View>
 
-              <TextInput
-                icon="user"
-                placeholder="Никнейм"
-                value={username}
-                onChangeText={handleUsernameChange}
-                valid={!errors.username}
-                errorMessage={errors.username}
-                returnKeyType="done"
-                autoCapitalize="none"
-              />
-
-              <View style={styles.actionsSection}>
-                <TouchableOpacity style={styles.actionsSectionRow} onPress={() => router.push('/settings/changeEmail')}>
-                  <ThemedText type="bodyLarge" style={{ color: theme.primary }}>
-                    Изменить электронную почту
-                  </ThemedText>
-                  <Icon name="right" color={theme.primary} />
-                </TouchableOpacity>
-                <View style={styles.divider} />
-                <TouchableOpacity
-                  style={styles.actionsSectionRow}
-                  onPress={() => router.push('/settings/changePassword')}
-                >
-                  <ThemedText type="bodyLarge" style={{ color: theme.primary }}>
-                    Сменить пароль
-                  </ThemedText>
-                  <Icon name="right" color={theme.primary} />
-                </TouchableOpacity>
-              </View>
-
-              <TextInput
-                icon="user"
-                placeholder="DD.MM.YYYY"
-                value={birthDate && dateToString(birthDate)}
-                editable={false}
-                onPress={() => setIsDatePickerVisible(true)}
-              />
-              <DateTimePickerModal
-                pickerComponentStyleIOS={{ minWidth: '100%' }}
-                date={birthDate}
-                isVisible={isDatePickerVisible}
-                mode="date"
-                onConfirm={handleBirthDateChange}
-                onCancel={() => setIsDatePickerVisible(false)}
-                accentColor={theme.primary}
-                confirmTextIOS="Сохранить"
-                cancelTextIOS="Отмена"
-                locale="ru"
-              />
-
-              <View style={styles.genderPrivacyContainer}>
-                <View style={styles.genderContainer}>
-                  <Checkbox isSelected={gender === 'Male'} onPress={() => handleGenderChange('Male')} label="Мужской" />
-                  <Checkbox
-                    isSelected={gender === 'Female'}
-                    onPress={() => handleGenderChange('Female')}
-                    label="Женский"
-                  />
+              <View style={styles.footer}>
+                <View style={styles.dangerZone}>
+                  <TouchableOpacity onPress={handleSignOut}>
+                    <ThemedText type="bodyLargeMedium" style={{ color: theme.primary }}>
+                      Выход
+                    </ThemedText>
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={handleDeactivateAccount}>
+                    <ThemedText type="bodyLargeMedium" style={{ color: Colors.red }}>
+                      Удалить аккаунт
+                    </ThemedText>
+                  </TouchableOpacity>
                 </View>
-
-                <View style={styles.privacyContainer}>
-                  <ThemedText type="bodyLargeMedium">Закрытый аккаунт</ThemedText>
-                  <Switch value={isPrivateAccount} onChange={handlePrivacyChange} />
-                </View>
-              </View>
-
-              <View style={styles.actionsSection}>
-                <TouchableOpacity style={styles.actionsSectionRow} onPress={() => router.push('/settings/changeTheme')}>
-                  <ThemedText type="bodyLarge" style={{ color: theme.primary }}>
-                    Тема приложения
-                  </ThemedText>
-                  <Icon name="right" color={theme.primary} />
-                </TouchableOpacity>
-                <View style={styles.divider} />
-                <TouchableOpacity
-                  style={styles.actionsSectionRow}
-                  onPress={() => router.push('/settings/pickCustomColors')}
-                >
-                  <ThemedText type="bodyLarge" style={{ color: theme.primary }}>
-                    Изменить цвета
-                  </ThemedText>
-                  <Icon name="right" color={theme.primary} />
-                </TouchableOpacity>
-                <View style={styles.divider} />
-                <TouchableOpacity
-                  style={styles.actionsSectionRow}
-                  onPress={() => router.push('/settings/changeProfileBackground')}
-                >
-                  <ThemedText type="bodyLarge" style={{ color: theme.primary }}>
-                    Изменить фон профиля
-                  </ThemedText>
-                  <Icon name="right" color={theme.primary} />
-                </TouchableOpacity>
+                <Link asChild href={SUPPORT_BOT_URL}>
+                  <PlatformButton>
+                    <ThemedText type="bodyLargeMedium" parentBackgroundColor={theme.primary}>
+                      Связаться с нами
+                    </ThemedText>
+                  </PlatformButton>
+                </Link>
               </View>
             </View>
-
-            <View style={styles.footer}>
-              <View style={styles.dangerZone}>
-                <TouchableOpacity onPress={handleSignOut}>
-                  <ThemedText type="bodyLargeMedium" style={{ color: theme.primary }}>
-                    Выход
-                  </ThemedText>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={handleDeactivateAccount}>
-                  <ThemedText type="bodyLargeMedium" style={{ color: Colors.red }}>
-                    Удалить аккаунт
-                  </ThemedText>
-                </TouchableOpacity>
-              </View>
-              <Link asChild href={SUPPORT_BOT_URL}>
-                <PlatformButton>
-                  <ThemedText type="bodyLargeMedium" parentBackgroundColor={theme.primary}>
-                    Связаться с нами
-                  </ThemedText>
-                </PlatformButton>
-              </Link>
-            </View>
-          </View>
-        </ScrollView>
+          </ScrollView>
+        </SafeAreaView>
       </GestureHandlerRootView>
     </>
   );

@@ -4,8 +4,9 @@ import { Colors } from '@/constants/themes';
 import { useTheme } from '@/hooks/useTheme';
 import { router } from 'expo-router';
 import { FlatList, ImageSourcePropType, StyleSheet, View } from 'react-native';
-import { SafeAreaView, Image } from 'react-native';
+import { Image } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 type GridItem = {
   title: string;

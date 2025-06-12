@@ -37,6 +37,7 @@ import * as Linking from 'expo-linking';
 import { showToast } from '@/utils/showToast';
 import { BackButton } from '@/components/BackButton';
 import { Skeleton } from '@/components/Skeleton';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const screenWidth = Dimensions.get('window').width;
 
@@ -67,6 +68,7 @@ export default function ProfileScreen() {
     isFriend,
   } = useStore();
   const { userId = authUser.id, wishListId } = useLocalSearchParams<SearchParams>();
+  const { bottom } = useSafeAreaInsets();
 
   const [currentTabIndex, setCurrentTabIndex] = useState(0);
   const [currentVisibleTabIndex, setCurrentVisibleTabIndex] = useState(0);
@@ -505,7 +507,7 @@ export default function ProfileScreen() {
           {profile && (
             <ThemedView style={[styles.content, contentAnimatedStyle]}>
               {currentVisibleTabIndex === 0 &&
-                (!isCurrentUser && profile?.isPrivate ? (
+                (!isCurrentUser && !isFriend(profile.userId) && profile?.isPrivate ? (
                   <View style={styles.noWishesContainer}>
                     <ThemedText style={styles.noWishesMessage} type="bodyLarge">
                       У пользователя закрытый аккаунт
@@ -774,7 +776,13 @@ export default function ProfileScreen() {
         </ParallaxScrollView>
 
         {isCurrentUser && (
-          <Animated.View style={[styles.addItemButton, { backgroundColor: theme.primary }, addItemButtonAnimatedStyle]}>
+          <Animated.View
+            style={[
+              styles.addItemButton,
+              { backgroundColor: theme.primary, bottom: bottom + 60 },
+              addItemButtonAnimatedStyle,
+            ]}
+          >
             <Pressable onPress={addItem} style={styles.addItemButtonPressable}>
               <Icon name="plus" parentBackgroundColor={theme.primary} />
             </Pressable>
@@ -813,7 +821,6 @@ const styles = StyleSheet.create({
   },
   addItemButton: {
     position: 'absolute',
-    bottom: 95,
     borderRadius: 30,
     height: 60,
     width: 120,
