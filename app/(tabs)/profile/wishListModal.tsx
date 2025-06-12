@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
-import { router, useLocalSearchParams } from 'expo-router';
+import { ActivityIndicator, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { TextInput } from '@/components/TextInput';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useStore } from '@/hooks/useStore';
@@ -8,19 +8,22 @@ import { API } from '@/constants/api';
 import { useAuth } from '@/hooks/useAuth';
 import { apiFetchData } from '@/lib/api';
 import { showToast } from '@/utils/showToast';
+import { ThemedText } from '@/components/ThemedText';
+import { useTheme } from '@/hooks/useTheme';
 
 type SearchParams = {
-  isSubmit?: 'true' | 'false';
   wishListId?: string;
 };
 
 export default function WishListModalScreen() {
   const { user } = useAuth();
-  const { isSubmit, wishListId } = useLocalSearchParams<SearchParams>();
+  const { wishListId } = useLocalSearchParams<SearchParams>();
   const { wishLists, fetchWishLists } = useStore();
+  const { theme } = useTheme();
 
   const [name, setName] = useState<string>('');
   const [errors, setErrors] = useState<Record<'name', boolean>>({ name: false });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (wishListId) {
@@ -29,41 +32,36 @@ export default function WishListModalScreen() {
     }
   }, [wishListId]);
 
-  useEffect(() => {
-    handleSubmit();
-  }, [isSubmit]);
-
   const handleSubmit = async () => {
-    if (isSubmit !== 'true') return;
+    if (!isValid()) return;
 
-    if (isValid()) {
-      try {
-        if (wishListId) {
-          await apiFetchData({
-            endpoint: API.wishLists.update,
-            method: 'PUT',
-            token: user.token,
-            body: { wishListId: +wishListId, name },
-          });
-        } else {
-          await apiFetchData({
-            endpoint: API.wishLists.create,
-            method: 'POST',
-            token: user.token,
-            body: { creatorId: user.id, name },
-          });
-        }
+    setIsSubmitting(true);
 
-        await fetchWishLists();
-        router.back();
-
-        showToast('success', wishListId ? 'Список обновлён' : 'Список добавлен');
-      } catch {
-        showToast('error', wishListId ? 'Не удалось обновить список' : 'Не удалось добавить список');
+    try {
+      if (wishListId) {
+        await apiFetchData({
+          endpoint: API.wishLists.update,
+          method: 'PUT',
+          token: user.token,
+          body: { wishListId: +wishListId, name },
+        });
+      } else {
+        await apiFetchData({
+          endpoint: API.wishLists.create,
+          method: 'POST',
+          token: user.token,
+          body: { creatorId: user.id, name },
+        });
       }
-    }
 
-    router.setParams({ isSubmit: 'false' });
+      await fetchWishLists();
+      router.back();
+      showToast('success', wishListId ? 'Список обновлён' : 'Список добавлен');
+    } catch {
+      showToast('error', wishListId ? 'Не удалось обновить список' : 'Не удалось добавить список');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const isValid = () => {
@@ -75,27 +73,42 @@ export default function WishListModalScreen() {
   };
 
   return (
-    <KeyboardAwareScrollView
-      extraScrollHeight={80}
-      keyboardOpeningTime={0}
-      enableOnAndroid
-      contentContainerStyle={{ paddingBottom: 80 }}
-    >
-      <ScrollView contentContainerStyle={styles.container}>
-        <View style={styles.fields}>
-          <TextInput
-            icon="star"
-            placeholder="Название"
-            value={name}
-            valid={!errors.name}
-            onChangeText={(value) => {
-              setName(value);
-              setErrors((prev) => ({ ...prev, name: false }));
-            }}
-          />
-        </View>
-      </ScrollView>
-    </KeyboardAwareScrollView>
+    <>
+      <Stack.Screen
+        options={{
+          headerRight: () =>
+            isSubmitting ? (
+              <ActivityIndicator />
+            ) : (
+              <TouchableOpacity onPress={handleSubmit}>
+                <ThemedText style={{ color: theme.primary }}>Готово</ThemedText>
+              </TouchableOpacity>
+            ),
+        }}
+      />
+
+      <KeyboardAwareScrollView
+        extraScrollHeight={80}
+        keyboardOpeningTime={0}
+        enableOnAndroid
+        contentContainerStyle={{ paddingBottom: 80 }}
+      >
+        <ScrollView contentContainerStyle={styles.container}>
+          <View style={styles.fields}>
+            <TextInput
+              icon="star"
+              placeholder="Название"
+              value={name}
+              valid={!errors.name}
+              onChangeText={(value) => {
+                setName(value);
+                setErrors((prev) => ({ ...prev, name: false }));
+              }}
+            />
+          </View>
+        </ScrollView>
+      </KeyboardAwareScrollView>
+    </>
   );
 }
 

@@ -20,11 +20,11 @@ export default function SignInScreen() {
   const { signIn } = useAuth();
 
   const submit = () => {
-    if (isValid()) {
-      signIn(email, password)
-        .then(({ id: userId }) => router.replace({ pathname: '/profile/[userId]', params: { userId } }))
-        .catch(() => showToast('error', 'Неверные почта или пароль'));
-    }
+    if (!isValid()) return;
+
+    signIn(email, password)
+      .then(({ id: userId }) => router.replace({ pathname: '/profile/[userId]', params: { userId } }))
+      .catch(() => showToast('error', 'Неверные почта или пароль'));
   };
 
   const isValid = () => {

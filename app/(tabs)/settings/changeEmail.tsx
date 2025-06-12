@@ -17,15 +17,15 @@ export default function ChangeEmailScreen() {
   });
 
   const submit = () => {
-    if (isValid()) {
-      apiFetchData<{ code: string }>({
-        endpoint: API.auth.validateEmail,
-        method: 'POST',
-        body: newEmail,
-      })
-        .then(({ code }) => router.push({ pathname: '/validateEmail', params: { code, newEmail } }))
-        .catch(() => showToast('error', 'Не удалось запросить код'));
-    }
+    if (!isValid()) return;
+
+    apiFetchData<{ code: string }>({
+      endpoint: API.auth.validateEmail,
+      method: 'POST',
+      body: newEmail,
+    })
+      .then(({ code }) => router.push({ pathname: '/validateEmail', params: { code, newEmail } }))
+      .catch(() => showToast('error', 'Не удалось запросить код'));
   };
 
   const isValid = () => {

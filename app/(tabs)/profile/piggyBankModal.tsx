@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
-import { router, useLocalSearchParams } from 'expo-router';
+import { ActivityIndicator, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { ImagePicker } from '@/components/ImagePicker';
 import { TextInput } from '@/components/TextInput';
 import { Currency, WishType } from '@/models';
@@ -11,16 +11,18 @@ import { useStore } from '@/hooks/useStore';
 import { base64ToBinaryArray } from '@/utils/convertImage';
 import { apiFetchData } from '@/lib/api';
 import { showToast } from '@/utils/showToast';
+import { ThemedText } from '@/components/ThemedText';
+import { useTheme } from '@/hooks/useTheme';
 
 type SearchParams = {
-  isSubmit?: 'true' | 'false';
   piggyBankId?: string;
 };
 
 export default function WishModalScreen() {
   const { user } = useAuth();
-  const { isSubmit, piggyBankId } = useLocalSearchParams<SearchParams>();
+  const { piggyBankId } = useLocalSearchParams<SearchParams>();
   const { piggyBanks, fetchPiggyBanks } = useStore();
+  const { theme } = useTheme();
 
   const [image, setImage] = useState<string>();
   const [name, setName] = useState<string>('');
@@ -28,12 +30,12 @@ export default function WishModalScreen() {
   const [price, setPrice] = useState<string>('');
   const [currency, setCurrency] = useState<Currency | null>(null);
   const [description, setDescription] = useState<string>('');
+  const [currencies, setCurrencies] = useState<Currency[]>([]);
   const [errors, setErrors] = useState<Record<'name' | 'image', boolean>>({
     name: false,
     image: false,
   });
-
-  const [currencies, setCurrencies] = useState<Currency[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     apiFetchData<Currency[]>({ endpoint: API.currencies.getCurrencies, token: user.token }).then((currencies) => {
@@ -54,55 +56,52 @@ export default function WishModalScreen() {
     }
   }, [piggyBankId]);
 
-  useEffect(() => {
-    handleSubmit();
-  }, [isSubmit]);
-
   const handleSubmit = async () => {
-    if (isSubmit !== 'true') return;
+    if (!isValid()) return;
 
-    if (isValid()) {
-      const payload = {
-        wisherId: user.id,
-        wishType: 'TYPE_PIGGY_BANK' as WishType,
-        name,
-        description,
-        deposit: +deposit,
-        price: +price,
-        currencyId: currency?.currencyId,
-      };
+    setIsSubmitting(true);
+    await new Promise((resolve) => setTimeout(resolve));
 
-      const buffer = base64ToBinaryArray(image!);
+    const payload = {
+      wisherId: user.id,
+      wishType: 'TYPE_PIGGY_BANK' as WishType,
+      name,
+      description,
+      deposit: +deposit,
+      price: +price,
+      currencyId: currency?.currencyId,
+    };
 
-      try {
-        if (piggyBankId) {
-          (payload as any).wishId = +piggyBankId;
-          await apiFetchData({
-            endpoint: API.wishes.update,
-            method: 'PUT',
-            token: user.token,
-            body: { ...payload, image: buffer },
-          });
-        } else {
-          (payload as any).wisherId = user.id;
-          await apiFetchData({
-            endpoint: API.wishes.create,
-            method: 'POST',
-            token: user.token,
-            body: { ...payload, image: buffer },
-          });
-        }
+    const buffer = base64ToBinaryArray(image!);
 
-        await fetchPiggyBanks();
-        router.back();
-
-        showToast('success', piggyBankId ? 'Копилка обновлена' : 'Копилка добавлена');
-      } catch {
-        showToast('error', piggyBankId ? 'Не удалось обновить копилку' : 'Не удалось добавить копилку');
+    try {
+      if (piggyBankId) {
+        (payload as any).wishId = +piggyBankId;
+        await apiFetchData({
+          endpoint: API.wishes.update,
+          method: 'PUT',
+          token: user.token,
+          body: { ...payload, image: buffer },
+        });
+      } else {
+        (payload as any).wisherId = user.id;
+        await apiFetchData({
+          endpoint: API.wishes.create,
+          method: 'POST',
+          token: user.token,
+          body: { ...payload, image: buffer },
+        });
       }
-    }
 
-    router.setParams({ isSubmit: 'false' });
+      await fetchPiggyBanks();
+      router.back();
+
+      showToast('success', piggyBankId ? 'Копилка обновлена' : 'Копилка добавлена');
+    } catch {
+      showToast('error', piggyBankId ? 'Не удалось обновить копилку' : 'Не удалось добавить копилку');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const isValid = () => {
@@ -115,69 +114,84 @@ export default function WishModalScreen() {
   };
 
   return (
-    <KeyboardAwareScrollView
-      extraScrollHeight={80}
-      keyboardOpeningTime={0}
-      enableOnAndroid
-      contentContainerStyle={{ paddingBottom: 80 }}
-    >
-      <ScrollView contentContainerStyle={styles.container}>
-        <ImagePicker
-          valid={!errors.image}
-          initialImage={image}
-          onImagePicked={(imageUri) => {
-            setImage(imageUri);
-            setErrors((prev) => ({ ...prev, name: false }));
-          }}
-        />
-        <View style={styles.fields}>
-          <TextInput
-            icon="star"
-            placeholder="Название"
-            value={name}
-            valid={!errors.name}
-            onChangeText={(value) => {
-              setName(value);
+    <>
+      <Stack.Screen
+        options={{
+          headerRight: () =>
+            isSubmitting ? (
+              <ActivityIndicator />
+            ) : (
+              <TouchableOpacity onPress={handleSubmit}>
+                <ThemedText style={{ color: theme.primary }}>Готово</ThemedText>
+              </TouchableOpacity>
+            ),
+        }}
+      />
+
+      <KeyboardAwareScrollView
+        extraScrollHeight={80}
+        keyboardOpeningTime={0}
+        enableOnAndroid
+        contentContainerStyle={{ paddingBottom: 80 }}
+      >
+        <ScrollView contentContainerStyle={styles.container}>
+          <ImagePicker
+            valid={!errors.image}
+            initialImage={image}
+            onImagePicked={(imageUri) => {
+              setImage(imageUri);
               setErrors((prev) => ({ ...prev, name: false }));
             }}
           />
-          <TextInput
-            icon="edit"
-            placeholder="Почему вы копите на это?"
-            value={description}
-            onChangeText={setDescription}
-            multiline={true}
-            inputStyle={{ height: 96 }}
-          />
-          <TextInput
-            icon="ticketStart"
-            placeholder="Сумма, которая есть сейчас"
-            keyboardType="numeric"
-            inputMode="decimal"
-            value={deposit}
-            onChangeText={setDeposit}
-            type="options"
-            options={currencies}
-            getDisplayedValue={(currency) => currency.symbol}
-            getOptionLabel={(currency) => `${currency.symbol} - ${currency.transcription}`}
-            onSelectOption={setCurrency}
-          />
-          <TextInput
-            icon="ticketStart"
-            placeholder="Полная стоимость"
-            keyboardType="numeric"
-            inputMode="decimal"
-            value={price}
-            onChangeText={setPrice}
-            type="options"
-            options={currencies}
-            getDisplayedValue={(currency) => currency.symbol}
-            getOptionLabel={(currency) => `${currency.symbol} - ${currency.transcription}`}
-            onSelectOption={setCurrency}
-          />
-        </View>
-      </ScrollView>
-    </KeyboardAwareScrollView>
+          <View style={styles.fields}>
+            <TextInput
+              icon="star"
+              placeholder="Название"
+              value={name}
+              valid={!errors.name}
+              onChangeText={(value) => {
+                setName(value);
+                setErrors((prev) => ({ ...prev, name: false }));
+              }}
+            />
+            <TextInput
+              icon="edit"
+              placeholder="Почему вы копите на это?"
+              value={description}
+              onChangeText={setDescription}
+              multiline={true}
+              inputStyle={{ height: 96 }}
+            />
+            <TextInput
+              icon="ticketStart"
+              placeholder="Сумма, которая есть сейчас"
+              keyboardType="numeric"
+              inputMode="decimal"
+              value={deposit}
+              onChangeText={setDeposit}
+              type="options"
+              options={currencies}
+              getDisplayedValue={(currency) => currency.symbol}
+              getOptionLabel={(currency) => `${currency.symbol} - ${currency.transcription}`}
+              onSelectOption={setCurrency}
+            />
+            <TextInput
+              icon="ticketStart"
+              placeholder="Полная стоимость"
+              keyboardType="numeric"
+              inputMode="decimal"
+              value={price}
+              onChangeText={setPrice}
+              type="options"
+              options={currencies}
+              getDisplayedValue={(currency) => currency.symbol}
+              getOptionLabel={(currency) => `${currency.symbol} - ${currency.transcription}`}
+              onSelectOption={setCurrency}
+            />
+          </View>
+        </ScrollView>
+      </KeyboardAwareScrollView>
+    </>
   );
 }
 

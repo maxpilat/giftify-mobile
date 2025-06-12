@@ -20,11 +20,6 @@ export default function ProfileLayout() {
         <ThemedText style={{ color: theme.primary }}>Отмена</ThemedText>
       </TouchableOpacity>
     ),
-    headerRight: () => (
-      <TouchableOpacity onPress={() => router.setParams({ isSubmit: 'true' })}>
-        <ThemedText style={{ color: theme.primary }}>Готово</ThemedText>
-      </TouchableOpacity>
-    ),
     contentStyle: {
       backgroundColor: theme.background,
     },
@@ -73,12 +68,7 @@ export default function ProfileLayout() {
           )
         }
       />
-      <Stack.Screen
-        name="piggyBankDepositModal"
-        options={{
-          ...getModalScreenOptions(''),
-        }}
-      />
+      <Stack.Screen name="piggyBankDepositModal" options={getModalScreenOptions('')} />
     </Stack>
   );
 }

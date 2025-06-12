@@ -31,9 +31,7 @@ export default function SignUpScreen() {
   const typingTimeoutRef = useRef<number | null>(null);
 
   const submit = async () => {
-    if (!isValid()) {
-      return;
-    }
+    if (!isValid()) return;
 
     try {
       const isUniqueEmail = await apiFetchData<boolean>({

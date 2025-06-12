@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { TextInput } from '@/components/TextInput';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
@@ -25,31 +25,33 @@ export default function IntroductionModalScreen() {
   const [errors, setErrors] = useState<Record<'pseudonym', boolean>>({
     pseudonym: false,
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = () => {
     const prevChats = chats;
 
-    if (isValid()) {
-      apiFetchData({
-        endpoint: API.chats.createChat,
-        method: 'POST',
-        body: {
-          chatType: 'TYPE_ANONYMOUS',
-          userOneId: authUser.id,
-          userOneDisplayName: pseudonym,
-          userTwoId: friendId,
-        },
-        token: authUser.token,
+    if (!isValid()) return;
+
+    setIsSubmitting(true);
+
+    apiFetchData({
+      endpoint: API.chats.createChat,
+      method: 'POST',
+      body: {
+        chatType: 'TYPE_ANONYMOUS',
+        userOneId: authUser.id,
+        userOneDisplayName: pseudonym,
+        userTwoId: friendId,
+      },
+      token: authUser.token,
+    })
+      .then(fetchChats)
+      .then((newChats) => {
+        const newChat = newChats.find((newChat) => !prevChats.some((prevChat) => prevChat.chatId === newChat.chatId))!;
+        router.replace({ pathname: '/chats/[chatId]', params: { chatId: newChat.chatId } });
       })
-        .then(fetchChats)
-        .then((newChats) => {
-          const newChat = newChats.find(
-            (newChat) => !prevChats.some((prevChat) => prevChat.chatId === newChat.chatId)
-          )!;
-          router.replace({ pathname: '/chats/[chatId]', params: { chatId: newChat.chatId } });
-        })
-        .catch(() => showToast('error', 'Не удалось создать чат'));
-    }
+      .catch(() => showToast('error', 'Не удалось создать чат'))
+      .finally(() => setIsSubmitting(false));
   };
 
   const isValid = () => {
@@ -75,11 +77,14 @@ export default function IntroductionModalScreen() {
               <ThemedText style={{ color: theme.primary }}>Отмена</ThemedText>
             </TouchableOpacity>
           ),
-          headerRight: () => (
-            <TouchableOpacity onPress={handleSubmit}>
-              <ThemedText style={{ color: theme.primary }}>Готово</ThemedText>
-            </TouchableOpacity>
-          ),
+          headerRight: () =>
+            isSubmitting ? (
+              <ActivityIndicator />
+            ) : (
+              <TouchableOpacity onPress={handleSubmit}>
+                <ThemedText style={{ color: theme.primary }}>Готово</ThemedText>
+              </TouchableOpacity>
+            ),
           contentStyle: {
             backgroundColor: theme.background,
           },

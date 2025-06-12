@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
-import { router, useLocalSearchParams } from 'expo-router';
+import { ActivityIndicator, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { ImagePicker } from '@/components/ImagePicker';
 import { TextInput } from '@/components/TextInput';
 import { Currency, WishType } from '@/models';
@@ -19,7 +19,6 @@ import { useTheme } from '@/hooks/useTheme';
 import { showToast } from '@/utils/showToast';
 
 type SearchParams = {
-  isSubmit?: 'true' | 'false';
   wishId?: string;
 };
 
@@ -31,7 +30,7 @@ type SwitchState = {
 export default function WishModalScreen() {
   const { theme } = useTheme();
   const { user } = useAuth();
-  const { isSubmit, wishId: wishIdParam } = useLocalSearchParams<SearchParams>();
+  const { wishId: wishIdParam } = useLocalSearchParams<SearchParams>();
   const { wishes, wishLists, fetchWishes, fetchWishLists } = useStore();
 
   const [image, setImage] = useState<string>();
@@ -46,8 +45,8 @@ export default function WishModalScreen() {
   });
   const [switchStates, setSwitchStates] = useState<SwitchState[]>([]);
   const [currencies, setCurrencies] = useState<Currency[]>([]);
-
   const [prevWishLists, setPrevWishLists] = useState(wishLists);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     apiFetchData<Currency[]>({ endpoint: API.currencies.getCurrencies, token: user.token }).then((currencies) => {
@@ -86,80 +85,75 @@ export default function WishModalScreen() {
     }
   }, [wishIdParam]);
 
-  useEffect(() => {
-    handleSubmit();
-  }, [isSubmit]);
-
   const handleSubmit = async () => {
-    if (isSubmit !== 'true') return;
+    if (!isValid()) return;
 
-    if (isValid()) {
-      const payload = {
-        wisherId: user.id,
-        wishType: 'TYPE_WISH' as WishType,
-        name,
-        description,
-        price: +price,
-        currencyId: currency?.currencyId,
-        link,
-      };
+    setIsSubmitting(true);
+    await new Promise((resolve) => setTimeout(resolve));
 
-      const binaryImage = base64ToBinaryArray(image!);
+    const payload = {
+      wisherId: user.id,
+      wishType: 'TYPE_WISH' as WishType,
+      name,
+      description,
+      price: +price,
+      currencyId: currency?.currencyId,
+      link,
+    };
 
-      let wishId = wishIdParam ? +wishIdParam : null;
+    const binaryImage = base64ToBinaryArray(image!);
+    let wishId = wishIdParam ? +wishIdParam : null;
 
-      try {
-        if (wishId) {
-          (payload as any).wishId = wishId;
-          await apiFetchData({
-            endpoint: API.wishes.update,
-            method: 'PUT',
-            token: user.token,
-            body: { ...payload, image: binaryImage },
-          });
-        } else {
-          (payload as any).wisherId = user.id;
-          wishId = await apiFetchData<number>({
-            endpoint: API.wishes.create,
-            method: 'POST',
-            token: user.token,
-            body: { ...payload, image: binaryImage },
-          });
-        }
-
-        await Promise.all(
-          switchStates.map((state) => {
-            const wishList = wishLists.find((item) => item.wishListId === state.id)!;
-            const isWishInWishList = wishList.wishes.some((wish) => wish.wishId === wishId);
-
-            if (state.enabled && !isWishInWishList) {
-              return apiFetchData({
-                endpoint: API.wishes.addToWishList,
-                method: 'POST',
-                body: { wishId, wishListId: state.id },
-                token: user.token,
-              });
-            } else if (!state.enabled && isWishInWishList) {
-              return apiFetchData({
-                endpoint: API.wishes.deleteFromWishList,
-                method: 'DELETE',
-                body: { wishId, wishListId: state.id },
-                token: user.token,
-              });
-            }
-          })
-        );
-
-        router.back();
-        await Promise.all([fetchWishes(), fetchWishLists()]);
-
-        showToast('success', wishIdParam ? 'Желание обновлено' : 'Желание добавлено');
-      } catch {
-        showToast('error', wishIdParam ? 'Не удалось обновить желание' : 'Не удалось добавить желание');
+    try {
+      if (wishId) {
+        (payload as any).wishId = wishId;
+        await apiFetchData({
+          endpoint: API.wishes.update,
+          method: 'PUT',
+          token: user.token,
+          body: { ...payload, image: binaryImage },
+        });
+      } else {
+        (payload as any).wisherId = user.id;
+        wishId = await apiFetchData<number>({
+          endpoint: API.wishes.create,
+          method: 'POST',
+          token: user.token,
+          body: { ...payload, image: binaryImage },
+        });
       }
-    }
 
-    router.setParams({ isSubmit: 'false' });
+      await Promise.all(
+        switchStates.map((state) => {
+          const wishList = wishLists.find((item) => item.wishListId === state.id)!;
+          const isWishInWishList = wishList.wishes.some((wish) => wish.wishId === wishId);
+
+          if (state.enabled && !isWishInWishList) {
+            return apiFetchData({
+              endpoint: API.wishes.addToWishList,
+              method: 'POST',
+              body: { wishId, wishListId: state.id },
+              token: user.token,
+            });
+          } else if (!state.enabled && isWishInWishList) {
+            return apiFetchData({
+              endpoint: API.wishes.deleteFromWishList,
+              method: 'DELETE',
+              body: { wishId, wishListId: state.id },
+              token: user.token,
+            });
+          }
+        })
+      );
+
+      await Promise.all([fetchWishes(), fetchWishLists()]);
+      router.back();
+      showToast('success', wishIdParam ? 'Желание обновлено' : 'Желание добавлено');
+    } catch {
+      showToast('error', wishIdParam ? 'Не удалось обновить желание' : 'Не удалось добавить желание');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const isValid = () => {
@@ -180,92 +174,110 @@ export default function WishModalScreen() {
   };
 
   return (
-    <KeyboardAwareScrollView
-      extraScrollHeight={80}
-      keyboardOpeningTime={0}
-      enableOnAndroid
-      contentContainerStyle={{ paddingBottom: 80 }}
-    >
-      <ScrollView contentContainerStyle={styles.container}>
-        <ImagePicker
-          valid={!errors.image}
-          initialImage={image}
-          onImagePicked={async (image) => {
-            setImage(image);
-            setErrors((prev) => ({ ...prev, name: false }));
-          }}
-        />
+    <>
+      <Stack.Screen
+        options={{
+          headerRight: () =>
+            isSubmitting ? (
+              <ActivityIndicator />
+            ) : (
+              <TouchableOpacity onPress={handleSubmit}>
+                <ThemedText style={{ color: theme.primary }}>Готово</ThemedText>
+              </TouchableOpacity>
+            ),
+        }}
+      />
 
-        <View style={styles.fields}>
-          <TextInput
-            icon="star"
-            placeholder="Название"
-            value={name}
-            valid={!errors.name}
-            onChangeText={(value) => {
-              setName(value);
+      <KeyboardAwareScrollView
+        extraScrollHeight={80}
+        keyboardOpeningTime={0}
+        enableOnAndroid
+        contentContainerStyle={{ paddingBottom: 80 }}
+      >
+        <ScrollView contentContainerStyle={styles.container}>
+          <ImagePicker
+            valid={!errors.image}
+            initialImage={image}
+            onImagePicked={async (image) => {
+              setImage(image);
               setErrors((prev) => ({ ...prev, name: false }));
             }}
           />
-          <TextInput
-            icon="ticketStart"
-            placeholder="Цена"
-            keyboardType="numeric"
-            inputMode="decimal"
-            value={price}
-            onChangeText={setPrice}
-            type="options"
-            options={currencies}
-            getDisplayedValue={(currency) => currency.symbol}
-            getOptionLabel={(currency) => `${currency.symbol} - ${currency.transcription}`}
-            onSelectOption={setCurrency}
-          />
-          <TextInput
-            icon="out"
-            placeholder="Ссылка"
-            value={link}
-            onChangeText={(value) => {
-              setLink(value);
-              setErrors((prev) => ({ ...prev, link: false }));
-            }}
-            keyboardType="url"
-            inputMode="url"
-            autoCapitalize="none"
-          />
-          <TextInput
-            icon="edit"
-            placeholder="Почему вы хотите это?"
-            value={description}
-            onChangeText={setDescription}
-            multiline={true}
-            inputStyle={{ height: 96 }}
-          />
-        </View>
 
-        <PlatformButton
-          style={[styles.addWishListButton, { backgroundColor: theme.button }]}
-          hapticFeedback="none"
-          onPress={() => router.push('/profile/wishListModal')}
-        >
-          <ThemedText type="bodyLargeMedium" style={styles.addWishListButtonText}>
-            Новый список
-          </ThemedText>
-          <Icon name="plus" parentBackgroundColor={theme.button} />
-        </PlatformButton>
+          <View style={styles.fields}>
+            <TextInput
+              icon="star"
+              placeholder="Название"
+              value={name}
+              valid={!errors.name}
+              onChangeText={(value) => {
+                setName(value);
+                setErrors((prev) => ({ ...prev, name: false }));
+              }}
+            />
+            <TextInput
+              icon="ticketStart"
+              placeholder="Цена"
+              keyboardType="numeric"
+              inputMode="decimal"
+              value={price}
+              onChangeText={setPrice}
+              type="options"
+              options={currencies}
+              getDisplayedValue={(currency) => currency.symbol}
+              getOptionLabel={(currency) => `${currency.symbol} - ${currency.transcription}`}
+              onSelectOption={setCurrency}
+            />
+            <TextInput
+              icon="out"
+              placeholder="Ссылка"
+              value={link}
+              onChangeText={(value) => {
+                setLink(value);
+                setErrors((prev) => ({ ...prev, link: false }));
+              }}
+              keyboardType="url"
+              inputMode="url"
+              autoCapitalize="none"
+            />
+            <TextInput
+              icon="edit"
+              placeholder="Почему вы хотите это?"
+              value={description}
+              onChangeText={setDescription}
+              multiline={true}
+              inputStyle={{ height: 96 }}
+            />
+          </View>
 
-        <View style={styles.wishListsContainer}>
-          {wishLists.map((wishList) => {
-            const switchState = switchStates.find((s) => s.id === wishList.wishListId);
-            return (
-              <View key={wishList.wishListId} style={styles.wishList}>
-                <ThemedText type="h5">{wishList.name}</ThemedText>
-                <Switch value={switchState?.enabled || false} onValueChange={() => toggleSwitch(wishList.wishListId)} />
-              </View>
-            );
-          })}
-        </View>
-      </ScrollView>
-    </KeyboardAwareScrollView>
+          <PlatformButton
+            style={[styles.addWishListButton, { backgroundColor: theme.button }]}
+            hapticFeedback="none"
+            onPress={() => router.push('/profile/wishListModal')}
+          >
+            <ThemedText type="bodyLargeMedium" style={styles.addWishListButtonText}>
+              Новый список
+            </ThemedText>
+            <Icon name="plus" parentBackgroundColor={theme.button} />
+          </PlatformButton>
+
+          <View style={styles.wishListsContainer}>
+            {wishLists.map((wishList) => {
+              const switchState = switchStates.find((s) => s.id === wishList.wishListId);
+              return (
+                <View key={wishList.wishListId} style={styles.wishList}>
+                  <ThemedText type="h5">{wishList.name}</ThemedText>
+                  <Switch
+                    value={switchState?.enabled || false}
+                    onValueChange={() => toggleSwitch(wishList.wishListId)}
+                  />
+                </View>
+              );
+            })}
+          </View>
+        </ScrollView>
+      </KeyboardAwareScrollView>
+    </>
   );
 }
 

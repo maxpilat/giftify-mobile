@@ -2,8 +2,7 @@ import { BackButton } from '@/components/BackButton';
 import { ThemedText } from '@/components/ThemedText';
 import { useTheme } from '@/hooks/useTheme';
 import { NativeStackNavigationOptions } from '@react-navigation/native-stack';
-import { router, Stack } from 'expo-router';
-import { TouchableOpacity } from 'react-native';
+import { Stack } from 'expo-router';
 
 export default function SettingsLayout() {
   const { theme } = useTheme();
@@ -25,17 +24,7 @@ export default function SettingsLayout() {
       <Stack.Screen name="index" />
       <Stack.Screen name="changeEmail" options={getScreenOptions()} />
       <Stack.Screen name="validateEmail" options={getScreenOptions()} />
-      <Stack.Screen
-        name="changePassword"
-        options={{
-          ...getScreenOptions(),
-          headerRight: () => (
-            <TouchableOpacity onPress={() => router.setParams({ isSubmit: 'true' })}>
-              <ThemedText style={{ color: theme.primary }}>Готово</ThemedText>
-            </TouchableOpacity>
-          ),
-        }}
-      />
+      <Stack.Screen name="changePassword" options={getScreenOptions()} />
       <Stack.Screen
         name="changeTheme"
         options={{

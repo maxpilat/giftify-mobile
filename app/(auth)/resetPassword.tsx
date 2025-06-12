@@ -33,14 +33,14 @@ export default function ResetPasswordScreen() {
   });
 
   const handleSubmit = () => {
-    if (isValid()) {
-      resetPassword(params.email, newPassword)
-        .then(() => {
-          router.replace('/signIn');
-          showToast('success', 'Пароль изменён');
-        })
-        .catch(() => showToast('error', 'Не удалось изменить пароль'));
-    }
+    if (!isValid()) return;
+
+    resetPassword(params.email, newPassword)
+      .then(() => {
+        router.replace('/signIn');
+        showToast('success', 'Пароль изменён');
+      })
+      .catch(() => showToast('error', 'Не удалось изменить пароль'));
   };
 
   const handleOtpFilled = (code: string) => {

@@ -1,5 +1,5 @@
 import { ThemedText } from '@/components/ThemedText';
-import { StyleSheet, View, Image, TouchableOpacity, Alert } from 'react-native';
+import { StyleSheet, View, Image, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { useEffect, useState } from 'react';
 import { Gender, SettingsData } from '@/models';
 import { TextInput } from '@/components/TextInput';
@@ -33,14 +33,13 @@ export default function SettingsScreen() {
   const [gender, setGender] = useState<Gender | null>(null);
   const [isPrivateAccount, setIsPrivateAccount] = useState<boolean>(false);
   const [isDatePickerVisible, setIsDatePickerVisible] = useState<boolean>(false);
-
   const [errors, setErrors] = useState<Record<'name' | 'surname' | 'username', string | undefined>>({
     name: undefined,
     surname: undefined,
     username: undefined,
   });
-
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const onRefresh = () => {
     setIsRefreshing(true);
@@ -161,6 +160,8 @@ export default function SettingsScreen() {
   const saveSettings = () => {
     if (!isValid()) return;
 
+    setIsSubmitting(true);
+
     const namePromise = apiFetchData({
       endpoint: API.settings.updateName,
       method: 'PUT',
@@ -205,7 +206,8 @@ export default function SettingsScreen() {
 
     Promise.all([namePromise, surnamePromise, usernamePromise, birthDatePromise, genderPromise, privacyPromise])
       .then(() => showToast('success', 'Данные сохранены'))
-      .catch(() => showToast('error', 'Не удалось сохранить данные'));
+      .catch(() => showToast('error', 'Не удалось сохранить данные'))
+      .finally(() => setIsSubmitting(false));
   };
 
   return (
@@ -229,11 +231,14 @@ export default function SettingsScreen() {
           contentStyle: {
             backgroundColor: theme.background,
           },
-          headerRight: () => (
-            <TouchableOpacity onPress={saveSettings}>
-              <ThemedText style={{ color: theme.primary }}>Сохранить</ThemedText>
-            </TouchableOpacity>
-          ),
+          headerRight: () =>
+            isSubmitting ? (
+              <ActivityIndicator />
+            ) : (
+              <TouchableOpacity onPress={saveSettings}>
+                <ThemedText style={{ color: theme.primary }}>Сохранить</ThemedText>
+              </TouchableOpacity>
+            ),
         }}
       />
       <GestureHandlerRootView>

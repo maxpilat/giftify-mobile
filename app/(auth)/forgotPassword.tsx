@@ -35,15 +35,15 @@ export default function ForgotPasswordScreen() {
       return showToast('error', 'Что-то пошло не так');
     }
 
-    if (isValid()) {
-      apiFetchData<{ code: string }>({
-        endpoint: API.auth.validateEmail,
-        method: 'POST',
-        body: email,
-      })
-        .then(({ code }) => router.push({ pathname: '/resetPassword', params: { code, email } }))
-        .catch(() => showToast('error', 'Не удалось запросить код'));
-    }
+    if (!isValid()) return;
+
+    apiFetchData<{ code: string }>({
+      endpoint: API.auth.validateEmail,
+      method: 'POST',
+      body: email,
+    })
+      .then(({ code }) => router.push({ pathname: '/resetPassword', params: { code, email } }))
+      .catch(() => showToast('error', 'Не удалось запросить код'));
   };
 
   const isValid = () => {
