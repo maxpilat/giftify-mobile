@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { ImagePicker } from '@/components/ImagePicker';
 import { TextInput } from '@/components/TextInput';

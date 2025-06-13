@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { TextInput } from '@/components/TextInput';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
