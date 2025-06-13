@@ -26,7 +26,6 @@ import { apiFetchData, apiFetchImage } from '@/lib/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { base64ToBinaryArray, uriToBase64 } from '@/utils/convertImage';
 import { getDefaultBackground, loadDefaultBackgrounds } from '@/utils/profileBackground';
-import { useTheme } from '@/hooks/useTheme';
 import { Image } from 'react-native';
 
 const StoreContext = createContext<{
@@ -66,9 +65,6 @@ const StoreContext = createContext<{
 } | null>(null);
 
 export const StoreProvider = ({ children }: { children: ReactNode }) => {
-  const { themeType, systemThemeType } = useTheme();
-  const themeTypeValue = themeType === 'system' ? systemThemeType : themeType;
-
   const { user } = useAuth();
 
   const [avatar, setAvatar] = useState<string>();
@@ -80,7 +76,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
   const [piggyBanks, setPiggyBanks] = useState<Wish[]>([]);
   const [defaultBackgrounds, setDefaultBackgrounds] = useState<ProfileBackground[]>([]);
   const [allBackgrounds, setAllBackgrounds] = useState<ProfileBackground[]>([]);
-  const [background, setBackground] = useState<ProfileBackground>(getDefaultBackground(themeTypeValue));
+  const [background, setBackground] = useState<ProfileBackground>(getDefaultBackground());
   const [chats, setChats] = useState<Chat[]>([]);
   const [currentChatId, setCurrentChatId] = useState<number>(-1);
   const [chatAttachments, setChatAttachments] = useState<Map<number, ClientChatAttachment>>(new Map());
@@ -89,12 +85,6 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     loadDefaultBackgrounds().then(setDefaultBackgrounds);
   }, []);
-
-  useEffect(() => {
-    if (background.id === 0) {
-      setBackground(getDefaultBackground(themeTypeValue));
-    }
-  }, [themeTypeValue]);
 
   const fetchAvatar = useCallback(async () => {
     const image = await apiFetchImage({ endpoint: API.profile.getAvatar(user.id), token: user.token });

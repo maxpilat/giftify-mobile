@@ -12,7 +12,7 @@ import { launchImageLibraryAsync } from 'expo-image-picker';
 import { showToast } from '@/utils/showToast';
 
 export default function ChangeProfileBackgroundScreen() {
-  const { theme, themeType, systemThemeType } = useTheme();
+  const { theme } = useTheme();
   const { allBackgrounds, background, fetchAllBackgrounds, changeBackground, addBackgroundImage } = useStore();
 
   useEffect(() => {
@@ -20,11 +20,7 @@ export default function ChangeProfileBackgroundScreen() {
   }, []);
 
   const handleSelectBackground = (newBackground: ProfileBackground) => {
-    changeBackground(
-      background.id === newBackground.id
-        ? getDefaultBackground(themeType === 'system' ? systemThemeType : themeType)
-        : newBackground
-    )
+    changeBackground(background.id === newBackground.id ? getDefaultBackground() : newBackground)
       .then(() => showToast('success', 'Фон изменён'))
       .catch(() => showToast('error', 'Не удалось изменить фон'));
   };

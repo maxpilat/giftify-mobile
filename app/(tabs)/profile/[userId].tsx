@@ -137,7 +137,7 @@ export default function ProfileScreen() {
 
   useEffect(() => {
     if (background?.id === 0) {
-      setBackground(getDefaultBackground(themeTypeValue));
+      setBackground(getDefaultBackground());
     }
   }, [themeTypeValue]);
 
@@ -192,7 +192,7 @@ export default function ProfileScreen() {
         token: authUser.token,
       }).then((serverBackground) => {
         if (!serverBackground.backgroundImage && !serverBackground.backgroundColor) {
-          setBackground(getDefaultBackground(themeType === 'system' ? systemThemeType : themeType));
+          setBackground(getDefaultBackground());
         } else {
           const background: ProfileBackground = {
             ...serverBackground,

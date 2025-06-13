@@ -14,8 +14,7 @@ import { StyleSheet, View } from 'react-native';
 import ColorPicker, { Panel2, BrightnessSlider, colorKit } from 'reanimated-color-picker';
 
 export default function PickProfileBackgroundColorScreen() {
-  const { theme, themeType, systemThemeType } = useTheme();
-  const themeTypeValue = themeType === 'system' ? systemThemeType : themeType;
+  const { theme } = useTheme();
 
   const { background, changeBackground } = useStore();
 
@@ -31,7 +30,7 @@ export default function PickProfileBackgroundColorScreen() {
 
     if (!colorKit.getFormat(color)) {
       setError('Неверный формат цвета');
-      background = getDefaultBackground(themeTypeValue);
+      background = getDefaultBackground();
     }
 
     setCurrentBackground(background);
