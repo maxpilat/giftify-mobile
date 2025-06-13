@@ -91,22 +91,20 @@ export default function IntroductionModalScreen() {
         }}
       />
 
-      <KeyboardAwareScrollView enableOnAndroid>
-        <ScrollView contentContainerStyle={styles.container}>
-          <ThemedText type="h2">Как нам представить тебя другу?</ThemedText>
-          <View style={styles.fields}>
-            <TextInput
-              icon="hat"
-              placeholder="Псевдоним"
-              value={pseudonym}
-              valid={!errors.pseudonym}
-              onChangeText={(value) => {
-                setPseudonym(value);
-                setErrors((prev) => ({ ...prev, pseudonym: false }));
-              }}
-            />
-          </View>
-        </ScrollView>
+      <KeyboardAwareScrollView enableOnAndroid contentContainerStyle={styles.container}>
+        <ThemedText type="h2">Как нам представить тебя другу?</ThemedText>
+        <View style={styles.fields}>
+          <TextInput
+            icon="hat"
+            placeholder="Псевдоним"
+            value={pseudonym}
+            valid={!errors.pseudonym}
+            onChangeText={(value) => {
+              setPseudonym(value);
+              setErrors((prev) => ({ ...prev, pseudonym: false }));
+            }}
+          />
+        </View>
       </KeyboardAwareScrollView>
     </>
   );

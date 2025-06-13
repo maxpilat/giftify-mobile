@@ -188,89 +188,84 @@ export default function WishModalScreen() {
         }}
       />
 
-      <KeyboardAwareScrollView enableOnAndroid contentContainerStyle={{ paddingBottom: 40 }}>
-        <ScrollView contentContainerStyle={styles.container}>
-          <ImagePicker
-            valid={!errors.image}
-            initialImage={image}
-            onImagePicked={async (image) => {
-              setImage(image);
+      <KeyboardAwareScrollView enableOnAndroid contentContainerStyle={styles.container}>
+        <ImagePicker
+          valid={!errors.image}
+          initialImage={image}
+          onImagePicked={async (image) => {
+            setImage(image);
+            setErrors((prev) => ({ ...prev, name: false }));
+          }}
+        />
+
+        <View style={styles.fields}>
+          <TextInput
+            icon="star"
+            placeholder="Название"
+            value={name}
+            valid={!errors.name}
+            onChangeText={(value) => {
+              setName(value);
               setErrors((prev) => ({ ...prev, name: false }));
             }}
           />
+          <TextInput
+            icon="ticketStart"
+            placeholder="Цена"
+            keyboardType="numeric"
+            inputMode="decimal"
+            value={price}
+            onChangeText={setPrice}
+            type="options"
+            options={currencies}
+            getDisplayedValue={(currency) => currency.symbol}
+            getOptionLabel={(currency) => `${currency.symbol} - ${currency.transcription}`}
+            onSelectOption={setCurrency}
+          />
+          <TextInput
+            icon="out"
+            placeholder="Ссылка"
+            value={link}
+            onChangeText={(value) => {
+              setLink(value);
+              setErrors((prev) => ({ ...prev, link: false }));
+            }}
+            keyboardType="url"
+            inputMode="url"
+            autoCapitalize="none"
+          />
+          <TextInput
+            icon="edit"
+            placeholder="Почему вы хотите это?"
+            value={description}
+            onChangeText={setDescription}
+            multiline={true}
+            inputStyle={{ height: 96 }}
+          />
+        </View>
 
-          <View style={styles.fields}>
-            <TextInput
-              icon="star"
-              placeholder="Название"
-              value={name}
-              valid={!errors.name}
-              onChangeText={(value) => {
-                setName(value);
-                setErrors((prev) => ({ ...prev, name: false }));
-              }}
-            />
-            <TextInput
-              icon="ticketStart"
-              placeholder="Цена"
-              keyboardType="numeric"
-              inputMode="decimal"
-              value={price}
-              onChangeText={setPrice}
-              type="options"
-              options={currencies}
-              getDisplayedValue={(currency) => currency.symbol}
-              getOptionLabel={(currency) => `${currency.symbol} - ${currency.transcription}`}
-              onSelectOption={setCurrency}
-            />
-            <TextInput
-              icon="out"
-              placeholder="Ссылка"
-              value={link}
-              onChangeText={(value) => {
-                setLink(value);
-                setErrors((prev) => ({ ...prev, link: false }));
-              }}
-              keyboardType="url"
-              inputMode="url"
-              autoCapitalize="none"
-            />
-            <TextInput
-              icon="edit"
-              placeholder="Почему вы хотите это?"
-              value={description}
-              onChangeText={setDescription}
-              multiline={true}
-              inputStyle={{ height: 96 }}
-            />
-          </View>
+        <PlatformButton
+          style={[styles.addWishListButton, { backgroundColor: theme.button }]}
+          hapticFeedback="none"
+          onPress={() => router.push('/profile/wishListModal')}
+        >
+          <ThemedText type="bodyLargeMedium" style={styles.addWishListButtonText}>
+            Новый список
+          </ThemedText>
+          <Icon name="plus" parentBackgroundColor={theme.button} />
+        </PlatformButton>
 
-          <PlatformButton
-            style={[styles.addWishListButton, { backgroundColor: theme.button }]}
-            hapticFeedback="none"
-            onPress={() => router.push('/profile/wishListModal')}
-          >
-            <ThemedText type="bodyLargeMedium" style={styles.addWishListButtonText}>
-              Новый список
-            </ThemedText>
-            <Icon name="plus" parentBackgroundColor={theme.button} />
-          </PlatformButton>
-
-          <View style={styles.wishListsContainer}>
-            {wishLists.map((wishList) => {
-              const switchState = switchStates.find((s) => s.id === wishList.wishListId);
-              return (
-                <View key={wishList.wishListId} style={styles.wishList}>
-                  <ThemedText type="h5">{wishList.name}</ThemedText>
-                  <Switch
-                    value={switchState?.enabled || false}
-                    onValueChange={() => toggleSwitch(wishList.wishListId)}
-                  />
-                </View>
-              );
-            })}
-          </View>
-        </ScrollView>
+        <View style={styles.wishListsContainer}>
+          {wishLists.map((wishList) => {
+            const switchState = switchStates.find((s) => s.id === wishList.wishListId);
+            return (
+              <View key={wishList.wishListId} style={styles.wishList}>
+                <ThemedText type="h5">{wishList.name}</ThemedText>
+                <Switch value={switchState?.enabled || false} onValueChange={() => toggleSwitch(wishList.wishListId)} />
+              </View>
+            );
+          })}
+        </View>
       </KeyboardAwareScrollView>
     </>
   );
@@ -280,7 +275,7 @@ const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 16,
     paddingTop: 16,
-    paddingBottom: 0,
+    paddingBottom: 40,
     gap: 32,
   },
   fields: {

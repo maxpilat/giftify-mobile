@@ -87,21 +87,19 @@ export default function WishListModalScreen() {
         }}
       />
 
-      <KeyboardAwareScrollView enableOnAndroid>
-        <ScrollView contentContainerStyle={styles.container}>
-          <View style={styles.fields}>
-            <TextInput
-              icon="star"
-              placeholder="Название"
-              value={name}
-              valid={!errors.name}
-              onChangeText={(value) => {
-                setName(value);
-                setErrors((prev) => ({ ...prev, name: false }));
-              }}
-            />
-          </View>
-        </ScrollView>
+      <KeyboardAwareScrollView enableOnAndroid contentContainerStyle={styles.container}>
+        <View style={styles.fields}>
+          <TextInput
+            icon="star"
+            placeholder="Название"
+            value={name}
+            valid={!errors.name}
+            onChangeText={(value) => {
+              setName(value);
+              setErrors((prev) => ({ ...prev, name: false }));
+            }}
+          />
+        </View>
       </KeyboardAwareScrollView>
     </>
   );

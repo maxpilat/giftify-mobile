@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { ImagePicker } from '@/components/ImagePicker';
 import { TextInput } from '@/components/TextInput';
@@ -128,63 +128,61 @@ export default function WishModalScreen() {
         }}
       />
 
-      <KeyboardAwareScrollView extraScrollHeight={80} enableOnAndroid>
-        <ScrollView contentContainerStyle={styles.container}>
-          <ImagePicker
-            valid={!errors.image}
-            initialImage={image}
-            onImagePicked={(imageUri) => {
-              setImage(imageUri);
+      <KeyboardAwareScrollView extraScrollHeight={80} enableOnAndroid contentContainerStyle={styles.container}>
+        <ImagePicker
+          valid={!errors.image}
+          initialImage={image}
+          onImagePicked={(imageUri) => {
+            setImage(imageUri);
+            setErrors((prev) => ({ ...prev, name: false }));
+          }}
+        />
+        <View style={styles.fields}>
+          <TextInput
+            icon="star"
+            placeholder="Название"
+            value={name}
+            valid={!errors.name}
+            onChangeText={(value) => {
+              setName(value);
               setErrors((prev) => ({ ...prev, name: false }));
             }}
           />
-          <View style={styles.fields}>
-            <TextInput
-              icon="star"
-              placeholder="Название"
-              value={name}
-              valid={!errors.name}
-              onChangeText={(value) => {
-                setName(value);
-                setErrors((prev) => ({ ...prev, name: false }));
-              }}
-            />
-            <TextInput
-              icon="edit"
-              placeholder="Почему вы копите на это?"
-              value={description}
-              onChangeText={setDescription}
-              multiline={true}
-              inputStyle={{ height: 96 }}
-            />
-            <TextInput
-              icon="ticketStart"
-              placeholder="Сумма, которая есть сейчас"
-              keyboardType="numeric"
-              inputMode="decimal"
-              value={deposit}
-              onChangeText={setDeposit}
-              type="options"
-              options={currencies}
-              getDisplayedValue={(currency) => currency.symbol}
-              getOptionLabel={(currency) => `${currency.symbol} - ${currency.transcription}`}
-              onSelectOption={setCurrency}
-            />
-            <TextInput
-              icon="ticketStart"
-              placeholder="Полная стоимость"
-              keyboardType="numeric"
-              inputMode="decimal"
-              value={price}
-              onChangeText={setPrice}
-              type="options"
-              options={currencies}
-              getDisplayedValue={(currency) => currency.symbol}
-              getOptionLabel={(currency) => `${currency.symbol} - ${currency.transcription}`}
-              onSelectOption={setCurrency}
-            />
-          </View>
-        </ScrollView>
+          <TextInput
+            icon="edit"
+            placeholder="Почему вы копите на это?"
+            value={description}
+            onChangeText={setDescription}
+            multiline={true}
+            inputStyle={{ height: 96 }}
+          />
+          <TextInput
+            icon="ticketStart"
+            placeholder="Сумма, которая есть сейчас"
+            keyboardType="numeric"
+            inputMode="decimal"
+            value={deposit}
+            onChangeText={setDeposit}
+            type="options"
+            options={currencies}
+            getDisplayedValue={(currency) => currency.symbol}
+            getOptionLabel={(currency) => `${currency.symbol} - ${currency.transcription}`}
+            onSelectOption={setCurrency}
+          />
+          <TextInput
+            icon="ticketStart"
+            placeholder="Полная стоимость"
+            keyboardType="numeric"
+            inputMode="decimal"
+            value={price}
+            onChangeText={setPrice}
+            type="options"
+            options={currencies}
+            getDisplayedValue={(currency) => currency.symbol}
+            getOptionLabel={(currency) => `${currency.symbol} - ${currency.transcription}`}
+            onSelectOption={setCurrency}
+          />
+        </View>
       </KeyboardAwareScrollView>
     </>
   );

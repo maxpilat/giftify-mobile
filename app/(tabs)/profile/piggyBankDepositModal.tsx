@@ -78,26 +78,25 @@ export default function PiggyBankDepositModalScreen() {
             ),
         }}
       />
-      <KeyboardAwareScrollView extraScrollHeight={80} enableOnAndroid contentContainerStyle={{ paddingBottom: 80 }}>
-        <ScrollView contentContainerStyle={styles.container}>
-          <ThemedText type="h2">Сколько вы хотите положить в копилку?</ThemedText>
-          <View style={styles.fields}>
-            <TextInput
-              icon="ticketStart"
-              placeholder="Сумма"
-              keyboardType="numeric"
-              inputMode="decimal"
-              value={amount}
-              valid={!errors.amount}
-              onChangeText={setAmount}
-              type="options"
-              options={[currency]}
-              getDisplayedValue={(currency) => currency?.symbol || ''}
-              getOptionLabel={(currency) => `${currency?.symbol} - ${currency?.transcription}`}
-              onSelectOption={setCurrency}
-            />
-          </View>
-        </ScrollView>
+
+      <KeyboardAwareScrollView extraScrollHeight={80} enableOnAndroid contentContainerStyle={styles.container}>
+        <ThemedText type="h2">Сколько вы хотите положить в копилку?</ThemedText>
+        <View style={styles.fields}>
+          <TextInput
+            icon="ticketStart"
+            placeholder="Сумма"
+            keyboardType="numeric"
+            inputMode="decimal"
+            value={amount}
+            valid={!errors.amount}
+            onChangeText={setAmount}
+            type="options"
+            options={[currency]}
+            getDisplayedValue={(currency) => currency?.symbol || ''}
+            getOptionLabel={(currency) => `${currency?.symbol} - ${currency?.transcription}`}
+            onSelectOption={setCurrency}
+          />
+        </View>
       </KeyboardAwareScrollView>
     </>
   );
