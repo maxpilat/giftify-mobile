@@ -36,7 +36,7 @@ export function ProgressBar({ currentAmount = 0, targetAmount = 100, currency }:
       animatedBar.value = withTiming(progress, options);
 
       const offset = ((barWidth / 100) * progress) / 2 - labelWidth / 2;
-      animatedLabel.value = withTiming(offset, options);
+      animatedLabel.value = withTiming(Math.max(offset, 0), options);
     }
   }, [barWidth, labelWidth, progress]);
 
@@ -50,20 +50,24 @@ export function ProgressBar({ currentAmount = 0, targetAmount = 100, currency }:
 
   return (
     <View>
-      <View style={styles.progressBar} onLayout={(event) => setBarWidth(event.nativeEvent.layout.width)}>
+      <View
+        style={[styles.progressBar, { backgroundColor: theme.subBackground }]}
+        onLayout={(event) => setBarWidth(event.nativeEvent.layout.width)}
+      >
         <Animated.View style={[styles.progressFill, barStyle, { backgroundColor: theme.secondary }]} />
       </View>
 
       {currency && (
         <View style={styles.textContainer}>
-          <Animated.Text
+          <ThemedText
+            type="labelLarge"
             style={[labelStyle, { color: theme.secondary }]}
             onLayout={(event) => setLabelWidth(event.nativeEvent.layout.width)}
           >
-            {currentAmount} {currency.symbol}
-          </Animated.Text>
+            {currentAmount} {currency.transcription}
+          </ThemedText>
           <ThemedText type="labelLarge">
-            {targetAmount} {currency.symbol}
+            {targetAmount} {currency.transcription}
           </ThemedText>
         </View>
       )}
@@ -74,7 +78,6 @@ export function ProgressBar({ currentAmount = 0, targetAmount = 100, currency }:
 const styles = StyleSheet.create({
   progressBar: {
     height: 10,
-    backgroundColor: '#d3d3d3',
     borderRadius: 10,
     overflow: 'hidden',
   },

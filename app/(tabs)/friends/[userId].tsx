@@ -1,5 +1,5 @@
 import { ThemedText } from '@/components/ThemedText';
-import { View, StyleSheet, TouchableOpacity, ScrollView, RefreshControl, SafeAreaView } from 'react-native';
+import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { useTheme } from '@/hooks/useTheme';
 import { useEffect, useState, Fragment } from 'react';
 import { useAnimatedStyle, withTiming, useSharedValue, runOnJS } from 'react-native-reanimated';
@@ -11,9 +11,10 @@ import { Friend, Profile } from '@/models';
 import { apiFetchData, apiFetchImage } from '@/lib/api';
 import { API } from '@/constants/api';
 import { useAuth } from '@/hooks/useAuth';
-import { useProfile } from '@/hooks/useStore';
+import { useStore } from '@/hooks/useStore';
 import { ThemedView } from '@/components/ThemedView';
 import { FriendCard } from '@/components/FriendCard';
+import { GestureHandlerRootView, RefreshControl, ScrollView } from 'react-native-gesture-handler';
 
 type SearchParams = {
   userId?: string;
@@ -23,7 +24,7 @@ export default function FriendsScreen() {
   const { theme } = useTheme();
   const { user: authUser } = useAuth();
   const { userId = authUser.id } = useLocalSearchParams<SearchParams>();
-  const { friendRequests, fetchFriends: fetchMyFriends, fetchFriendRequests, isFriend, isSender } = useProfile();
+  const { friendRequests, fetchFriends: fetchMyFriends, fetchFriendRequests, isFriend, isSender } = useStore();
 
   const [currentTabIndex, setCurrentTabIndex] = useState(0);
   const [currentVisibleTabIndex, setCurrentVisibleTabIndex] = useState(0);
@@ -57,11 +58,7 @@ export default function FriendsScreen() {
 
   const onRefresh = () => {
     setIsRefreshing(true);
-    fetchData().finally(() => {
-      if (!isCurrentUser) {
-        setIsRefreshing(false);
-      }
-    });
+    fetchData().finally(() => setIsRefreshing(false));
   };
 
   const fetchData = async () => {
@@ -81,14 +78,27 @@ export default function FriendsScreen() {
     const friends = isCurrentUser
       ? await fetchMyFriends()
       : await apiFetchData<Friend[]>({ endpoint: API.friends.getFriends(+userId), token: authUser.token });
+
     setFriends(friends);
 
-    friends.forEach(async (friend) => {
-      const avatar = await apiFetchImage({ endpoint: API.profile.getAvatar(friend.friendId), token: authUser.token });
-      setFriends((prev) =>
-        prev.map((prevFriend) => (prevFriend.friendId === friend.friendId ? { ...prevFriend, avatar } : prevFriend))
-      );
-    });
+    const avatarsMap = new Map(
+      await Promise.all(
+        friends.map(async (friend) => {
+          const avatar = await apiFetchImage({
+            endpoint: API.profile.getAvatar(friend.friendId),
+            token: authUser.token,
+          });
+          return [friend.friendId, avatar] as const;
+        })
+      )
+    );
+
+    setFriends((prev) =>
+      prev.map((friend) => ({
+        ...friend,
+        avatar: avatarsMap.get(friend.friendId),
+      }))
+    );
   };
 
   const fetchPendingFriends = async () => {
@@ -122,8 +132,9 @@ export default function FriendsScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <GestureHandlerRootView>
       <ScrollView
+        contentInsetAdjustmentBehavior="automatic"
         style={styles.scrollView}
         refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />}
       >
@@ -139,22 +150,30 @@ export default function FriendsScreen() {
                   >
                     <ThemedText
                       type="bodyLargeMedium"
-                      backgroundColor={currentTabIndex === index ? theme.secondary : theme.background}
+                      parentBackgroundColor={currentTabIndex === index ? theme.secondary : theme.background}
                     >
                       {tab}
                     </ThemedText>
+                    {index === 1 && pendingFriends.length > 0 && (
+                      <View
+                        style={[
+                          styles.pendingFriendsIndicator,
+                          { backgroundColor: currentTabIndex === index ? theme.button : theme.secondary },
+                        ]}
+                      >
+                        <ThemedText type="labelLarge" parentBackgroundColor={theme.secondary}>
+                          {pendingFriends.length}
+                        </ThemedText>
+                      </View>
+                    )}
                   </TouchableOpacity>
                 ))}
               </View>
-              <PlatformButton
-                style={styles.button}
-                hapticFeedback="none"
-                onPress={() => router.push('/friends/searchFriends')}
-              >
-                <ThemedText type="bodyLargeMedium" style={styles.buttonText}>
+              <PlatformButton hapticFeedback="none" onPress={() => router.push('/friends/searchFriends')}>
+                <ThemedText type="bodyLargeMedium" parentBackgroundColor={theme.primary}>
                   Найти друзей
                 </ThemedText>
-                <Icon name="search" color={Colors.white} />
+                <Icon name="search" parentBackgroundColor={theme.primary} />
               </PlatformButton>
             </View>
           )}
@@ -167,9 +186,12 @@ export default function FriendsScreen() {
             ) : (
               visibleFriends.map((friend, index) => (
                 <Fragment key={friend.friendId}>
-                  <FriendCard friend={friend} />
+                  <FriendCard
+                    friend={friend}
+                    link={{ pathname: '/profile/[userId]', params: { userId: friend.friendId } }}
+                  />
                   {index !== friends.length - 1 && (
-                    <View style={[styles.divider, { backgroundColor: theme.tabBarBorder }]}></View>
+                    <View style={[styles.divider, { backgroundColor: theme.tabBarBorder }]} />
                   )}
                 </Fragment>
               ))
@@ -177,16 +199,14 @@ export default function FriendsScreen() {
           </ThemedView>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </GestureHandlerRootView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
   scrollView: {
     paddingHorizontal: 16,
+    paddingBottom: 100,
   },
   body: {
     marginTop: 16,
@@ -206,9 +226,15 @@ const styles = StyleSheet.create({
     borderRadius: 40,
     alignItems: 'center',
   },
-  button: {},
-  buttonText: {
-    color: Colors.white,
+  pendingFriendsIndicator: {
+    borderRadius: 12,
+    width: 24,
+    height: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'absolute',
+    right: 0,
+    top: 0,
   },
   friends: {},
   divider: {

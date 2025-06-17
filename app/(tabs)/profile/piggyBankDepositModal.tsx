@@ -1,31 +1,33 @@
 import { useEffect, useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
-import { router, useLocalSearchParams } from 'expo-router';
+import { ActivityIndicator, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { TextInput } from '@/components/TextInput';
 import { Currency } from '@/models';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { API } from '@/constants/api';
 import { useAuth } from '@/hooks/useAuth';
-import { useProfile } from '@/hooks/useStore';
+import { useStore } from '@/hooks/useStore';
 import { apiFetchData } from '@/lib/api';
 import { ThemedText } from '@/components/ThemedText';
 import { showToast } from '@/utils/showToast';
+import { useTheme } from '@/hooks/useTheme';
 
 type SearchParams = {
-  isSubmit?: 'true' | 'false';
   piggyBankId: string;
 };
 
 export default function PiggyBankDepositModalScreen() {
   const { user } = useAuth();
-  const { isSubmit, piggyBankId } = useLocalSearchParams<SearchParams>();
-  const { piggyBanks, fetchPiggyBanks } = useProfile();
+  const { piggyBankId } = useLocalSearchParams<SearchParams>();
+  const { piggyBanks, fetchPiggyBanks } = useStore();
+  const { theme } = useTheme();
 
   const [amount, setAmount] = useState<string>('');
   const [currency, setCurrency] = useState<Currency | null>(null);
   const [errors, setErrors] = useState<Record<'amount', boolean>>({
     amount: false,
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (piggyBankId) {
@@ -34,29 +36,24 @@ export default function PiggyBankDepositModalScreen() {
     }
   }, [piggyBankId]);
 
-  useEffect(() => {
-    handleSubmit();
-  }, [isSubmit]);
-
   const handleSubmit = () => {
-    if (isSubmit !== 'true') return;
+    if (!isValid()) return;
 
-    if (isValid()) {
-      apiFetchData({
-        endpoint: API.wishes.deposit,
-        method: 'POST',
-        token: user.token,
-        body: { piggyBankId: +piggyBankId, amount },
+    setIsSubmitting(true);
+
+    apiFetchData({
+      endpoint: API.wishes.deposit,
+      method: 'POST',
+      token: user.token,
+      body: { piggyBankId: +piggyBankId, amount },
+    })
+      .then(fetchPiggyBanks)
+      .then(() => {
+        router.back();
+        showToast('success', 'Копилка пополнена');
       })
-        .then(fetchPiggyBanks)
-
-        .then(() => showToast('success', 'Копилка пополнена'))
-        .catch(() => showToast('error', 'Не удалось пополнить копилку'));
-
-      router.back();
-    }
-
-    router.setParams({ isSubmit: 'false' });
+      .catch(() => showToast('error', 'Не удалось пополнить копилку'))
+      .finally(() => setIsSubmitting(false));
   };
 
   const isValid = () => {
@@ -68,13 +65,21 @@ export default function PiggyBankDepositModalScreen() {
   };
 
   return (
-    <KeyboardAwareScrollView
-      extraScrollHeight={80}
-      keyboardOpeningTime={0}
-      enableOnAndroid
-      contentContainerStyle={{ paddingBottom: 80 }}
-    >
-      <ScrollView contentContainerStyle={styles.container}>
+    <>
+      <Stack.Screen
+        options={{
+          headerRight: () =>
+            isSubmitting ? (
+              <ActivityIndicator />
+            ) : (
+              <TouchableOpacity onPress={handleSubmit}>
+                <ThemedText style={{ color: theme.primary }}>Готово</ThemedText>
+              </TouchableOpacity>
+            ),
+        }}
+      />
+
+      <KeyboardAwareScrollView extraScrollHeight={80} enableOnAndroid contentContainerStyle={styles.container}>
         <ThemedText type="h2">Сколько вы хотите положить в копилку?</ThemedText>
         <View style={styles.fields}>
           <TextInput
@@ -92,8 +97,8 @@ export default function PiggyBankDepositModalScreen() {
             onSelectOption={setCurrency}
           />
         </View>
-      </ScrollView>
-    </KeyboardAwareScrollView>
+      </KeyboardAwareScrollView>
+    </>
   );
 }
 

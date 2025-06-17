@@ -1,26 +1,28 @@
 import { useEffect, useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
-import { router, useLocalSearchParams } from 'expo-router';
+import { ActivityIndicator, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { ImagePicker } from '@/components/ImagePicker';
 import { TextInput } from '@/components/TextInput';
 import { Currency, WishType } from '@/models';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { API } from '@/constants/api';
 import { useAuth } from '@/hooks/useAuth';
-import { useProfile } from '@/hooks/useStore';
+import { useStore } from '@/hooks/useStore';
 import { base64ToBinaryArray } from '@/utils/convertImage';
 import { apiFetchData } from '@/lib/api';
 import { showToast } from '@/utils/showToast';
+import { ThemedText } from '@/components/ThemedText';
+import { useTheme } from '@/hooks/useTheme';
 
 type SearchParams = {
-  isSubmit?: 'true' | 'false';
   piggyBankId?: string;
 };
 
 export default function WishModalScreen() {
   const { user } = useAuth();
-  const { isSubmit, piggyBankId } = useLocalSearchParams<SearchParams>();
-  const { piggyBanks, fetchPiggyBanks } = useProfile();
+  const { piggyBankId } = useLocalSearchParams<SearchParams>();
+  const { piggyBanks, fetchPiggyBanks } = useStore();
+  const { theme } = useTheme();
 
   const [image, setImage] = useState<string>();
   const [name, setName] = useState<string>('');
@@ -28,12 +30,12 @@ export default function WishModalScreen() {
   const [price, setPrice] = useState<string>('');
   const [currency, setCurrency] = useState<Currency | null>(null);
   const [description, setDescription] = useState<string>('');
+  const [currencies, setCurrencies] = useState<Currency[]>([]);
   const [errors, setErrors] = useState<Record<'name' | 'image', boolean>>({
     name: false,
     image: false,
   });
-
-  const [currencies, setCurrencies] = useState<Currency[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     apiFetchData<Currency[]>({ endpoint: API.currencies.getCurrencies, token: user.token }).then((currencies) => {
@@ -54,55 +56,52 @@ export default function WishModalScreen() {
     }
   }, [piggyBankId]);
 
-  useEffect(() => {
-    handleSubmit();
-  }, [isSubmit]);
-
   const handleSubmit = async () => {
-    if (isSubmit !== 'true') return;
+    if (!isValid()) return;
 
-    if (isValid()) {
-      const payload = {
-        wisherId: user.id,
-        wishType: 'TYPE_PIGGY_BANK' as WishType,
-        name,
-        description,
-        deposit: +deposit,
-        price: +price,
-        currencyId: currency?.currencyId,
-      };
+    setIsSubmitting(true);
+    await new Promise((resolve) => setTimeout(resolve));
 
-      const buffer = base64ToBinaryArray(image!);
+    const payload = {
+      wisherId: user.id,
+      wishType: 'TYPE_PIGGY_BANK' as WishType,
+      name,
+      description,
+      deposit: +deposit,
+      price: +price,
+      currencyId: currency?.currencyId,
+    };
 
-      try {
-        if (piggyBankId) {
-          (payload as any).wishId = +piggyBankId;
-          await apiFetchData({
-            endpoint: API.wishes.update,
-            method: 'PUT',
-            token: user.token,
-            body: { ...payload, image: buffer },
-          });
-        } else {
-          (payload as any).wisherId = user.id;
-          await apiFetchData({
-            endpoint: API.wishes.create,
-            method: 'POST',
-            token: user.token,
-            body: { ...payload, image: buffer },
-          });
-        }
+    const buffer = base64ToBinaryArray(image!);
 
-        await fetchPiggyBanks();
-        router.back();
-
-        showToast('success', piggyBankId ? 'Копилка обновлена' : 'Копилка добавлена');
-      } catch {
-        showToast('error', piggyBankId ? 'Не удалось обновить копилку' : 'Не удалось добавить копилку');
+    try {
+      if (piggyBankId) {
+        (payload as any).wishId = +piggyBankId;
+        await apiFetchData({
+          endpoint: API.wishes.update,
+          method: 'PUT',
+          token: user.token,
+          body: { ...payload, image: buffer },
+        });
+      } else {
+        (payload as any).wisherId = user.id;
+        await apiFetchData({
+          endpoint: API.wishes.create,
+          method: 'POST',
+          token: user.token,
+          body: { ...payload, image: buffer },
+        });
       }
-    }
 
-    router.setParams({ isSubmit: 'false' });
+      await fetchPiggyBanks();
+      router.back();
+
+      showToast('success', piggyBankId ? 'Копилка обновлена' : 'Копилка добавлена');
+    } catch {
+      showToast('error', piggyBankId ? 'Не удалось обновить копилку' : 'Не удалось добавить копилку');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const isValid = () => {
@@ -115,13 +114,21 @@ export default function WishModalScreen() {
   };
 
   return (
-    <KeyboardAwareScrollView
-      extraScrollHeight={80}
-      keyboardOpeningTime={0}
-      enableOnAndroid
-      contentContainerStyle={{ paddingBottom: 80 }}
-    >
-      <ScrollView contentContainerStyle={styles.container}>
+    <>
+      <Stack.Screen
+        options={{
+          headerRight: () =>
+            isSubmitting ? (
+              <ActivityIndicator />
+            ) : (
+              <TouchableOpacity onPress={handleSubmit}>
+                <ThemedText style={{ color: theme.primary }}>Готово</ThemedText>
+              </TouchableOpacity>
+            ),
+        }}
+      />
+
+      <KeyboardAwareScrollView extraScrollHeight={80} enableOnAndroid contentContainerStyle={styles.container}>
         <ImagePicker
           valid={!errors.image}
           initialImage={image}
@@ -147,6 +154,7 @@ export default function WishModalScreen() {
             value={description}
             onChangeText={setDescription}
             multiline={true}
+            inputStyle={{ height: 96 }}
           />
           <TextInput
             icon="ticketStart"
@@ -175,8 +183,8 @@ export default function WishModalScreen() {
             onSelectOption={setCurrency}
           />
         </View>
-      </ScrollView>
-    </KeyboardAwareScrollView>
+      </KeyboardAwareScrollView>
+    </>
   );
 }
 

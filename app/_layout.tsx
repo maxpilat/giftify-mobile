@@ -8,6 +8,8 @@ import { AuthData } from '@/models';
 import * as Linking from 'expo-linking';
 import * as SplashScreen from 'expo-splash-screen';
 import * as SecureStore from 'expo-secure-store';
+import Toast from 'react-native-toast-message';
+import { toastConfig } from '@/constants/toast';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -61,6 +63,10 @@ export default function RootLayout() {
 
   if (!isLoaded) return;
 
+  // DEMO
+  console.warn = () => {};
+  console.error = () => {};
+
   return (
     <ActionSheetProvider>
       <AuthProvider initialUser={initialUser}>
@@ -71,6 +77,7 @@ export default function RootLayout() {
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             <Stack.Screen name="+not-found" />
           </Stack>
+          <Toast config={toastConfig} />
         </ThemeProvider>
       </AuthProvider>
     </ActionSheetProvider>

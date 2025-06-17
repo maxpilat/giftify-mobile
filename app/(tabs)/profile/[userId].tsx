@@ -1,5 +1,17 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { View, StyleSheet, Pressable, ScrollView, TouchableOpacity, RefreshControl, Alert, Share } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import {
+  View,
+  StyleSheet,
+  Pressable,
+  ScrollView,
+  TouchableOpacity,
+  Alert,
+  Share,
+  Dimensions,
+  RefreshControl,
+  NativeSyntheticEvent,
+  NativeScrollEvent,
+} from 'react-native';
 import { ParallaxScrollView } from '@/components/ParallaxScrollView';
 import { ProfileHeader } from '@/components/ProfileHeader';
 import MasonryList from '@react-native-seoul/masonry-list';
@@ -7,22 +19,27 @@ import { WishCard } from '@/components/WishCard';
 import { WishListTab } from '@/components/WishListTab';
 import { Icon } from '@/components/Icon';
 import { ThemedView } from '@/components/ThemedView';
-import { Link, router, useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { Link, router, Stack, useLocalSearchParams } from 'expo-router';
 import { useTheme } from '@/hooks/useTheme';
 import Animated, { runOnJS, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { ThemedText } from '@/components/ThemedText';
-import { Booking, Friend, Profile, ProfileBackground, ApiProfileBackground, Wish, WishList } from '@/models';
+import { Booking, Friend, Profile, ProfileBackground, Wish, WishList } from '@/models';
 import { API } from '@/constants/api';
 import { Colors } from '@/constants/themes';
 import { ProgressBar } from '@/components/ProgressBar';
 import { apiFetchData, apiFetchImage } from '@/lib/api';
 import { useAuth } from '@/hooks/useAuth';
-import { useProfile } from '@/hooks/useStore';
+import { useStore } from '@/hooks/useStore';
 import { Action } from '@/components/ActionsButton';
-import { base64ToBinaryArray, binaryArrayToBase64 } from '@/utils/convertImage';
+import { base64ToBinaryArray } from '@/utils/convertImage';
 import { getDefaultBackground } from '@/utils/profileBackground';
 import * as Linking from 'expo-linking';
 import { showToast } from '@/utils/showToast';
+import { BackButton } from '@/components/BackButton';
+import { Skeleton } from '@/components/Skeleton';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+const screenWidth = Dimensions.get('window').width;
 
 type SearchParams = {
   userId?: string;
@@ -40,7 +57,6 @@ export default function ProfileScreen() {
     wishLists: myWishLists,
     piggyBanks: myPiggyBanks,
     friends: myFriends,
-    isLoaded: isProfileLoaded,
     fetchAvatar: fetchMyAvatar,
     fetchBackground: fetchMyBackground,
     fetchBookings: fetchMyBookings,
@@ -50,8 +66,9 @@ export default function ProfileScreen() {
     fetchPiggyBanks: fetchMyPiggyBanks,
     setIsLoaded: setIsProfileLoaded,
     isFriend,
-  } = useProfile();
+  } = useStore();
   const { userId = authUser.id, wishListId } = useLocalSearchParams<SearchParams>();
+  const { bottom } = useSafeAreaInsets();
 
   const [currentTabIndex, setCurrentTabIndex] = useState(0);
   const [currentVisibleTabIndex, setCurrentVisibleTabIndex] = useState(0);
@@ -65,14 +82,16 @@ export default function ProfileScreen() {
   const [background, setBackground] = useState<ProfileBackground>();
   const [friends, setFriends] = useState<Friend[]>([]);
 
-  const scrollRef = useRef<ScrollView>(null);
-
+  const [isWishesLoading, setIsWishesLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const onRefresh = () => {
-    setIsRefreshing(true);
-    fetchData().then(() => setIsRefreshing(false));
-  };
+  const [isHeaderVisible, setIsHeaderVisible] = useState(false);
+
+  const scrollRef = useRef<ScrollView>(null);
+  const themeTypeValue = themeType === 'system' ? systemThemeType : themeType;
+  const isCurrentUser = +userId === authUser.id;
+  const listPaddingBottom = isCurrentUser && currentTabIndex !== 2 ? 130 : 80;
+  const wishListData = wishLists.find(({ wishListId }) => wishListId === currentWishListId)?.wishes ?? wishes;
 
   const contentOpacity = useSharedValue(1);
   const contentAnimatedStyle = useAnimatedStyle(() => ({
@@ -85,14 +104,28 @@ export default function ProfileScreen() {
     transform: [{ scale: addItemButtonOpacity.value }],
   }));
 
-  const isCurrentUser = +userId === authUser.id;
+  const headerBackgroundOpacity = useSharedValue(0);
+  const headerAnimatedStyle = useAnimatedStyle(
+    () => ({
+      backgroundColor:
+        themeTypeValue === 'light'
+          ? `rgba(255, 255, 255, ${headerBackgroundOpacity.value})`
+          : `rgba(17, 19, 24, ${headerBackgroundOpacity.value})`,
+    }),
+    [theme.background]
+  );
+  const headerTitleAnimatedStyle = useAnimatedStyle(() => ({ opacity: headerBackgroundOpacity.value }));
+
+  useEffect(() => {
+    headerBackgroundOpacity.value = withTiming(isHeaderVisible ? 1 : 0, { duration: 300 });
+  }, [isHeaderVisible]);
 
   useEffect(() => {
     if (wishListId && wishLists.length) setCurrentWishListId(+wishListId);
   }, [wishListId]);
 
   useEffect(() => {
-    if (isCurrentUser && isProfileLoaded) {
+    if (isCurrentUser) {
       setAvatar(myAvatar);
       setBackground(myBackground);
       setWishes(myWishes);
@@ -102,6 +135,39 @@ export default function ProfileScreen() {
     }
   }, [myAvatar, myBackground, myWishes, myWishLists, myPiggyBanks, myFriends]);
 
+  useEffect(() => {
+    if (background?.id === 0) {
+      setBackground(getDefaultBackground());
+    }
+  }, [themeTypeValue]);
+
+  useEffect(() => {
+    if (userId) fetchData();
+  }, [userId]);
+
+  useEffect(() => {
+    contentOpacity.value = withTiming(0, { duration: 50 }, (finished) => {
+      if (finished) {
+        runOnJS(setCurrentVisibleTabIndex)(currentTabIndex);
+      }
+    });
+  }, [currentTabIndex]);
+
+  useEffect(() => {
+    contentOpacity.value = withTiming(1, { duration: 300 });
+    const opacity = currentVisibleTabIndex === 2 ? 0 : 1;
+    addItemButtonOpacity.value = withTiming(opacity, { duration: 300 });
+  }, [currentVisibleTabIndex]);
+
+  const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    setIsHeaderVisible(event.nativeEvent.contentOffset.y > 210);
+  };
+
+  const onRefresh = () => {
+    setIsRefreshing(true);
+    fetchData().then(() => setIsRefreshing(false));
+  };
+
   const fetchData = async () => {
     const promises: Promise<any>[] = [];
 
@@ -109,7 +175,7 @@ export default function ProfileScreen() {
       fetchMyAvatar();
       fetchMyBackground();
       const bookingsPromise = fetchMyBookings();
-      const wishesPromise = fetchMyWishes();
+      const wishesPromise = fetchMyWishes().then(() => setIsWishesLoading(false));
       const wishListsPromise = fetchMyWishLists().then(() => wishListId && setCurrentWishListId(+wishListId));
       const piggyBanksPromise = fetchMyPiggyBanks();
       const friendsPromise = fetchMyFriends();
@@ -121,17 +187,19 @@ export default function ProfileScreen() {
         token: authUser.token,
       }).then(setAvatar);
 
-      apiFetchData<ApiProfileBackground>({
+      apiFetchData<ProfileBackground>({
         endpoint: API.profile.getBackground(+userId),
         token: authUser.token,
       }).then((serverBackground) => {
         if (!serverBackground.backgroundImage && !serverBackground.backgroundColor) {
-          setBackground(getDefaultBackground(themeType === 'system' ? systemThemeType : themeType));
+          setBackground(getDefaultBackground());
         } else {
-          const backgroundUri = serverBackground.backgroundImage
-            ? binaryArrayToBase64(serverBackground.backgroundImage)
-            : undefined;
-          const background: ProfileBackground = { ...serverBackground, backgroundUri };
+          const background: ProfileBackground = {
+            ...serverBackground,
+            backgroundImage: serverBackground.backgroundImage
+              ? `data:image;base64,${serverBackground.backgroundImage}`
+              : undefined,
+          };
           setBackground(background);
         }
       });
@@ -139,28 +207,30 @@ export default function ProfileScreen() {
       const wishesPromise = apiFetchData<Wish[]>({
         endpoint: API.profile.getWishes(+userId),
         token: authUser.token,
-      }).then(async (data) => {
-        setWishes(data);
+      })
+        .then(async (data) => {
+          setWishes(data);
 
-        const imagesMap = new Map(
-          await Promise.all(
-            data.map(async (wish) => {
-              const image = await apiFetchImage({
-                endpoint: API.wishes.getImage(wish.wishId),
-                token: authUser.token,
-              });
-              return [wish.wishId, image] as const;
-            })
-          )
-        );
+          const imagesMap = new Map(
+            await Promise.all(
+              data.map(async (wish) => {
+                const image = await apiFetchImage({
+                  endpoint: API.wishes.getImage(wish.wishId),
+                  token: authUser.token,
+                });
+                return [wish.wishId, image] as const;
+              })
+            )
+          );
 
-        const updatedWishes = data.map((wish) => ({
-          ...wish,
-          image: imagesMap.get(wish.wishId),
-        }));
+          const updatedWishes = data.map((wish) => ({
+            ...wish,
+            image: imagesMap.get(wish.wishId),
+          }));
 
-        setWishes(updatedWishes);
-      });
+          setWishes(updatedWishes);
+        })
+        .then(() => setIsWishesLoading(false));
 
       const wishListsPromise = apiFetchData<WishList[]>({
         endpoint: API.profile.getWishLists(+userId),
@@ -224,34 +294,16 @@ export default function ProfileScreen() {
       promises.push(wishesPromise, wishListsPromise, piggyBanksPromise, friendsPromise);
     }
 
-    Promise.all(promises).then(() => setIsProfileLoaded(true));
-
     const profilePromise = apiFetchData<Profile>({
       endpoint: API.profile.getProfile(+userId),
       token: authUser.token,
     }).then(setProfile);
 
     promises.push(profilePromise);
+
     await Promise.all(promises);
+    setIsProfileLoaded(true);
   };
-
-  useEffect(() => {
-    if (userId) fetchData();
-  }, [userId]);
-
-  useEffect(() => {
-    contentOpacity.value = withTiming(0, { duration: 50 }, (finished) => {
-      if (finished) {
-        runOnJS(setCurrentVisibleTabIndex)(currentTabIndex);
-      }
-    });
-  }, [currentTabIndex]);
-
-  useEffect(() => {
-    contentOpacity.value = withTiming(1, { duration: 300 });
-    const opacity = currentVisibleTabIndex === 2 ? 0 : 1;
-    addItemButtonOpacity.value = withTiming(opacity, { duration: 300 });
-  }, [currentVisibleTabIndex]);
 
   const addItem = () => {
     if (currentTabIndex === 0) {
@@ -260,8 +312,6 @@ export default function ProfileScreen() {
       router.push({ pathname: '/profile/piggyBankModal' });
     }
   };
-
-  const wishListData = wishLists.find(({ wishListId }) => wishListId === currentWishListId)?.wishes ?? wishes;
 
   const shareWishList = () => {
     const deepLink = Linking.createURL(`/profile/${userId}`, {
@@ -332,7 +382,7 @@ export default function ProfileScreen() {
       onPress: async () => {
         try {
           await apiFetchData({
-            endpoint: booking ? API.booking.cancel(booking.bookingId) : API.booking.create,
+            endpoint: booking ? API.booking.cancel(booking.wish.wishId) : API.booking.create,
             method: booking ? 'DELETE' : 'POST',
             body: booking ? undefined : { wishId, bookerId: authUser.id },
             token: authUser.token,
@@ -417,270 +467,329 @@ export default function ProfileScreen() {
     return myBookings.find((booking) => booking.bookingId === bookingId);
   };
 
-  useFocusEffect(
-    useCallback(() => {
-      fetchMyBookings();
-    }, [fetchMyBookings])
-  );
-
   return (
-    <View style={styles.wrapper}>
-      <ParallaxScrollView
-        header={
-          <ProfileHeader
-            profile={profile}
-            avatar={avatar}
-            background={background}
-            friendsAvatars={friends.slice(0, 3).map((friend) => friend.avatar)}
-            friendsCount={friends.length}
-            tabs={['Желания', 'Копилки', isCurrentUser ? 'Я дарю' : isFriend(+userId) ? 'Идеи' : ''].filter(Boolean)}
-            onTabChange={setCurrentTabIndex}
-          />
-        }
-        translateYFactor={[-0.5, 0, 0]}
-        scale={[1, 1, 1]}
-        refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />}
-      >
-        <ThemedView style={[styles.content, contentAnimatedStyle]}>
-          {currentVisibleTabIndex === 0 && (
-            <>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                ref={scrollRef}
-                contentContainerStyle={styles.categories}
-              >
-                <View style={styles.wishList}>
-                  <WishListTab
-                    name={`${isCurrentUser ? 'Мои' : 'Все'} желания`}
-                    count={wishes.length}
-                    isActive={!currentWishListId}
-                    onPress={() => setCurrentWishListId(null)}
-                    actions={isCurrentUser ? [{ label: 'Поделиться', onPress: shareWishList }] : []}
-                  />
-                </View>
-                {isCurrentUser && (
-                  <View style={[styles.wishList, styles.addWishListButton, { backgroundColor: theme.button }]}>
-                    <Link asChild href={'./wishListModal'}>
-                      <TouchableOpacity activeOpacity={0.7} style={styles.addWishListButtonTouchable}>
-                        <Icon name="plus" />
-                      </TouchableOpacity>
-                    </Link>
+    <>
+      <Stack.Screen
+        options={{
+          headerShown: true,
+          headerTransparent: true,
+          headerBackground: () => <Animated.View style={[StyleSheet.absoluteFill, headerAnimatedStyle]} />,
+          headerTitle: () => (
+            <ThemedText
+              type="bodyLargeMedium"
+              style={headerTitleAnimatedStyle}
+            >{`${profile?.name} ${profile?.surname}`}</ThemedText>
+          ),
+          headerLeft: () => !isCurrentUser && <BackButton />,
+          contentStyle: {
+            backgroundColor: theme.background,
+          },
+        }}
+      />
+      <View style={styles.wrapper}>
+        <ParallaxScrollView
+          header={
+            <ProfileHeader
+              profile={profile}
+              avatar={avatar}
+              background={background}
+              friendsAvatars={friends.slice(0, 3).map((friend) => friend.avatar)}
+              friendsCount={friends.length}
+              tabs={['Желания', 'Копилки', isCurrentUser ? 'Я дарю' : ''].filter(Boolean)}
+              onTabChange={setCurrentTabIndex}
+            />
+          }
+          translateYFactor={[-0.5, 0, 0]}
+          scale={[1, 1, 1]}
+          refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />}
+          onScroll={handleScroll}
+        >
+          {profile && (
+            <ThemedView style={[styles.content, contentAnimatedStyle]}>
+              {currentVisibleTabIndex === 0 &&
+                (!isCurrentUser && !isFriend(profile.userId) && profile?.isPrivate ? (
+                  <View style={styles.noWishesContainer}>
+                    <ThemedText style={styles.noWishesMessage} type="bodyLarge">
+                      У пользователя закрытый аккаунт
+                    </ThemedText>
                   </View>
-                )}
+                ) : (
+                  <>
+                    <ScrollView
+                      horizontal
+                      showsHorizontalScrollIndicator={false}
+                      ref={scrollRef}
+                      contentContainerStyle={styles.categories}
+                    >
+                      <View style={styles.wishList}>
+                        <WishListTab
+                          name={`${isCurrentUser ? 'Мои' : 'Все'} желания`}
+                          count={wishes.length}
+                          isActive={!currentWishListId}
+                          onPress={() => setCurrentWishListId(null)}
+                          actions={isCurrentUser ? [{ label: 'Поделиться', onPress: shareWishList }] : []}
+                        />
+                      </View>
+                      {isCurrentUser && (
+                        <View style={[styles.wishList, styles.addWishListButton, { backgroundColor: theme.button }]}>
+                          <Link asChild href={'./wishListModal'}>
+                            <TouchableOpacity activeOpacity={0.7} style={styles.addWishListButtonTouchable}>
+                              <Icon name="plus" parentBackgroundColor={theme.button} />
+                            </TouchableOpacity>
+                          </Link>
+                        </View>
+                      )}
 
-                {wishLists.map((wishList) => (
-                  <View key={wishList.wishListId} style={styles.wishList}>
-                    <WishListTab
-                      name={wishList.name}
-                      count={wishList.wishes.length}
-                      isActive={currentWishListId === wishList.wishListId}
-                      onPress={() => setCurrentWishListId(wishList.wishListId)}
-                      actions={
-                        isCurrentUser
-                          ? [
-                              { label: 'Редактировать', onPress: () => editWishList(wishList.wishListId) },
-                              { label: 'Поделиться', onPress: shareWishList },
-                              { label: 'Удалить', onPress: () => deleteWishList(wishList.wishListId) },
-                            ]
-                          : []
-                      }
+                      {wishLists.map((wishList) => (
+                        <View key={wishList.wishListId} style={styles.wishList}>
+                          <WishListTab
+                            name={wishList.name}
+                            count={wishList.wishes.length}
+                            isActive={currentWishListId === wishList.wishListId}
+                            onPress={() => setCurrentWishListId(wishList.wishListId)}
+                            actions={
+                              isCurrentUser
+                                ? [
+                                    { label: 'Редактировать', onPress: () => editWishList(wishList.wishListId) },
+                                    { label: 'Поделиться', onPress: shareWishList },
+                                    { label: 'Удалить', onPress: () => deleteWishList(wishList.wishListId) },
+                                  ]
+                                : []
+                            }
+                          />
+                        </View>
+                      ))}
+                    </ScrollView>
+
+                    {wishListData.length || isWishesLoading ? (
+                      <MasonryList
+                        data={
+                          isWishesLoading ? [{ wishId: 1 }, { wishId: 2 }, { wishId: 3 }, { wishId: 4 }] : wishListData
+                        }
+                        keyExtractor={(wish: Wish) => wish.wishId.toString()}
+                        numColumns={2}
+                        contentContainerStyle={[styles.list, { paddingBottom: listPaddingBottom }]}
+                        renderItem={({ item, i }) => {
+                          if (!isWishesLoading) {
+                            const wish = item as Wish;
+                            const activeBooking = wish.activeBookingId ? getMyBookingById(wish.activeBookingId) : null;
+                            const showBooking = !isCurrentUser && Boolean(activeBooking);
+                            const booker =
+                              !isCurrentUser && activeBooking
+                                ? { booked: activeBooking.booked, avatar: myAvatar }
+                                : undefined;
+                            const wisher = isCurrentUser ? activeBooking?.wish.wisherProfileData : undefined;
+                            return (
+                              <Link
+                                asChild
+                                href={{ pathname: '/profile/wishes', params: { wishId: wish.wishId, userId } }}
+                                style={[
+                                  { marginTop: [0, 1].includes(i) ? 0 : 16 },
+                                  { [i % 2 === 0 ? 'marginRight' : 'marginLeft']: 8 },
+                                ]}
+                              >
+                                <Pressable>
+                                  <WishCard
+                                    wish={
+                                      {
+                                        ...wish,
+                                        image: wishes.find((item) => item.wishId === wish.wishId)?.image,
+                                      } as Wish
+                                    }
+                                    actions={
+                                      isCurrentUser
+                                        ? [
+                                            { label: 'Редактировать', onPress: () => editWish(wish.wishId) },
+                                            { label: 'Поделиться', onPress: () => shareWish(wish) },
+                                            { label: 'Удалить', onPress: () => deleteWish(wish.wishId) },
+                                          ]
+                                        : ([
+                                            { label: 'Сохранить к себе', onPress: () => saveWish(wish) },
+                                            isFriend(+userId) ? getBookingAction(wish.wishId) : null,
+                                            { label: 'Поделиться', onPress: () => shareWish(wish) },
+                                          ].filter(Boolean) as Action[])
+                                    }
+                                    showBooking={showBooking}
+                                    booker={booker}
+                                    wisher={wisher}
+                                  />
+                                </Pressable>
+                              </Link>
+                            );
+                          }
+                          return (
+                            <Skeleton
+                              style={{
+                                height: screenWidth / 2 + Math.random() * 100,
+                                [i % 2 === 0 ? 'marginRight' : 'marginLeft']: 8,
+                                marginTop: [0, 1].includes(i) ? 0 : 16,
+                                borderRadius: 25,
+                              }}
+                            />
+                          );
+                        }}
+                      />
+                    ) : isCurrentUser ? (
+                      <View style={styles.noWishesContainer}>
+                        <ThemedText style={styles.noWishesMessage} type="bodyLarge">
+                          Пока пусто...
+                        </ThemedText>
+                        <ThemedText style={styles.noWishesMessage} type="bodyLarge">
+                          Может, это значит, что пора мечтать смелее?
+                        </ThemedText>
+                      </View>
+                    ) : (
+                      <View style={styles.noWishesContainer}>
+                        <ThemedText style={styles.noWishesMessage} type="bodyLarge">
+                          Eщё в раздумьях, что загадать
+                        </ThemedText>
+                      </View>
+                    )}
+                  </>
+                ))}
+
+              {currentVisibleTabIndex === 1 && (
+                <View style={[styles.list, styles.piggyBankList, { paddingBottom: listPaddingBottom }]}>
+                  {!isCurrentUser && !isFriend(profile.userId) && profile?.isPrivate ? (
+                    <View style={styles.noWishesContainer}>
+                      <ThemedText style={styles.noWishesMessage} type="bodyLarge">
+                        У пользователя закрытый аккаунт
+                      </ThemedText>
+                    </View>
+                  ) : piggyBanks.length ? (
+                    piggyBanks.map((piggyBank) => (
+                      <Link
+                        asChild
+                        key={piggyBank.wishId}
+                        style={styles.piggyBank}
+                        href={{ pathname: '/profile/piggyBanks', params: { piggyBankId: piggyBank.wishId, userId } }}
+                      >
+                        <Pressable>
+                          <View style={styles.piggyBankBody}>
+                            <View style={styles.piggyBankInfo}>
+                              <ThemedText type="h3">{piggyBank.name}</ThemedText>
+                              <View style={styles.piggyBankPrice}>
+                                <ThemedText type="bodyBase" style={styles.piggyBankPriceLabel}>
+                                  Стоимость:
+                                </ThemedText>
+                                <ThemedText type="bodyLargeMedium">
+                                  {piggyBank.price} {piggyBank.currency?.transcription}
+                                </ThemedText>
+                              </View>
+                            </View>
+                            <View style={styles.piggyBankCard}>
+                              <WishCard
+                                imageAspectRatio={1}
+                                wish={piggyBank}
+                                actions={
+                                  isCurrentUser
+                                    ? [
+                                        { label: 'Редактировать', onPress: () => editPiggyBank(piggyBank.wishId) },
+                                        { label: 'Поделиться', onPress: () => sharePiggyBank(piggyBank) },
+                                        { label: 'Удалить', onPress: () => deletePiggyBank(piggyBank.wishId) },
+                                      ]
+                                    : [{ label: 'Поделиться', onPress: () => sharePiggyBank(piggyBank) }]
+                                }
+                                showInfo={false}
+                              />
+                            </View>
+                          </View>
+                          <ProgressBar
+                            currentAmount={piggyBank.deposit}
+                            targetAmount={piggyBank.price}
+                            currency={piggyBank.currency}
+                          />
+                        </Pressable>
+                      </Link>
+                    ))
+                  ) : isCurrentUser ? (
+                    <View style={styles.noWishesContainer}>
+                      <ThemedText style={styles.noWishesMessage} type="bodyLarge">
+                        Здесь пока только эхо...
+                      </ThemedText>
+                      <ThemedText style={styles.noWishesMessage} type="bodyLarge">
+                        Может стоит сделать первый шаг к большим целям?
+                      </ThemedText>
+                    </View>
+                  ) : (
+                    <View style={styles.noWishesContainer}>
+                      <ThemedText style={styles.noWishesMessage} type="bodyLarge">
+                        Пока копит не деньги, а терпение
+                      </ThemedText>
+                    </View>
+                  )}
+                </View>
+              )}
+
+              {currentVisibleTabIndex === 2 &&
+                (isCurrentUser ? (
+                  myBookings.length ? (
+                    <MasonryList
+                      data={myBookings}
+                      keyExtractor={(booking: Booking) => booking.bookingId.toString()}
+                      numColumns={2}
+                      contentContainerStyle={[styles.list, { paddingBottom: listPaddingBottom }]}
+                      renderItem={({ item, i }) => {
+                        const wish = (item as Booking).wish;
+                        return (
+                          <Link
+                            asChild
+                            href={{
+                              pathname: '/profile/wishes',
+                              params: { wishId: wish.wishId, isMyBookings: 'true' },
+                            }}
+                            style={[{ [i % 2 === 0 ? 'marginRight' : 'marginLeft']: 8 }]}
+                          >
+                            <Pressable>
+                              <WishCard
+                                wish={wish}
+                                wisher={wish.wisherProfileData}
+                                actions={
+                                  [
+                                    { label: 'Сохранить к себе', onPress: () => saveWish(wish) },
+                                    isFriend(wish.wisherProfileData.userId) ? getBookingAction(wish.wishId) : null,
+                                    { label: 'Поделиться', onPress: () => shareWish(wish) },
+                                  ].filter(Boolean) as Action[]
+                                }
+                              />
+                            </Pressable>
+                          </Link>
+                        );
+                      }}
                     />
+                  ) : (
+                    <View style={styles.noWishesContainer}>
+                      <ThemedText style={styles.noWishesMessage} type="bodyLarge">
+                        Забронируйте желание друга и оно появится здесь
+                      </ThemedText>
+                    </View>
+                  )
+                ) : (
+                  <View style={styles.noWishesContainer}>
+                    <ThemedText style={styles.noWishesMessage} type="bodyLarge">
+                      Мы работаем над этим 🙂
+                    </ThemedText>
                   </View>
                 ))}
-              </ScrollView>
-
-              {wishListData.length ? (
-                <MasonryList
-                  data={wishListData}
-                  keyExtractor={(wish: Wish) => wish.wishId.toString()}
-                  numColumns={2}
-                  contentContainerStyle={styles.list}
-                  renderItem={({ item, i }) => {
-                    const wish = item as Wish;
-                    const activeBooking = wish.activeBookingId ? getMyBookingById(wish.activeBookingId) : null;
-                    const showBooking = !isCurrentUser && Boolean(activeBooking);
-                    const booker =
-                      !isCurrentUser && activeBooking ? { booked: activeBooking.booked, avatar: myAvatar } : undefined;
-                    const wisher = isCurrentUser ? activeBooking?.wish.wisherProfileData : undefined;
-                    return (
-                      <Link
-                        asChild
-                        href={{ pathname: '/profile/wishes', params: { wishId: wish.wishId, userId } }}
-                        style={[
-                          { marginTop: [0, 1].includes(i) ? 0 : 16 },
-                          { [i % 2 === 0 ? 'marginRight' : 'marginLeft']: 8 },
-                        ]}
-                      >
-                        <Pressable>
-                          <WishCard
-                            wish={{ ...wish, image: wishes.find((item) => item.wishId === wish.wishId)?.image } as Wish}
-                            actions={
-                              isCurrentUser
-                                ? [
-                                    { label: 'Редактировать', onPress: () => editWish(wish.wishId) },
-                                    { label: 'Поделиться', onPress: () => shareWish(wish) },
-                                    { label: 'Удалить', onPress: () => deleteWish(wish.wishId) },
-                                  ]
-                                : ([
-                                    { label: 'Сохранить к себе', onPress: () => saveWish(wish) },
-                                    isFriend(+userId) ? getBookingAction(wish.wishId) : null,
-                                    { label: 'Поделиться', onPress: () => shareWish(wish) },
-                                  ].filter(Boolean) as Action[])
-                            }
-                            showBooking={showBooking}
-                            booker={booker}
-                            wisher={wisher}
-                          />
-                        </Pressable>
-                      </Link>
-                    );
-                  }}
-                />
-              ) : isCurrentUser ? (
-                <View style={styles.noWishesContainer}>
-                  <ThemedText style={styles.noWishesMessage} type="bodyLarge">
-                    Пока пусто...
-                  </ThemedText>
-                  <ThemedText style={styles.noWishesMessage} type="bodyLarge">
-                    Может, это значит, что пора мечтать смелее?
-                  </ThemedText>
-                </View>
-              ) : (
-                <View style={styles.noWishesContainer}>
-                  <ThemedText style={styles.noWishesMessage} type="bodyLarge">
-                    Eщё в раздумьях, что загадать
-                  </ThemedText>
-                </View>
-              )}
-            </>
+            </ThemedView>
           )}
+        </ParallaxScrollView>
 
-          {currentVisibleTabIndex === 1 && (
-            <View style={[styles.list, styles.piggyBankList]}>
-              {piggyBanks.length ? (
-                piggyBanks.map((piggyBank) => (
-                  <Link
-                    asChild
-                    key={piggyBank.wishId}
-                    style={styles.piggyBank}
-                    href={{ pathname: '/profile/piggyBanks', params: { piggyBankId: piggyBank.wishId, userId } }}
-                  >
-                    <Pressable>
-                      <View style={styles.piggyBankBody}>
-                        <View style={styles.piggyBankInfo}>
-                          <ThemedText type="h3">{piggyBank.name}</ThemedText>
-                          <View style={styles.piggyBankPrice}>
-                            <ThemedText type="bodyBase" style={styles.piggyBankPriceLabel}>
-                              Стоимость:
-                            </ThemedText>
-                            <ThemedText type="bodyLargeMedium">
-                              {piggyBank.price} {piggyBank.currency?.symbol}
-                            </ThemedText>
-                          </View>
-                        </View>
-                        <View style={styles.piggyBankCard}>
-                          <WishCard
-                            imageAspectRatio={1}
-                            wish={piggyBank}
-                            actions={
-                              isCurrentUser
-                                ? [
-                                    { label: 'Редактировать', onPress: () => editPiggyBank(piggyBank.wishId) },
-                                    { label: 'Поделиться', onPress: () => sharePiggyBank(piggyBank) },
-                                    { label: 'Удалить', onPress: () => deletePiggyBank(piggyBank.wishId) },
-                                  ]
-                                : [{ label: 'Поделиться', onPress: () => sharePiggyBank(piggyBank) }]
-                            }
-                            showInfo={false}
-                          />
-                        </View>
-                      </View>
-                      <ProgressBar
-                        currentAmount={piggyBank.deposit}
-                        targetAmount={piggyBank.price}
-                        currency={piggyBank.currency}
-                      />
-                    </Pressable>
-                  </Link>
-                ))
-              ) : isCurrentUser ? (
-                <View style={styles.noWishesContainer}>
-                  <ThemedText style={styles.noWishesMessage} type="bodyLarge">
-                    Здесь пока только эхо...
-                  </ThemedText>
-                  <ThemedText style={styles.noWishesMessage} type="bodyLarge">
-                    Может стоит сделать первый шаг к большим целям?
-                  </ThemedText>
-                </View>
-              ) : (
-                <View style={styles.noWishesContainer}>
-                  <ThemedText style={styles.noWishesMessage} type="bodyLarge">
-                    Пока копит не деньги, а терпение
-                  </ThemedText>
-                </View>
-              )}
-            </View>
-          )}
-
-          {currentVisibleTabIndex === 2 &&
-            (isCurrentUser ? (
-              myBookings.length ? (
-                <MasonryList
-                  data={myBookings}
-                  keyExtractor={(booking: Booking) => booking.bookingId.toString()}
-                  numColumns={2}
-                  contentContainerStyle={styles.list}
-                  renderItem={({ item, i }) => {
-                    const wish = (item as Booking).wish;
-                    return (
-                      <Link
-                        asChild
-                        href={{ pathname: '/profile/wishes', params: { wishId: wish.wishId, isMyBookings: 'true' } }}
-                        style={[{ [i % 2 === 0 ? 'marginRight' : 'marginLeft']: 8 }]}
-                      >
-                        <Pressable>
-                          <WishCard
-                            wish={wish}
-                            wisher={wish.wisherProfileData}
-                            actions={
-                              [
-                                { label: 'Сохранить к себе', onPress: () => saveWish(wish) },
-                                isFriend(wish.wisherProfileData.userId) ? getBookingAction(wish.wishId) : null,
-                                { label: 'Поделиться', onPress: () => shareWish(wish) },
-                              ].filter(Boolean) as Action[]
-                            }
-                          />
-                        </Pressable>
-                      </Link>
-                    );
-                  }}
-                />
-              ) : (
-                <View style={styles.noWishesContainer}>
-                  <ThemedText style={styles.noWishesMessage} type="bodyLarge">
-                    Забронируйте желание друга и оно появится здесь
-                  </ThemedText>
-                </View>
-              )
-            ) : (
-              <View style={styles.noWishesContainer}>
-                <ThemedText style={styles.noWishesMessage} type="bodyLarge">
-                  Мы работаем над этим 🙂
-                </ThemedText>
-              </View>
-            ))}
-        </ThemedView>
-      </ParallaxScrollView>
-
-      {isCurrentUser && (
-        <Animated.View style={[styles.addItemButton, { backgroundColor: theme.primary }, addItemButtonAnimatedStyle]}>
-          <Pressable onPress={addItem} style={styles.addItemButtonPressable}>
-            <Icon name="plus" />
-          </Pressable>
-        </Animated.View>
-      )}
-    </View>
+        {isCurrentUser && (
+          <Animated.View
+            style={[
+              styles.addItemButton,
+              { backgroundColor: theme.primary, bottom: bottom + 60 },
+              addItemButtonAnimatedStyle,
+            ]}
+          >
+            <Pressable onPress={addItem} style={styles.addItemButtonPressable}>
+              <Icon name="plus" parentBackgroundColor={theme.primary} />
+            </Pressable>
+          </Animated.View>
+        )}
+      </View>
+    </>
   );
 }
 
@@ -712,7 +821,6 @@ const styles = StyleSheet.create({
   },
   addItemButton: {
     position: 'absolute',
-    bottom: 95,
     borderRadius: 30,
     height: 60,
     width: 120,
@@ -725,7 +833,6 @@ const styles = StyleSheet.create({
   },
   list: {
     paddingHorizontal: 16,
-    paddingBottom: 130,
   },
   piggyBankList: {
     gap: 32,

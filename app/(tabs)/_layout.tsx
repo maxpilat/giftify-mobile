@@ -1,4 +1,4 @@
-import { Tabs } from 'expo-router';
+import { Tabs, useSegments } from 'expo-router';
 import { Platform } from 'react-native';
 import { Tab } from '@/components/Tab';
 import TabBarBackground from '@/components/TabBarBackground';
@@ -6,16 +6,15 @@ import TabBarBackgroundIOS from '@/components/TabBarBackground.ios';
 import { useTheme } from '@/hooks/useTheme';
 import { Icon } from '@/components/Icon';
 import { StoreProvider } from '@/hooks/useStore';
-import Toast from 'react-native-toast-message';
-import { toastConfig } from '@/constants/toast';
 
 export default function TabLayout() {
-  const { theme, themeType, systemThemeType } = useTheme();
+  const { theme } = useTheme();
+  const segments = useSegments();
 
   return (
     <StoreProvider>
       <Tabs
-        screenOptions={{
+        screenOptions={({ route, navigation }) => ({
           tabBarInactiveTintColor: theme.tabBarTint,
           tabBarActiveTintColor: theme.secondary,
           headerShown: false,
@@ -32,8 +31,9 @@ export default function TabLayout() {
                 position: 'absolute',
               },
             }),
+            display: segments[segments.length - 1] === '[chatId]' ? 'none' : 'flex',
           },
-        }}
+        })}
       >
         <Tabs.Screen
           name="profile"
@@ -50,7 +50,7 @@ export default function TabLayout() {
           }}
         />
         <Tabs.Screen
-          name="chats/index"
+          name="chats"
           options={{
             title: 'Чаты',
             tabBarIcon: ({ color }) => <Icon name="chats" color={color} />,
@@ -64,7 +64,6 @@ export default function TabLayout() {
           }}
         />
       </Tabs>
-      <Toast config={toastConfig(themeType === 'system' ? systemThemeType : themeType)} />
     </StoreProvider>
   );
 }

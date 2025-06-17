@@ -53,16 +53,22 @@ export function WishListTab({
     <TouchableOpacity activeOpacity={pressOpacity} onPress={onPress}>
       <Animated.View style={[styles.container, animatedContainerStyle]}>
         <View>
-          <ThemedText type="bodyLarge" backgroundColor={isActive ? theme.secondary : theme.button}>
+          <ThemedText type="bodyLarge" parentBackgroundColor={isActive ? theme.secondary : theme.button}>
             {name}
           </ThemedText>
-          <ThemedText type="h1" backgroundColor={isActive ? theme.secondary : theme.button}>
+          <ThemedText type="h1" parentBackgroundColor={isActive ? theme.secondary : theme.button}>
             {count}
           </ThemedText>
 
           {actions.length > 0 && (
             <Animated.View style={[styles.actionButtonContainer, animatedActionButtonStyle]}>
-              <ActionButton style={styles.actionButton} size={36} actions={actions} pressOpacity={pressOpacity} />
+              <ActionButton
+                style={styles.actionButton}
+                size={36}
+                actions={actions}
+                pressOpacity={pressOpacity}
+                parentBackgroundColor={backgroundColorValue}
+              />
             </Animated.View>
           )}
         </View>

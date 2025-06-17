@@ -1,6 +1,6 @@
 import { ProfileBackground } from '@/models';
 import { Asset } from 'expo-asset';
-import { Colors, ThemeType } from '@/constants/themes';
+import { Image } from 'react-native';
 
 export async function loadDefaultBackgrounds(): Promise<ProfileBackground[]> {
   const assets = [
@@ -14,15 +14,15 @@ export async function loadDefaultBackgrounds(): Promise<ProfileBackground[]> {
 
   return assets.map((asset) => ({
     backgroundType: 'TYPE_IMAGE',
-    backgroundId: assets.indexOf(asset) + 1,
-    backgroundUri: asset.localUri!,
+    id: assets.indexOf(asset) + 1,
+    backgroundImage: asset.localUri!,
   }));
 }
 
-export function getDefaultBackground(themeType: ThemeType): ProfileBackground {
+export function getDefaultBackground(): ProfileBackground {
   return {
-    backgroundId: 0,
-    backgroundType: 'TYPE_COLOR',
-    backgroundColor: themeType === 'light' ? Colors.light : Colors.darkBlue,
+    id: 1,
+    backgroundType: 'TYPE_IMAGE',
+    backgroundImage: Image.resolveAssetSource(require('@/assets/images/bg-01.jpeg')).uri,
   };
 }

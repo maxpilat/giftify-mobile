@@ -8,6 +8,7 @@ import {
   StyleProp,
   ViewStyle,
   Pressable,
+  TextStyle,
 } from 'react-native';
 import { useActionSheet } from '@expo/react-native-action-sheet';
 import { Icon } from '@/components/Icon';
@@ -28,6 +29,7 @@ type Props<T> = {
   onSelectOption?: (item: T) => void;
   containerStyle?: StyleProp<ViewStyle>;
   inputContainerStyle?: StyleProp<ViewStyle>;
+  inputStyle?: StyleProp<TextStyle>;
 } & TextInputProps;
 
 export function TextInput<T>({
@@ -41,6 +43,7 @@ export function TextInput<T>({
   onSelectOption,
   containerStyle,
   inputContainerStyle,
+  inputStyle,
   ...inputConfig
 }: Props<T>) {
   const { theme } = useTheme();
@@ -122,7 +125,7 @@ export function TextInput<T>({
         )}
         <NativeTextInput
           ref={inputRef}
-          style={[styles.input, { color: theme.text }, inputConfig.multiline && { height: 96 }]}
+          style={[styles.input, { color: theme.text }, inputStyle]}
           placeholderTextColor={Colors.grey}
           secureTextEntry={isSecure}
           value={inputConfig.value || value}
@@ -197,6 +200,7 @@ const styles = StyleSheet.create({
     fontWeight: '400',
     fontFamily: 'stolzl-regular',
     minWidth: 20,
+    minHeight: 20,
   },
   button: {
     paddingHorizontal: 8,

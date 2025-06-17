@@ -13,7 +13,7 @@ export default function FriendsLayout() {
       backgroundColor: theme.background,
     },
     headerTitle: () => <ThemedText type="bodyLargeMedium">Найти друзей</ThemedText>,
-    headerLeft: BackButton,
+    headerLeft: () => <BackButton />,
     contentStyle: {
       backgroundColor: theme.background,
     },

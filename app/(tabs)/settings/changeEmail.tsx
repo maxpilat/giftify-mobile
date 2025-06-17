@@ -17,15 +17,15 @@ export default function ChangeEmailScreen() {
   });
 
   const submit = () => {
-    if (isValid()) {
-      apiFetchData<{ code: string }>({
-        endpoint: API.auth.validateEmail,
-        method: 'POST',
-        body: newEmail,
-      })
-        .then(({ code }) => router.push({ pathname: '/validateEmail', params: { code, newEmail } }))
-        .catch(() => showToast('error', 'Не удалось запросить код'));
-    }
+    if (!isValid()) return;
+
+    apiFetchData<{ code: string }>({
+      endpoint: API.auth.validateEmail,
+      method: 'POST',
+      body: newEmail,
+    })
+      .then(({ code }) => router.push({ pathname: '/validateEmail', params: { code, newEmail } }))
+      .catch(() => showToast('error', 'Не удалось запросить код'));
   };
 
   const isValid = () => {
@@ -38,12 +38,7 @@ export default function ChangeEmailScreen() {
   };
 
   return (
-    <KeyboardAwareScrollView
-      extraScrollHeight={-180}
-      keyboardOpeningTime={0}
-      enableOnAndroid
-      contentContainerStyle={styles.scrollViewContent}
-    >
+    <KeyboardAwareScrollView extraScrollHeight={-250} enableOnAndroid contentContainerStyle={styles.scrollViewContent}>
       <View style={styles.content}>
         <ThemedText type="h1" style={styles.tittle}>
           Изменить электронную почту

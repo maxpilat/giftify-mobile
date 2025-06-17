@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
-import { router, useLocalSearchParams } from 'expo-router';
+import { ActivityIndicator, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { ImagePicker } from '@/components/ImagePicker';
 import { TextInput } from '@/components/TextInput';
 import { Currency, WishType } from '@/models';
@@ -12,14 +12,13 @@ import { Icon } from '@/components/Icon';
 import { Switch } from '@/components/Switch';
 import { API } from '@/constants/api';
 import { useAuth } from '@/hooks/useAuth';
-import { useProfile } from '@/hooks/useStore';
+import { useStore } from '@/hooks/useStore';
 import { base64ToBinaryArray } from '@/utils/convertImage';
 import { apiFetchData } from '@/lib/api';
 import { useTheme } from '@/hooks/useTheme';
 import { showToast } from '@/utils/showToast';
 
 type SearchParams = {
-  isSubmit?: 'true' | 'false';
   wishId?: string;
 };
 
@@ -31,8 +30,8 @@ type SwitchState = {
 export default function WishModalScreen() {
   const { theme } = useTheme();
   const { user } = useAuth();
-  const { isSubmit, wishId: wishIdParam } = useLocalSearchParams<SearchParams>();
-  const { wishes, wishLists, fetchWishes, fetchWishLists } = useProfile();
+  const { wishId: wishIdParam } = useLocalSearchParams<SearchParams>();
+  const { wishes, wishLists, fetchWishes, fetchWishLists } = useStore();
 
   const [image, setImage] = useState<string>();
   const [name, setName] = useState<string>('');
@@ -40,28 +39,38 @@ export default function WishModalScreen() {
   const [currency, setCurrency] = useState<Currency>();
   const [link, setLink] = useState<string>('');
   const [description, setDescription] = useState<string>('');
-  const [errors, setErrors] = useState<Record<'name' | 'link' | 'image', boolean>>({
+  const [errors, setErrors] = useState<Record<'name' | 'image', boolean>>({
     name: false,
-    link: false,
     image: false,
   });
   const [switchStates, setSwitchStates] = useState<SwitchState[]>([]);
   const [currencies, setCurrencies] = useState<Currency[]>([]);
+  const [prevWishLists, setPrevWishLists] = useState(wishLists);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     apiFetchData<Currency[]>({ endpoint: API.currencies.getCurrencies, token: user.token }).then((currencies) => {
       setCurrencies(currencies);
       if (!currency) setCurrency(currencies[0]);
     });
+
+    setSwitchStates(() =>
+      wishLists.map((wishList) => ({
+        id: wishList.wishListId,
+        enabled: !!wishIdParam && wishList.wishes.some((wish) => wish.wishId === +wishIdParam),
+      }))
+    );
   }, []);
 
   useEffect(() => {
-    setSwitchStates(() =>
-      wishLists.map(({ wishListId, wishes }) => ({
-        id: wishListId,
-        enabled: !!wishIdParam && wishes.some(({ wishId }) => wishId === +wishIdParam),
-      }))
+    const newWishList = wishLists.find(
+      (wishList) => !prevWishLists.some((prevWishList) => prevWishList.wishListId === wishList.wishListId)
     );
+
+    if (newWishList) {
+      setSwitchStates((prev) => [...prev, { id: newWishList.wishListId, enabled: true }]);
+      setPrevWishLists(wishLists);
+    }
   }, [wishLists]);
 
   useEffect(() => {
@@ -76,86 +85,80 @@ export default function WishModalScreen() {
     }
   }, [wishIdParam]);
 
-  useEffect(() => {
-    handleSubmit();
-  }, [isSubmit]);
-
   const handleSubmit = async () => {
-    if (isSubmit !== 'true') return;
+    if (!isValid()) return;
 
-    if (isValid()) {
-      const payload = {
-        wisherId: user.id,
-        wishType: 'TYPE_WISH' as WishType,
-        name,
-        description,
-        price: +price,
-        currencyId: currency?.currencyId,
-        link,
-      };
+    setIsSubmitting(true);
+    await new Promise((resolve) => setTimeout(resolve));
 
-      const binaryImage = base64ToBinaryArray(image!);
+    const payload = {
+      wisherId: user.id,
+      wishType: 'TYPE_WISH' as WishType,
+      name,
+      description,
+      price: +price,
+      currencyId: currency?.currencyId,
+      link,
+    };
 
-      let wishId = wishIdParam ? +wishIdParam : null;
+    const binaryImage = base64ToBinaryArray(image!);
+    let wishId = wishIdParam ? +wishIdParam : null;
 
-      try {
-        if (wishId) {
-          (payload as any).wishId = wishId;
-          await apiFetchData({
-            endpoint: API.wishes.update,
-            method: 'PUT',
-            token: user.token,
-            body: { ...payload, image: binaryImage },
-          });
-        } else {
-          (payload as any).wisherId = user.id;
-          wishId = await apiFetchData<number>({
-            endpoint: API.wishes.create,
-            method: 'POST',
-            token: user.token,
-            body: { ...payload, image: binaryImage },
-          });
-
-          await Promise.all(
-            switchStates.map((state) => {
-              const wishList = wishLists.find((item) => item.wishListId === state.id)!;
-              const isWishInWishList = wishList.wishes.some((wish) => wish.wishId === wishId);
-
-              if (state.enabled && !isWishInWishList) {
-                return apiFetchData({
-                  endpoint: API.wishes.addToWishList,
-                  method: 'POST',
-                  body: { wishId, wishListId: state.id },
-                  token: user.token,
-                });
-              } else if (!state.enabled && isWishInWishList) {
-                return apiFetchData({
-                  endpoint: API.wishes.deleteFromWishList,
-                  method: 'DELETE',
-                  body: { wishId, wishListId: state.id },
-                  token: user.token,
-                });
-              }
-            })
-          );
-        }
-
-        router.back();
-        await Promise.all([fetchWishes(), fetchWishLists()]);
-
-        showToast('success', wishId ? 'Желание обновлено' : 'Желание добавлено');
-      } catch {
-        showToast('error', wishId ? 'Не удалось обновить желание' : 'Не удалось добавить желание');
+    try {
+      if (wishId) {
+        (payload as any).wishId = wishId;
+        await apiFetchData({
+          endpoint: API.wishes.update,
+          method: 'PUT',
+          token: user.token,
+          body: { ...payload, image: binaryImage },
+        });
+      } else {
+        (payload as any).wisherId = user.id;
+        wishId = await apiFetchData<number>({
+          endpoint: API.wishes.create,
+          method: 'POST',
+          token: user.token,
+          body: { ...payload, image: binaryImage },
+        });
       }
-    }
 
-    router.setParams({ isSubmit: 'false' });
+      await Promise.all(
+        switchStates.map((state) => {
+          const wishList = wishLists.find((item) => item.wishListId === state.id)!;
+          const isWishInWishList = wishList.wishes.some((wish) => wish.wishId === wishId);
+
+          if (state.enabled && !isWishInWishList) {
+            return apiFetchData({
+              endpoint: API.wishes.addToWishList,
+              method: 'POST',
+              body: { wishId, wishListId: state.id },
+              token: user.token,
+            });
+          } else if (!state.enabled && isWishInWishList) {
+            return apiFetchData({
+              endpoint: API.wishes.deleteFromWishList,
+              method: 'DELETE',
+              body: { wishId, wishListId: state.id },
+              token: user.token,
+            });
+          }
+        })
+      );
+
+      await Promise.all([fetchWishes(), fetchWishLists()]);
+      router.back();
+      showToast('success', wishIdParam ? 'Желание обновлено' : 'Желание добавлено');
+    } catch {
+      showToast('error', wishIdParam ? 'Не удалось обновить желание' : 'Не удалось добавить желание');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const isValid = () => {
     const newErrors = {
       name: !name.trim(),
-      link: !link.trim(),
       image: !image?.trim(),
     };
     setErrors(newErrors);
@@ -171,13 +174,21 @@ export default function WishModalScreen() {
   };
 
   return (
-    <KeyboardAwareScrollView
-      extraScrollHeight={80}
-      keyboardOpeningTime={0}
-      enableOnAndroid
-      contentContainerStyle={{ paddingBottom: 80 }}
-    >
-      <ScrollView contentContainerStyle={styles.container}>
+    <>
+      <Stack.Screen
+        options={{
+          headerRight: () =>
+            isSubmitting ? (
+              <ActivityIndicator />
+            ) : (
+              <TouchableOpacity onPress={handleSubmit}>
+                <ThemedText style={{ color: theme.primary }}>Готово</ThemedText>
+              </TouchableOpacity>
+            ),
+        }}
+      />
+
+      <KeyboardAwareScrollView enableOnAndroid contentContainerStyle={styles.container}>
         <ImagePicker
           valid={!errors.image}
           initialImage={image}
@@ -186,6 +197,7 @@ export default function WishModalScreen() {
             setErrors((prev) => ({ ...prev, name: false }));
           }}
         />
+
         <View style={styles.fields}>
           <TextInput
             icon="star"
@@ -214,7 +226,6 @@ export default function WishModalScreen() {
             icon="out"
             placeholder="Ссылка"
             value={link}
-            valid={!errors.link}
             onChangeText={(value) => {
               setLink(value);
               setErrors((prev) => ({ ...prev, link: false }));
@@ -229,6 +240,7 @@ export default function WishModalScreen() {
             value={description}
             onChangeText={setDescription}
             multiline={true}
+            inputStyle={{ height: 96 }}
           />
         </View>
 
@@ -240,7 +252,7 @@ export default function WishModalScreen() {
           <ThemedText type="bodyLargeMedium" style={styles.addWishListButtonText}>
             Новый список
           </ThemedText>
-          <Icon name="plus" />
+          <Icon name="plus" parentBackgroundColor={theme.button} />
         </PlatformButton>
 
         <View style={styles.wishListsContainer}>
@@ -254,8 +266,8 @@ export default function WishModalScreen() {
             );
           })}
         </View>
-      </ScrollView>
-    </KeyboardAwareScrollView>
+      </KeyboardAwareScrollView>
+    </>
   );
 }
 
@@ -263,7 +275,7 @@ const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 16,
     paddingTop: 16,
-    paddingBottom: 32,
+    paddingBottom: 80,
     gap: 32,
   },
   fields: {

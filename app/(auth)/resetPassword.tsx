@@ -10,6 +10,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { OtpInput } from 'react-native-otp-entry';
 import { useTheme } from '@/hooks/useTheme';
 import { showToast } from '@/utils/showToast';
+import Animated, { useSharedValue, withSequence, withTiming } from 'react-native-reanimated';
+import * as Haptics from 'expo-haptics';
 
 type SearchParams = {
   code: string;
@@ -31,14 +33,20 @@ export default function ResetPasswordScreen() {
   });
 
   const handleSubmit = () => {
-    if (isValid()) {
-      resetPassword(params.email, newPassword)
-        .then(() => {
-          router.replace('/signIn');
-          showToast('success', 'Пароль изменён');
-        })
-        .catch(() => showToast('error', 'Не удалось изменить пароль'));
-    }
+    if (!isValid()) return;
+
+    resetPassword(params.email, newPassword)
+      .then(() => {
+        router.replace('/signIn');
+        showToast('success', 'Пароль изменён');
+      })
+      .catch(() => showToast('error', 'Не удалось изменить пароль'));
+  };
+
+  const handleOtpFilled = (code: string) => {
+    setCode(code);
+    setErrors((prev) => ({ ...prev, code: 'Неверный код' }));
+    if (code !== params.code) shakeOtpInput();
   };
 
   const isValid = () => {
@@ -54,18 +62,32 @@ export default function ResetPasswordScreen() {
     };
     setErrors(newErrors);
 
-    if (newErrors.code) showToast('error', newErrors.code);
+    if (newErrors.code) shakeOtpInput();
 
     return !Object.values(newErrors).some((error) => error);
   };
 
+  const shakeX = useSharedValue(0);
+
+  const shakeOtpInput = () => {
+    shakeX.value = withSequence(
+      withTiming(-8, { duration: 50 }),
+      withTiming(8, { duration: 50 }),
+      withTiming(-4, { duration: 50 }),
+      withTiming(4, { duration: 50 }),
+      withTiming(-3, { duration: 50 }),
+      withTiming(3, { duration: 50 }),
+      withTiming(0, { duration: 50 })
+    );
+
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+    setTimeout(() => {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+    }, 150);
+  };
+
   return (
-    <KeyboardAwareScrollView
-      extraScrollHeight={60}
-      keyboardOpeningTime={0}
-      enableOnAndroid
-      contentContainerStyle={styles.scrollViewContent}
-    >
+    <KeyboardAwareScrollView enableOnAndroid contentContainerStyle={styles.scrollViewContent}>
       <ThemedText type="h1" style={styles.title}>
         Сброс пароля
       </ThemedText>
@@ -74,17 +96,23 @@ export default function ResetPasswordScreen() {
           Введите свою электронную почту и мы вышлем инструкции по сбросу пароля
         </ThemedText>
         <View style={styles.fields}>
-          <OtpInput
-            numberOfDigits={4}
-            onFilled={setCode}
-            hideStick
-            theme={{
-              containerStyle: styles.pinCode,
-              pinCodeContainerStyle: styles.pinCodeContainer,
-              pinCodeTextStyle: { color: theme.text, ...styles.pinCodeText },
-              focusedPinCodeContainerStyle: styles.focusedPinCodeContainer,
-            }}
-          />
+          <Animated.View style={[{ transform: [{ translateX: shakeX }] }]}>
+            <OtpInput
+              numberOfDigits={4}
+              onTextChange={() => setErrors((prev) => ({ ...prev, code: undefined }))}
+              onFilled={handleOtpFilled}
+              hideStick
+              theme={{
+                containerStyle: styles.pinCode,
+                pinCodeContainerStyle: {
+                  ...styles.pinCodeContainer,
+                  borderColor: !errors.code ? Colors.grey : Colors.red,
+                },
+                pinCodeTextStyle: { color: theme.text, ...styles.pinCodeText },
+                focusedPinCodeContainerStyle: { borderColor: !errors.code ? Colors.blue : Colors.red },
+              }}
+            />
+          </Animated.View>
           <TextInput
             icon="lock"
             placeholder="Новый пароль"
@@ -143,16 +171,12 @@ const styles = StyleSheet.create({
     gap: 20,
   },
   pinCodeContainer: {
-    borderColor: Colors.grey,
     width: 64,
     height: 64,
   },
   pinCodeText: {
     fontSize: 32,
     fontFamily: 'stolzl-regular',
-  },
-  focusedPinCodeContainer: {
-    borderColor: Colors.blue,
   },
   button: {
     marginTop: 24,

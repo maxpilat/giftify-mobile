@@ -1,11 +1,11 @@
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { TextInput } from '@/components/TextInput';
 import { useRef, useState } from 'react';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { PlatformButton } from '@/components/PlatformButton';
 import { Colors } from '@/constants/themes';
-import { Link, router, useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { API } from '@/constants/api';
 import { apiFetchData } from '@/lib/api';
 import { showToast } from '@/utils/showToast';
@@ -31,9 +31,7 @@ export default function SignUpScreen() {
   const typingTimeoutRef = useRef<number | null>(null);
 
   const submit = async () => {
-    if (!isValid()) {
-      return;
-    }
+    if (!isValid()) return;
 
     try {
       const isUniqueEmail = await apiFetchData<boolean>({
@@ -53,7 +51,7 @@ export default function SignUpScreen() {
         body: email,
       });
 
-      router.push({ pathname: './validateEmail', params: { name, surname, email, password, friendEmail, code } });
+      router.push({ pathname: '/validateEmail', params: { name, surname, email, password, friendEmail, code } });
     } catch {
       showToast('error', 'Не удалось запросить код');
     }
@@ -84,19 +82,14 @@ export default function SignUpScreen() {
     typingTimeoutRef.current = setTimeout(() => {
       apiFetchData<boolean>({ endpoint: API.auth.uniqueEmail, method: 'POST', body: value })
         .then(
-          (isUnique) => isUnique && setErrors((prev) => ({ ...prev, email: 'Аккаунт с такой почтой уже существует' }))
+          (isUnique) => !isUnique && setErrors((prev) => ({ ...prev, email: 'Аккаунт с такой почтой уже существует' }))
         )
         .catch(() => {});
     }, 300);
   };
 
   return (
-    <KeyboardAwareScrollView
-      extraScrollHeight={60}
-      keyboardOpeningTime={0}
-      enableOnAndroid
-      contentContainerStyle={styles.scrollViewContent}
-    >
+    <KeyboardAwareScrollView extraScrollHeight={60} enableOnAndroid contentContainerStyle={styles.scrollViewContent}>
       <View style={styles.content}>
         <ThemedText type="h1" style={styles.title}>
           Регистрация
@@ -155,11 +148,11 @@ export default function SignUpScreen() {
 
       <View style={styles.footer}>
         <ThemedText>Уже есть аккаунт?</ThemedText>
-        <Link href="./signIn">
+        <TouchableOpacity onPress={() => router.push('/signIn')}>
           <ThemedText type="bodyLargeMedium" style={styles.signInLink}>
             Войти
           </ThemedText>
-        </Link>
+        </TouchableOpacity>
       </View>
     </KeyboardAwareScrollView>
   );

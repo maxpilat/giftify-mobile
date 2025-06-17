@@ -33,7 +33,7 @@ export const API = {
   booking: {
     create: '/api/booking',
     getBooking: (bookingId: number) => `/api/booking/${bookingId}`,
-    cancel: (bookingId: number) => `/api/booking/${bookingId}`,
+    cancel: (wishId: number) => `/api/booking/${wishId}`,
   },
   profile: {
     getProfile: (userId: number) => `/api/profile/${userId}`,
@@ -61,4 +61,14 @@ export const API = {
   currencies: {
     getCurrencies: '/api/currency',
   },
+  chats: {
+    loadAttachment: (messageId: number) => `/api/chat/message/${messageId}`,
+    readMessage: '/api/chat/message/read',
+    sendMessage: '/api/chat/message',
+    createChat: '/api/chat',
+    getMessages: (chatId: number) => `/api/chat/${chatId}/messages`,
+    getUserChats: (userId: number) => `/api/chat/user/${userId}`,
+  },
 };
+
+export const SUPPORT_BOT_URL = 'https://t.me/GiftifyHelpBot';

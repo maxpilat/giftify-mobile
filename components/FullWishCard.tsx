@@ -10,7 +10,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { router, usePathname } from 'expo-router';
 import { API } from '@/constants/api';
 import { apiFetchData } from '@/lib/api';
-import { useProfile } from '@/hooks/useStore';
+import { useStore } from '@/hooks/useStore';
 import { useState } from 'react';
 import { base64ToBinaryArray } from '@/utils/convertImage';
 import { Colors } from '@/constants/themes';
@@ -34,7 +34,7 @@ export function FullWishCard({ wish, onLayout }: Props) {
     fetchWishes: fetchMyWishes,
     fetchWishLists: fetchMyWishLists,
     isFriend: isFriendFunction,
-  } = useProfile();
+  } = useStore();
   const pathname = usePathname();
 
   const [isCollapsed, setIsCollapsed] = useState(true);
@@ -77,7 +77,7 @@ export function FullWishCard({ wish, onLayout }: Props) {
 
   const handleBookWish = () => {
     apiFetchData({
-      endpoint: booking ? API.booking.cancel(booking.bookingId) : API.booking.create,
+      endpoint: booking ? API.booking.cancel(booking.wish.wishId) : API.booking.create,
       method: booking ? 'DELETE' : 'POST',
       body: booking ? undefined : { wishId: wish.wishId, bookerId: authUser.id },
       token: authUser.token,
@@ -140,14 +140,12 @@ export function FullWishCard({ wish, onLayout }: Props) {
     if (wish.wisherProfileData.userId === authUser.id) {
       return (
         <PlatformButton onPress={fulfillWish} hapticFeedback="Heavy">
-          <ThemedText type="bodyLargeMedium" style={{ color: Colors.white }}>
+          <ThemedText type="bodyLargeMedium" parentBackgroundColor={theme.primary}>
             Исполнено
           </ThemedText>
         </PlatformButton>
       );
     } else {
-      const booking = myBookings.find((item) => item.wish.wishId === wish.wishId);
-
       return (
         <PlatformButton
           onPress={handleBookWish}
@@ -203,19 +201,23 @@ export function FullWishCard({ wish, onLayout }: Props) {
       <View style={styles.infoContainer}>
         <View style={styles.textContainer}>
           <ThemedText type="h2">{wish.name}</ThemedText>
-          <View style={styles.price}>
-            {Number(wish.price) > 0 && <ThemedText type="h5">{`${wish.price} ${wish.currency?.symbol}`}</ThemedText>}
-            {wish.link && (
-              <ExternalLink href={wish.link}>
-                <View style={styles.externalLinkContainer}>
-                  <ThemedText type="bodyLargeMedium" style={[styles.externalLinkText, { color: theme.primary }]}>
-                    Где купить
-                  </ThemedText>
-                  <Icon name="bag" size={20} style={styles.externalLinkIcon} color={theme.primary} />
-                </View>
-              </ExternalLink>
-            )}
-          </View>
+          {(!!wish.price || !!wish.link) && (
+            <View style={styles.price}>
+              {Number(wish.price) > 0 && (
+                <ThemedText type="h5">{`${wish.price} ${wish.currency?.transcription}`}</ThemedText>
+              )}
+              {!!wish.link && (
+                <ExternalLink href={wish.link}>
+                  <View style={styles.externalLinkContainer}>
+                    <ThemedText type="bodyLargeMedium" style={[styles.externalLinkText, { color: theme.primary }]}>
+                      Где купить
+                    </ThemedText>
+                    <Icon name="bag" size={20} style={styles.externalLinkIcon} color={theme.primary} />
+                  </View>
+                </ExternalLink>
+              )}
+            </View>
+          )}
         </View>
 
         {(isCurrentUser || isFriend) && (
@@ -247,18 +249,20 @@ export function FullWishCard({ wish, onLayout }: Props) {
           </ThemedText>
         </View>
 
-        <View style={styles.descriptionContainer}>
-          <ThemedText type="bodyLarge" numberOfLines={isCollapsed ? 3 : undefined}>
-            {wish.description}
-          </ThemedText>
-          {descriptionNumLines > 3 && (
-            <TouchableOpacity onPress={() => setIsCollapsed((prev) => !prev)}>
-              <ThemedText type="bodyLargeMedium" style={[styles.detailsLink, { color: theme.primary }]}>
-                {isCollapsed ? 'Подробнее' : 'Свернуть'}
-              </ThemedText>
-            </TouchableOpacity>
-          )}
-        </View>
+        {wish.description && (
+          <View style={styles.descriptionContainer}>
+            <ThemedText type="bodyLarge" numberOfLines={isCollapsed ? 3 : undefined}>
+              {wish.description}
+            </ThemedText>
+            {descriptionNumLines > 3 && (
+              <TouchableOpacity onPress={() => setIsCollapsed((prev) => !prev)}>
+                <ThemedText type="bodyLargeMedium" style={[styles.detailsLink, { color: theme.primary }]}>
+                  {isCollapsed ? 'Подробнее' : 'Свернуть'}
+                </ThemedText>
+              </TouchableOpacity>
+            )}
+          </View>
+        )}
       </View>
     </View>
   );

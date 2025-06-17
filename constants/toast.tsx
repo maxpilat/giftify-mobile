@@ -1,35 +1,60 @@
-import { Colors, ThemeType } from '@/constants/themes';
+import { Colors } from '@/constants/themes';
+import { Platform, StatusBar } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { SuccessToast, ErrorToast, ToastProps } from 'react-native-toast-message';
 
-export const toastConfig = (themeType: ThemeType) => ({
-  success: (props: ToastProps) => (
-    <SuccessToast
-      {...props}
-      contentContainerStyle={{
-        backgroundColor: themeType === 'dark' ? Colors.darkBlue : Colors.white,
-        borderRadius: 16,
-      }}
-      text1Style={{
-        fontSize: 16,
-        fontFamily: 'stolzl-regular',
-        color: themeType === 'dark' ? Colors.white : Colors.black,
-      }}
-    />
-  ),
+export const toastConfig = {
+  success: (props: ToastProps) => {
+    const { top } = useSafeAreaInsets();
+    const marginTop = (Platform.OS === 'ios' ? top : (StatusBar.currentHeight || 20) + 10) - 45;
 
-  error: (props: ToastProps) => (
-    <ErrorToast
-      {...props}
-      style={{ borderLeftColor: 'red' }}
-      contentContainerStyle={{
-        backgroundColor: themeType === 'dark' ? Colors.darkBlue : Colors.white,
-        borderRadius: 16,
-      }}
-      text1Style={{
-        fontSize: 16,
-        fontFamily: 'stolzl-regular',
-        color: themeType === 'dark' ? Colors.white : Colors.black,
-      }}
-    />
-  ),
-});
+    return (
+      <SuccessToast
+        {...props}
+        style={{
+          marginTop,
+          borderLeftWidth: 0,
+          width: '100%',
+          paddingHorizontal: 8,
+          backgroundColor: 'transparent',
+        }}
+        contentContainerStyle={{
+          backgroundColor: Colors.green,
+          borderRadius: 40,
+        }}
+        text1Style={{
+          fontSize: 16,
+          fontFamily: 'stolzl-regular',
+          color: Colors.white,
+        }}
+      />
+    );
+  },
+
+  error: (props: ToastProps) => {
+    const { top } = useSafeAreaInsets();
+    const marginTop = (Platform.OS === 'ios' ? top : (StatusBar.currentHeight || 20) + 10) - 45;
+
+    return (
+      <ErrorToast
+        {...props}
+        style={{
+          marginTop,
+          borderLeftWidth: 0,
+          width: '100%',
+          paddingHorizontal: 10,
+          backgroundColor: 'transparent',
+        }}
+        contentContainerStyle={{
+          backgroundColor: Colors.red,
+          borderRadius: 40,
+        }}
+        text1Style={{
+          fontSize: 16,
+          fontFamily: 'stolzl-regular',
+          color: Colors.white,
+        }}
+      />
+    );
+  },
+};

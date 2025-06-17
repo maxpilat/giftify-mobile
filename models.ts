@@ -1,6 +1,6 @@
 export interface Wish {
   wishId: number;
-  wisherProfileData: Profile,
+  wisherProfileData: Profile;
   wishType: WishType;
   name: string;
   description?: string;
@@ -42,6 +42,7 @@ export interface Profile {
   surname: string;
   username?: string;
   avatar?: string;
+  isPrivate?: boolean;
 }
 
 export interface Friend {
@@ -86,15 +87,40 @@ export type ApiThemeType = 'TYPE_LIGHT' | 'TYPE_DARK' | 'TYPE_SYSTEM';
 
 export type BackgroundType = 'TYPE_COLOR' | 'TYPE_IMAGE';
 
-export interface ApiProfileBackground {
+export interface ProfileBackground {
+  id?: number;
   backgroundType: BackgroundType;
-  backgroundImage?: number[];
+  backgroundImage?: string;
   backgroundColor?: string;
 }
 
-export interface ProfileBackground {
-  backgroundType: BackgroundType;
-  backgroundId?: number;
-  backgroundUri?: string;
-  backgroundColor?: string;
+export interface Chat {
+  chatId: number;
+  chatType: ChatType;
+  userOneId: number;
+  userOneDisplayName: string;
+  userTwoId: number;
+  lastMessage?: ChatMessage;
+  unreadMessageCount?: number;
+  friendName?: string;
+  friendAvatar?: string | null;
+}
+
+export type ChatType = 'TYPE_PERSONAL' | 'TYPE_ANONYMOUS';
+
+export interface ChatMessage {
+  id: number;
+  fromUserId: number;
+  messageType: MessageType;
+  text: string;
+  sent: string;
+  isReadByFirst: boolean;
+  isReadBySecond: boolean;
+}
+
+export type MessageType = 'TYPE_TEXT' | 'TYPE_IMAGE';
+
+export interface ClientChatAttachment {
+  uri: string;
+  aspectRatio: number;
 }

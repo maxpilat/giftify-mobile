@@ -1,21 +1,16 @@
-import { StyleSheet, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { TextInput } from '@/components/TextInput';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { Colors } from '@/constants/themes';
-import { Link, router, useLocalSearchParams } from 'expo-router';
+import { Link, router, Stack } from 'expo-router';
 import { useAuth } from '@/hooks/useAuth';
 import { useTheme } from '@/hooks/useTheme';
 import { showToast } from '@/utils/showToast';
 
-type SearchParams = {
-  isSubmit?: 'true' | 'false';
-};
-
 export default function ChangePasswordScreen() {
   const { theme } = useTheme();
-  const { isSubmit } = useLocalSearchParams<SearchParams>();
 
   const [password, setPassword] = useState<string>('');
   const [newPassword, setNewPassword] = useState<string>('');
@@ -25,23 +20,22 @@ export default function ChangePasswordScreen() {
     newPassword: undefined,
     confirmNewPassword: undefined,
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { changePassword } = useAuth();
 
-  useEffect(() => {
-    handleSubmit();
-  }, [isSubmit]);
-
   const handleSubmit = () => {
-    if (isSubmit !== 'true') return;
+    if (!isValid()) return;
 
-    if (isValid()) {
-      changePassword(password, newPassword)
-        .then(() => router.replace('/settings'))
-        .catch(() => showToast('error', 'Не удалось изменить пароль'));
-    }
+    setIsSubmitting(true);
 
-    router.setParams({ isSubmit: 'false' });
+    changePassword(password, newPassword)
+      .then(() => {
+        router.replace('/settings');
+        showToast('success', 'Пароль изменён');
+      })
+      .catch(() => showToast('error', 'Не удалось изменить пароль'))
+      .finally(() => setIsSubmitting(false));
   };
 
   const isValid = () => {
@@ -60,67 +54,77 @@ export default function ChangePasswordScreen() {
   };
 
   return (
-    <KeyboardAwareScrollView
-      extraScrollHeight={60}
-      keyboardOpeningTime={0}
-      enableOnAndroid
-      contentContainerStyle={styles.scrollViewContent}
-    >
-      <View style={styles.content}>
-        <ThemedText type="h1" style={styles.title}>
-          Смена пароля
-        </ThemedText>
-        <View style={styles.fields}>
-          <TextInput
-            icon="lock"
-            placeholder="Пароль"
-            valid={!errors.password}
-            errorMessage={errors.password}
-            type="password"
-            passwordRules="minlength: 8"
-            onChangeText={(value) => {
-              setPassword(value);
-              setErrors((prev) => ({ ...prev, password: undefined }));
-            }}
-            keyboardType="visible-password"
-          />
-          <TextInput
-            icon="lock"
-            placeholder="Новый пароль"
-            valid={!errors.password}
-            errorMessage={errors.password}
-            type="password"
-            passwordRules="minlength: 8"
-            onChangeText={(value) => {
-              setNewPassword(value);
-              setErrors((prev) => ({ ...prev, newPassword: undefined }));
-            }}
-            keyboardType="visible-password"
-          />
-          <TextInput
-            icon="lock"
-            placeholder="Повторите новый пароль"
-            valid={!errors.password}
-            errorMessage={errors.password}
-            type="password"
-            passwordRules="minlength: 8"
-            onChangeText={(value) => {
-              setConfirmNewPassword(value);
-              setErrors((prev) => ({ ...prev, confirmNewPassword: undefined }));
-            }}
-            keyboardType="visible-password"
-          />
-        </View>
-      </View>
+    <>
+      <Stack.Screen
+        options={{
+          headerRight: () =>
+            isSubmitting ? (
+              <ActivityIndicator />
+            ) : (
+              <TouchableOpacity onPress={handleSubmit}>
+                <ThemedText style={{ color: theme.primary }}>Готово</ThemedText>
+              </TouchableOpacity>
+            ),
+        }}
+      />
 
-      <View style={styles.footer}>
-        <Link href="/(auth)/forgotPassword">
-          <ThemedText type="bodyLargeMedium" style={[styles.forgotPasswordLink, { color: theme.primary }]}>
-            Забыли пароль?
+      <KeyboardAwareScrollView extraScrollHeight={60} enableOnAndroid contentContainerStyle={styles.scrollViewContent}>
+        <View style={styles.content}>
+          <ThemedText type="h1" style={styles.title}>
+            Смена пароля
           </ThemedText>
-        </Link>
-      </View>
-    </KeyboardAwareScrollView>
+          <View style={styles.fields}>
+            <TextInput
+              icon="lock"
+              placeholder="Пароль"
+              valid={!errors.password}
+              errorMessage={errors.password}
+              type="password"
+              passwordRules="minlength: 8"
+              onChangeText={(value) => {
+                setPassword(value);
+                setErrors((prev) => ({ ...prev, password: undefined }));
+              }}
+              keyboardType="visible-password"
+            />
+            <TextInput
+              icon="lock"
+              placeholder="Новый пароль"
+              valid={!errors.newPassword}
+              errorMessage={errors.newPassword}
+              type="password"
+              passwordRules="minlength: 8"
+              onChangeText={(value) => {
+                setNewPassword(value);
+                setErrors((prev) => ({ ...prev, newPassword: undefined }));
+              }}
+              keyboardType="visible-password"
+            />
+            <TextInput
+              icon="lock"
+              placeholder="Повторите новый пароль"
+              valid={!errors.confirmNewPassword}
+              errorMessage={errors.confirmNewPassword}
+              type="password"
+              passwordRules="minlength: 8"
+              onChangeText={(value) => {
+                setConfirmNewPassword(value);
+                setErrors((prev) => ({ ...prev, confirmNewPassword: undefined }));
+              }}
+              keyboardType="visible-password"
+            />
+          </View>
+        </View>
+
+        <View style={styles.footer}>
+          <Link href="/(auth)/forgotPassword">
+            <ThemedText type="bodyLargeMedium" style={[styles.forgotPasswordLink, { color: theme.primary }]}>
+              Забыли пароль?
+            </ThemedText>
+          </Link>
+        </View>
+      </KeyboardAwareScrollView>
+    </>
   );
 }
 

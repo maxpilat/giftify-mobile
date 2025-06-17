@@ -16,7 +16,6 @@ export type ThemeType = 'light' | 'dark';
 
 export interface Theme {
   text: string;
-  subtext: string;
   background: string;
   subBackground: string;
   tabBarBorder: string;
@@ -29,7 +28,6 @@ export interface Theme {
 export const Themes: { light: Theme; dark: Theme } = {
   light: {
     text: Colors.black,
-    subtext: Colors.grey,
     background: Colors.white,
     subBackground: Colors.light,
     tabBarBorder: Colors.light,
@@ -40,7 +38,6 @@ export const Themes: { light: Theme; dark: Theme } = {
   },
   dark: {
     text: Colors.white,
-    subtext: Colors.white,
     background: Colors.black,
     subBackground: Colors.darkBlue,
     tabBarBorder: Colors.dark,

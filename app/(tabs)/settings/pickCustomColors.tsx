@@ -1,3 +1,4 @@
+import { ColorPickerThumb } from '@/components/ColorPickerThumb';
 import { PlatformButton } from '@/components/PlatformButton';
 import { TextInput } from '@/components/TextInput';
 import { ThemedText } from '@/components/ThemedText';
@@ -35,18 +36,11 @@ export default function PickCustomColorsScreen() {
     (tabIndex === 0 ? setPrimaryColor : setSecondaryColor)(color);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = (primaryColor: string, secondaryColor: string) => {
     updateCustomColors(primaryColor, secondaryColor)
       .then(() => showToast('success', 'Цвета обновлены'))
       .catch(() => showToast('error', 'Не удалось обновить цвета'));
     router.back();
-  };
-
-  const resetColors = () => {
-    setError('');
-    setTextInputValue(tabIndex === 0 ? Colors.blue : Colors.orange);
-    setPrimaryColor(Colors.blue);
-    setSecondaryColor(Colors.orange);
   };
 
   return (
@@ -62,7 +56,7 @@ export default function PickCustomColorsScreen() {
           >
             <ThemedText
               type="bodyLargeMedium"
-              backgroundColor={tabIndex === index ? theme.secondary : theme.background}
+              parentBackgroundColor={tabIndex === index ? theme.secondary : theme.background}
             >
               {tab}
             </ThemedText>
@@ -87,7 +81,11 @@ export default function PickCustomColorsScreen() {
         </View>
         <ColorPicker value={currentColor} onCompleteJS={(color) => handleColorChange(color.hex)}>
           <Panel2 style={{ borderRadius: 0 }} />
-          <BrightnessSlider style={{ borderRadius: 0 }} boundedThumb={true} />
+          <BrightnessSlider
+            sliderThickness={40}
+            style={{ borderRadius: 24, marginHorizontal: 16 }}
+            renderThumb={ColorPickerThumb}
+          />
         </ColorPicker>
       </View>
 
@@ -97,14 +95,14 @@ export default function PickCustomColorsScreen() {
             Отмена
           </ThemedText>
         </PlatformButton>
-        <PlatformButton style={styles.button} onPress={handleSubmit}>
-          <ThemedText type="bodyLargeMedium" style={styles.buttonText}>
+        <PlatformButton style={styles.button} onPress={() => handleSubmit(primaryColor, secondaryColor)}>
+          <ThemedText type="bodyLargeMedium" parentBackgroundColor={theme.primary}>
             Применить
           </ThemedText>
         </PlatformButton>
       </View>
 
-      <TouchableOpacity onPress={resetColors}>
+      <TouchableOpacity onPress={() => handleSubmit(Colors.blue, Colors.orange)}>
         <ThemedText type="bodyLargeMedium" style={{ color: theme.primary }}>
           Сбросить настройки цвета
         </ThemedText>

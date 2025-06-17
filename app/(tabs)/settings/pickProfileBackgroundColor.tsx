@@ -1,8 +1,9 @@
+import { ColorPickerThumb } from '@/components/ColorPickerThumb';
 import { PlatformButton } from '@/components/PlatformButton';
 import { TextInput } from '@/components/TextInput';
 import { ThemedText } from '@/components/ThemedText';
 import { Colors } from '@/constants/themes';
-import { useProfile } from '@/hooks/useStore';
+import { useStore } from '@/hooks/useStore';
 import { useTheme } from '@/hooks/useTheme';
 import { ProfileBackground } from '@/models';
 import { getDefaultBackground } from '@/utils/profileBackground';
@@ -13,10 +14,9 @@ import { StyleSheet, View } from 'react-native';
 import ColorPicker, { Panel2, BrightnessSlider, colorKit } from 'reanimated-color-picker';
 
 export default function PickProfileBackgroundColorScreen() {
-  const { theme, themeType, systemThemeType } = useTheme();
-  const themeTypeValue = themeType === 'system' ? systemThemeType : themeType;
+  const { theme } = useTheme();
 
-  const { background, changeBackground } = useProfile();
+  const { background, changeBackground } = useStore();
 
   const [currentBackground, setCurrentBackground] = useState<ProfileBackground>(background);
   const [textInputValue, setTextInputValue] = useState(background.backgroundColor);
@@ -30,7 +30,7 @@ export default function PickProfileBackgroundColorScreen() {
 
     if (!colorKit.getFormat(color)) {
       setError('Неверный формат цвета');
-      background = getDefaultBackground(themeTypeValue);
+      background = getDefaultBackground();
     }
 
     setCurrentBackground(background);
@@ -62,7 +62,11 @@ export default function PickProfileBackgroundColorScreen() {
         </View>
         <ColorPicker value={currentBackground.backgroundColor} onCompleteJS={(color) => handleColorChange(color.hex)}>
           <Panel2 style={{ borderRadius: 0 }} />
-          <BrightnessSlider style={{ borderRadius: 0 }} boundedThumb={true} />
+          <BrightnessSlider
+            sliderThickness={40}
+            style={{ borderRadius: 24, marginHorizontal: 16 }}
+            renderThumb={ColorPickerThumb}
+          />
         </ColorPicker>
       </View>
 

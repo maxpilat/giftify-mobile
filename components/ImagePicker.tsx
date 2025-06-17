@@ -39,7 +39,7 @@ export function ImagePicker({ initialImage, valid, onImagePicked }: Props) {
   };
 
   return image ? (
-    <Pressable onPress={pickImage}>
+    <Pressable onPress={pickImage} style={{ alignSelf: 'flex-start' }}>
       <View style={styles.imageContainer}>
         <Image source={{ uri: image }} style={styles.imagePreview} />
         <View style={styles.overlay}>

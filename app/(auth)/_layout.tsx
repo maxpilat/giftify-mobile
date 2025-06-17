@@ -1,12 +1,10 @@
 import { BackButton } from '@/components/BackButton';
-import { toastConfig } from '@/constants/toast';
 import { useTheme } from '@/hooks/useTheme';
 import { NativeStackNavigationOptions } from '@react-navigation/native-stack';
 import { Stack } from 'expo-router';
-import Toast from 'react-native-toast-message';
 
 export default function AuthLayout() {
-  const { theme, themeType, systemThemeType } = useTheme();
+  const { theme } = useTheme();
 
   const getScreenOptions = (): NativeStackNavigationOptions => ({
     headerShadowVisible: false,
@@ -17,7 +15,7 @@ export default function AuthLayout() {
       backgroundColor: theme.background,
     },
     headerTitle: '',
-    headerLeft: BackButton,
+    headerLeft: () => <BackButton />,
   });
 
   return (
@@ -28,7 +26,6 @@ export default function AuthLayout() {
       <Stack.Screen name="validateEmail" options={getScreenOptions()} />
       <Stack.Screen name="forgotPassword" options={getScreenOptions()} />
       <Stack.Screen name="resetPassword" options={getScreenOptions()} />
-      <Toast config={toastConfig(themeType === 'system' ? systemThemeType : themeType)} />
     </Stack>
   );
 }

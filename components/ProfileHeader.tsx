@@ -1,14 +1,5 @@
 import { useState } from 'react';
-import {
-  StyleSheet,
-  ImageBackground,
-  View,
-  TouchableOpacity,
-  Image,
-  Dimensions,
-  Platform,
-  StatusBar,
-} from 'react-native';
+import { StyleSheet, ImageBackground, View, TouchableOpacity, Image, Platform, StatusBar } from 'react-native';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
 import MaskedView from '@react-native-masked-view/masked-view';
@@ -16,14 +7,17 @@ import { SvgXml } from 'react-native-svg';
 import { useTheme } from '@/hooks/useTheme';
 import { Profile, ProfileBackground } from '@/models';
 import { formatCountedPhrase } from '@/utils/formatCountedPhrase';
-import { Link } from 'expo-router';
+import { Link, router } from 'expo-router';
 import { Colors } from '@/constants/themes';
-import { useProfile } from '@/hooks/useStore';
+import { useStore } from '@/hooks/useStore';
 import { Icon } from '@/components/Icon';
 import { apiFetchData } from '@/lib/api';
 import { API } from '@/constants/api';
 import { useAuth } from '@/hooks/useAuth';
 import { showToast } from '@/utils/showToast';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Skeleton } from './Skeleton';
+import { PlatformButton } from './PlatformButton';
 
 const mask = `
   <svg width="280" height="130" viewBox="100 -0.5 280 161" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -44,9 +38,12 @@ type Props = {
 export function ProfileHeader({ profile, avatar, background, friendsCount, friendsAvatars, tabs, onTabChange }: Props) {
   const { theme } = useTheme();
   const { user: authUser } = useAuth();
-  const { fetchFriendRequests, fetchFriends, isFriend, isReceiver, isSender } = useProfile();
+  const { chats, fetchFriendRequests, fetchFriends, isFriend, isReceiver, isSender } = useStore();
 
   const [currentTabIndex, setCurrentTabIndex] = useState(0);
+
+  const { top } = useSafeAreaInsets();
+  const paddingTop = Platform.OS === 'ios' ? top : (StatusBar.currentHeight || 20) + 10;
 
   const acceptFriendRequest = () => {
     apiFetchData({
@@ -88,8 +85,24 @@ export function ProfileHeader({ profile, avatar, background, friendsCount, frien
       .catch(() => showToast('error', 'Не удалось отменить запрос в друзья'));
   };
 
+  const goToChat = (friendId: number) => {
+    const chat = chats.find((chat) => chat.userTwoId === friendId);
+    if (chat) router.push({ pathname: '/chats/[chatId]', params: { chatId: chat.chatId } });
+    else router.push({ pathname: '/chats/introductionModal', params: { friendId } });
+  };
+
   const getFriendButton = () => {
-    if (!profile || profile.userId === authUser.id || isFriend(profile.userId)) return null;
+    if (!profile || profile.userId === authUser.id) return null;
+
+    if (isFriend(profile.userId)) {
+      return (
+        <PlatformButton style={{ paddingVertical: 10, paddingHorizontal: 12 }} onPress={() => goToChat(profile.userId)}>
+          <ThemedText type="labelLarge" parentBackgroundColor={theme.primary}>
+            Написать
+          </ThemedText>
+        </PlatformButton>
+      );
+    }
 
     if (isReceiver(profile.userId)) {
       return (
@@ -104,17 +117,14 @@ export function ProfileHeader({ profile, avatar, background, friendsCount, frien
 
     return (
       <TouchableOpacity style={[styles.friendButton, { backgroundColor: theme.primary }]} onPress={acceptFriendRequest}>
-        <Icon name="plus" color={Colors.white} />
+        <Icon name="plus" parentBackgroundColor={theme.primary} />
       </TouchableOpacity>
     );
   };
 
-  const { height } = Dimensions.get('screen');
-  const paddingTop = Platform.OS === 'ios' ? (height >= 812 ? 44 : 20) : (StatusBar.currentHeight || 20) + 10;
-
   return (
     <ImageBackground
-      source={background?.backgroundType === 'TYPE_IMAGE' ? { uri: background.backgroundUri } : undefined}
+      source={background?.backgroundType === 'TYPE_IMAGE' ? { uri: background.backgroundImage } : undefined}
       style={styles.background}
       imageStyle={[
         styles.backgroundImage,
@@ -135,53 +145,53 @@ export function ProfileHeader({ profile, avatar, background, friendsCount, frien
             }
           >
             <ThemedView style={[styles.avatarWrapper]}>
-              <Image
-                source={avatar ? { uri: avatar } : require('@/assets/images/avatar.png')}
-                style={[styles.avatar, { backgroundColor: theme.tabBarBorder }]}
-              />
+              {avatar ? <Image source={{ uri: avatar }} style={styles.avatar} /> : <Skeleton style={styles.avatar} />}
             </ThemedView>
           </MaskedView>
           <ThemedView style={[styles.info, { borderColor: theme.background }]}>
-            <ThemedText type="h2" style={styles.fullname} numberOfLines={1}>
-              {profile?.name + ' ' + profile?.surname}
-            </ThemedText>
             {profile && (
-              <View style={styles.details}>
-                {profile?.username && (
-                  <ThemedText type="bodyLargeMedium">
-                    {profile.username.length > 10 ? `${profile.username.slice(0, 9)}...` : profile.username}
+              <>
+                <ThemedText type="h2" style={styles.fullname} numberOfLines={1}>
+                  {profile?.name + ' ' + profile?.surname}
+                </ThemedText>
+                <View style={styles.details}>
+                  <ThemedText type="bodyLargeMedium" numberOfLines={1} style={styles.username}>
+                    {profile.username || authUser.email}
                   </ThemedText>
-                )}
-                <Link asChild href={{ pathname: '/friends/[userId]', params: { userId: profile.userId } }}>
-                  <TouchableOpacity style={styles.friends}>
-                    {friendsAvatars && friendsAvatars.length > 0 && (
-                      <View style={styles.friendsAvatars}>
-                        {friendsAvatars.map((friendAvatar, index) => (
-                          <Image
-                            key={index}
-                            source={friendAvatar ? { uri: friendAvatar } : require('../assets/images/avatar.png')}
-                            style={[
-                              styles.friendAvatar,
-                              index > 0 && { marginLeft: -13 },
-                              { borderColor: theme.background },
-                            ]}
-                          />
-                        ))}
-                      </View>
-                    )}
-
-                    <ThemedText>
-                      {formatCountedPhrase({
-                        number: friendsCount || 0,
-                        singular: 'друг',
-                        few: 'друга',
-                        many: 'друзей',
-                      })}
-                    </ThemedText>
-                  </TouchableOpacity>
-                </Link>
-                {getFriendButton()}
-              </View>
+                  <Link asChild href={{ pathname: '/friends/[userId]', params: { userId: profile.userId } }}>
+                    <TouchableOpacity style={styles.friends}>
+                      {friendsAvatars && friendsAvatars.length > 0 && (
+                        <View style={styles.friendsAvatars}>
+                          {friendsAvatars.map((friendAvatar, index) =>
+                            friendAvatar ? (
+                              <Image
+                                key={index}
+                                source={{ uri: friendAvatar }}
+                                style={[
+                                  styles.friendAvatar,
+                                  index > 0 && { marginLeft: -13 },
+                                  { borderColor: theme.background },
+                                ]}
+                              />
+                            ) : (
+                              <Skeleton key={index} style={[styles.friendAvatar, { borderColor: theme.background }]} />
+                            )
+                          )}
+                        </View>
+                      )}
+                      <ThemedText>
+                        {formatCountedPhrase({
+                          number: friendsCount || 0,
+                          singular: 'друг',
+                          few: 'друга',
+                          many: 'друзей',
+                        })}
+                      </ThemedText>
+                    </TouchableOpacity>
+                  </Link>
+                  {getFriendButton()}
+                </View>
+              </>
             )}
           </ThemedView>
 
@@ -197,7 +207,7 @@ export function ProfileHeader({ profile, avatar, background, friendsCount, frien
               >
                 <ThemedText
                   type="bodyLargeMedium"
-                  backgroundColor={currentTabIndex === index ? theme.secondary : theme.background}
+                  parentBackgroundColor={currentTabIndex === index ? theme.secondary : theme.background}
                 >
                   {tab}
                 </ThemedText>
@@ -250,6 +260,7 @@ const styles = StyleSheet.create({
     borderRadius: 40,
     borderWidth: 1,
     minHeight: 105,
+    maxWidth: '100%',
   },
   fullname: {
     textAlign: 'center',
@@ -259,6 +270,10 @@ const styles = StyleSheet.create({
     gap: 22,
     alignItems: 'center',
     marginTop: 10,
+    maxWidth: '100%',
+  },
+  username: {
+    flexShrink: 1,
   },
   friends: {
     flexDirection: 'row',

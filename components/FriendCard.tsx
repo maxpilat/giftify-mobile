@@ -4,23 +4,26 @@ import { useTheme } from '@/hooks/useTheme';
 import { Friend } from '@/models';
 import { getDaysUntilBirthday } from '@/utils/getDaysUntil';
 import { Icon } from './Icon';
-import { useProfile } from '@/hooks/useStore';
+import { useStore } from '@/hooks/useStore';
 import { apiFetchData } from '@/lib/api';
 import { API } from '@/constants/api';
 import { useAuth } from '@/hooks/useAuth';
 import { Colors } from '@/constants/themes';
-import { Link } from 'expo-router';
+import { router, Href } from 'expo-router';
 import { formatCountedPhrase } from '@/utils/formatCountedPhrase';
 import { showToast } from '@/utils/showToast';
+import { Skeleton } from './Skeleton';
 
 type Props = {
   friend: Friend;
+  link?: Href;
+  enableFriendButton?: boolean;
 };
 
-export const FriendCard = ({ friend }: Props) => {
+export const FriendCard = ({ friend, link, enableFriendButton = true }: Props) => {
   const { theme } = useTheme();
   const { user } = useAuth();
-  const { fetchFriendRequests, fetchFriends, fetchBookings, isFriend, isReceiver, isSender } = useProfile();
+  const { fetchFriendRequests, fetchFriends, fetchBookings, isFriend, isReceiver, isSender } = useStore();
 
   const rejectFriendRequest = (isUserTwoAccept: boolean) => {
     return apiFetchData({
@@ -82,13 +85,14 @@ export const FriendCard = ({ friend }: Props) => {
   };
 
   const getFriendButton = () => {
+    if (!enableFriendButton || friend.friendId === user.id) return null;
     if (isFriend(friend.friendId)) {
       return (
         <TouchableOpacity
           style={[styles.friendButton, { backgroundColor: theme.button }]}
           onPress={handleRejectFriendRequest}
         >
-          <Icon name="accept" color={Colors.white} />
+          <Icon name="accept" parentBackgroundColor={theme.button} />
         </TouchableOpacity>
       );
     } else if (isReceiver(friend.friendId)) {
@@ -100,12 +104,10 @@ export const FriendCard = ({ friend }: Props) => {
           <Icon name="accept" color={Colors.blue} />
         </TouchableOpacity>
       );
-    } else if (friend.friendId === user.id) {
-      return null;
     }
     return (
       <TouchableOpacity style={[styles.friendButton, { backgroundColor: theme.button }]} onPress={acceptFriendRequest}>
-        <Icon name="plus" color={Colors.white} />
+        <Icon name="plus" parentBackgroundColor={theme.button} />
       </TouchableOpacity>
     );
   };
@@ -149,19 +151,18 @@ export const FriendCard = ({ friend }: Props) => {
   };
 
   return (
-    <Link asChild href={{ pathname: '/profile/[userId]', params: { userId: friend.friendId } }}>
-      <TouchableOpacity activeOpacity={0.7} style={styles.friend}>
-        <Image
-          style={[styles.friendAvatar, { backgroundColor: theme.tabBarBorder }]}
-          source={require('@/assets/images/avatar.png')}
-        />
-        <View style={styles.friendInfo}>
-          <ThemedText type="h5">{`${friend.name} ${friend.surname}`}</ThemedText>
-          {getExtraInfo()}
-        </View>
-        {getFriendButton()}
-      </TouchableOpacity>
-    </Link>
+    <TouchableOpacity activeOpacity={0.7} style={styles.friend} onPress={() => link && router.replace(link)}>
+      {friend.avatar ? (
+        <Image style={styles.friendAvatar} source={{ uri: friend.avatar }} />
+      ) : (
+        <Skeleton style={styles.friendAvatar} />
+      )}
+      <View style={styles.friendInfo}>
+        <ThemedText type="h5">{`${friend.name} ${friend.surname}`}</ThemedText>
+        {getExtraInfo()}
+      </View>
+      {getFriendButton()}
+    </TouchableOpacity>
   );
 };
 

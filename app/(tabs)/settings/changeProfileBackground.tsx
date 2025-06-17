@@ -5,26 +5,24 @@ import { useTheme } from '@/hooks/useTheme';
 import { router } from 'expo-router';
 import { useEffect } from 'react';
 import { FlatList, StyleSheet, TouchableOpacity, View, Image, ScrollView, Pressable } from 'react-native';
-import { useProfile } from '@/hooks/useStore';
+import { useStore } from '@/hooks/useStore';
 import { ProfileBackground } from '@/models';
 import { getDefaultBackground } from '@/utils/profileBackground';
 import { launchImageLibraryAsync } from 'expo-image-picker';
 import { showToast } from '@/utils/showToast';
 
-export default function ChangeProfileBackground() {
-  const { theme, themeType, systemThemeType } = useTheme();
-  const { allBackgrounds, background, fetchAllBackgrounds, changeBackground, addBackgroundImage } = useProfile();
+export default function ChangeProfileBackgroundScreen() {
+  const { theme } = useTheme();
+  const { allBackgrounds, background, fetchAllBackgrounds, changeBackground, addBackgroundImage } = useStore();
 
   useEffect(() => {
     fetchAllBackgrounds();
   }, []);
 
   const handleSelectBackground = (newBackground: ProfileBackground) => {
-    changeBackground(
-      background.backgroundId === newBackground.backgroundId
-        ? getDefaultBackground(themeType === 'system' ? systemThemeType : themeType)
-        : newBackground
-    ).catch(() => showToast('error', 'Не удалось изменить фон'));
+    changeBackground(background.id === newBackground.id ? getDefaultBackground() : newBackground)
+      .then(() => showToast('success', 'Фон изменён'))
+      .catch(() => showToast('error', 'Не удалось изменить фон'));
   };
 
   const pickImage = async () => {
@@ -38,6 +36,7 @@ export default function ChangeProfileBackground() {
       const uri = result.assets[0].uri;
       addBackgroundImage(uri)
         .then(changeBackground)
+        .then(() => showToast('success', 'Фон изменён'))
         .catch(() => showToast('error', 'Не удалось изменить фон'));
     }
   };
@@ -70,8 +69,8 @@ export default function ChangeProfileBackground() {
         renderItem={({ item, index }) => (
           <View style={[styles.backgroundWrapper, { [index % 2 === 0 ? 'marginRight' : 'marginLeft']: 5 }]}>
             <Pressable style={styles.background} onPress={() => handleSelectBackground(item)}>
-              <Image style={styles.backgroundImage} source={{ uri: item.backgroundUri }} />
-              {item.backgroundId === background.backgroundId && (
+              <Image style={styles.backgroundImage} source={{ uri: item.backgroundImage }} />
+              {item.id === background.id && (
                 <View style={styles.acceptIcon}>
                   <Icon name="accept" color={Colors.white} />
                 </View>
