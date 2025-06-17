@@ -1,4 +1,4 @@
-import { StyleSheet, View, Image } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { Icon } from '@/components/Icon';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
@@ -92,17 +92,21 @@ export function ChatMessage({ message, attachment, prevMessageUserId, isUserOne 
               {message.text}
             </ThemedText>
           )}
-          <View style={styles.messageInfo}>
-            <ThemedText type="bodyExtraSmall" style={{ color: Colors.grey }}>
-              {new Intl.DateTimeFormat('ru-RU', { hour: '2-digit', minute: '2-digit' }).format(new Date(message.sent))}
-            </ThemedText>
-            {message.fromUserId === authUser.id && (
-              <Icon
-                name={message[isUserOne ? 'isReadBySecond' : 'isReadByFirst'] ? 'read' : 'done'}
-                size={16}
-                color={Colors.grey}
-              />
-            )}
+          <View style={styles.messageInfoContainer}>
+            <View style={styles.messageInfo}>
+              <ThemedText type="bodyExtraSmall" style={{ color: Colors.grey }}>
+                {new Intl.DateTimeFormat('ru-RU', { hour: '2-digit', minute: '2-digit' }).format(
+                  new Date(message.sent)
+                )}
+              </ThemedText>
+              {message.fromUserId === authUser.id && (
+                <Icon
+                  name={message[isUserOne ? 'isReadBySecond' : 'isReadByFirst'] ? 'read' : 'done'}
+                  size={16}
+                  color={Colors.grey}
+                />
+              )}
+            </View>
           </View>
         </View>
       </ThemedView>
@@ -120,11 +124,17 @@ const styles = StyleSheet.create({
   messageBody: {
     paddingHorizontal: 14,
     paddingVertical: 7,
-    gap: 12,
+    columnGap: 12,
+    rowGap: 4,
+    flexWrap: 'wrap',
+  },
+  messageInfoContainer: {
+    flex: 1,
+    alignItems: 'flex-end',
+    alignSelf: 'flex-end',
   },
   messageInfo: {
     flexDirection: 'row',
-    gap: 5,
-    alignSelf: 'flex-end',
+    gap: 4,
   },
 });
