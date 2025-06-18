@@ -56,6 +56,17 @@ export function ChatMessage({ message, attachment, prevMessageUserId, isUserOne 
     return text.replace(/(\S{10,})/g, (match) => match.split('').join('\u200B'));
   };
 
+  const getTimestamp = (utcDateString: string) => {
+    const utcDate = new Date(utcDateString);
+    const localOffset = new Date().getTimezoneOffset() / -60;
+    utcDate.setHours(utcDate.getHours() + localOffset);
+
+    return new Intl.DateTimeFormat('ru-RU', {
+      hour: '2-digit',
+      minute: '2-digit',
+    }).format(utcDate);
+  };
+
   return (
     <View
       style={{
@@ -105,9 +116,7 @@ export function ChatMessage({ message, attachment, prevMessageUserId, isUserOne 
           <View style={[styles.messageInfoContainer, containerHeight.current > 40 && { width: '100%' }]}>
             <View style={styles.messageInfo}>
               <ThemedText type="bodyExtraSmall" style={{ color: Colors.grey }}>
-                {new Intl.DateTimeFormat('ru-RU', { hour: '2-digit', minute: '2-digit' }).format(
-                  new Date(message.sent)
-                )}
+                {getTimestamp(message.sent)}
               </ThemedText>
               {message.fromUserId === authUser.id && (
                 <Icon
