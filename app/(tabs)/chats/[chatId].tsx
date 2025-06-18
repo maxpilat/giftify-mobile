@@ -6,13 +6,14 @@ import {
   TouchableOpacity,
   TouchableWithoutFeedback,
   Keyboard,
+  ActivityIndicator,
 } from 'react-native';
 import { useAuth } from '@/hooks/useAuth';
 import { useTheme } from '@/hooks/useTheme';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { ThemedText } from '@/components/ThemedText';
 import { BackButton } from '@/components/BackButton';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { apiFetchData } from '@/lib/api';
 import { API } from '@/constants/api';
 import { ChatMessage as ChatMessageType } from '@/models';
@@ -46,6 +47,8 @@ export default function ChatScreen() {
 
   const chat = useMemo(() => chats.find((chat) => chat.chatId === +chatId), [chats, chatId]);
   const keyboardHeight = useSharedValue(0);
+
+  const messagesLength = useRef<number | null>(null);
 
   useEffect(() => {
     if (currentChatId !== +chatId) switchChat(+chatId);
@@ -92,6 +95,14 @@ export default function ChatScreen() {
       clearTimeout(intervalId);
     };
   }, []);
+
+  useEffect(() => {
+    if (messagesLength.current === null) {
+      setTimeout(() => {
+        messagesLength.current = messages.length;
+      }, 200);
+    }
+  }, [messages]);
 
   const sendMessage = () => {
     const trimmedMessage = message.trim();
@@ -172,8 +183,24 @@ export default function ChatScreen() {
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <Animated.View style={{ flex: 1, marginBottom: keyboardHeight }}>
           <GestureHandlerRootView style={[styles.messagesArea, { backgroundColor: theme.subBackground }]}>
+            {messagesLength.current === null && (
+              <View
+                style={{
+                  position: 'absolute',
+                  height: '100%',
+                  width: '100%',
+                  top: 0,
+                  left: 0,
+                  zIndex: 1,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}
+              >
+                <ActivityIndicator />
+              </View>
+            )}
             <FlatList
-              contentContainerStyle={styles.flatList}
+              contentContainerStyle={[styles.flatList, { opacity: messagesLength.current === null ? 0 : 1 }]}
               inverted={true}
               data={messages}
               keyExtractor={(_, index) => index.toString()}
@@ -187,6 +214,7 @@ export default function ChatScreen() {
               )}
             />
           </GestureHandlerRootView>
+
           <View style={[styles.bottomPanel, { paddingBottom: isKeyboardOpen ? 16 : bottom }]}>
             <TouchableOpacity
               activeOpacity={0.7}

@@ -5,7 +5,7 @@ import { ThemedView } from '@/components/ThemedView';
 import { ChatMessage as ChatMessageType, ClientChatAttachment } from '@/models';
 import { useAuth } from '@/hooks/useAuth';
 import { Colors } from '@/constants/themes';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { useStore } from '@/hooks/useStore';
 import { Skeleton } from './Skeleton';
@@ -21,7 +21,8 @@ export function ChatMessage({ message, attachment, prevMessageUserId, isUserOne 
   const { user: authUser } = useAuth();
   const { chatAttachments } = useStore();
 
-  const [numLines, setNumLines] = useState(0);
+  const numOfLines = useRef<number>(0);
+  const containerHeight = useRef<number>(0);
 
   const opacity = useSharedValue(0);
   const animatedImageStyle = useAnimatedStyle(() => ({
@@ -40,7 +41,7 @@ export function ChatMessage({ message, attachment, prevMessageUserId, isUserOne 
   useEffect(() => {
     if (attachment) {
       opacity.value = withTiming(1, {
-        duration: 1000,
+        duration: 300,
         easing: Easing.out(Easing.ease),
       });
     }
@@ -51,11 +52,16 @@ export function ChatMessage({ message, attachment, prevMessageUserId, isUserOne 
     return 0;
   };
 
+  const insertBreaks = (text: string) => {
+    return text.replace(/(\S{10,})/g, (match) => match.split('').join('\u200B'));
+  };
+
   return (
     <View
       style={{
         alignItems: message.fromUserId === authUser.id ? 'flex-end' : 'flex-start',
         marginTop: getMessageMargin(),
+        opacity: !message.text || (numOfLines.current && containerHeight.current) ? 1 : 0,
       }}
     >
       <ThemedView
@@ -78,21 +84,25 @@ export function ChatMessage({ message, attachment, prevMessageUserId, isUserOne 
             <Skeleton minOpacity={0.2} maxOpacity={0.8} style={{ minWidth: '100%', height: 150 }} />
           ))}
         <View
+          onLayout={(event) => (containerHeight.current = event.nativeEvent.layout.height)}
           style={[
             styles.messageBody,
             {
-              flexDirection:
-                numLines > 1 || (message.messageType === 'TYPE_IMAGE' && numLines !== 1) ? 'column' : 'row',
               justifyContent: message.text ? 'space-between' : 'flex-end',
+              flexDirection: 'row',
             },
           ]}
         >
           {message.text && (
-            <ThemedText onTextLayout={(event) => setNumLines(event.nativeEvent.lines.length)}>
-              {message.text}
+            <ThemedText
+              onTextLayout={(event) => {
+                if (!numOfLines.current) numOfLines.current = event.nativeEvent.lines.length;
+              }}
+            >
+              {insertBreaks(message.text)}
             </ThemedText>
           )}
-          <View style={styles.messageInfoContainer}>
+          <View style={[styles.messageInfoContainer, containerHeight.current > 40 && { width: '100%' }]}>
             <View style={styles.messageInfo}>
               <ThemedText type="bodyExtraSmall" style={{ color: Colors.grey }}>
                 {new Intl.DateTimeFormat('ru-RU', { hour: '2-digit', minute: '2-digit' }).format(
@@ -118,8 +128,7 @@ const styles = StyleSheet.create({
   message: {
     borderTopRightRadius: 20,
     borderTopLeftRadius: 20,
-    maxWidth: '70%',
-    overflow: 'hidden',
+    maxWidth: '80%',
   },
   messageBody: {
     paddingHorizontal: 14,
@@ -129,7 +138,6 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
   },
   messageInfoContainer: {
-    width: '100%',
     alignItems: 'flex-end',
     alignSelf: 'flex-end',
   },
