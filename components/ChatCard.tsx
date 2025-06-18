@@ -7,6 +7,7 @@ import { Chat } from '@/models';
 import { Icon } from '@/components/Icon';
 import { Colors } from '@/constants/themes';
 import { Skeleton } from './Skeleton';
+import { getTimestamp } from '@/utils/formatDate';
 
 type Props = Chat;
 
@@ -41,11 +42,7 @@ export const ChatCard = ({ chatId, friendAvatar, lastMessage, friendName, unread
 
         {lastMessage && (
           <View style={[styles.column, { minWidth: 40, alignItems: 'flex-end' }]}>
-            <ThemedText style={{ color: Colors.grey }}>
-              {new Intl.DateTimeFormat('ru-RU', { hour: '2-digit', minute: '2-digit' }).format(
-                new Date(lastMessage.sent)
-              )}
-            </ThemedText>
+            <ThemedText style={{ color: Colors.grey }}>{getTimestamp(lastMessage.sent)}</ThemedText>
             {unreadMessageCount && lastMessage.fromUserId !== authUser.id ? (
               <View style={[styles.unreadMessagesCountLabel, { backgroundColor: theme.secondary }]}>
                 <ThemedText type="labelBase" parentBackgroundColor={theme.secondary}>

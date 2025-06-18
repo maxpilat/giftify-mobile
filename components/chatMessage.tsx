@@ -9,6 +9,7 @@ import { useEffect, useRef } from 'react';
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { useStore } from '@/hooks/useStore';
 import { Skeleton } from './Skeleton';
+import { getTimestamp } from '@/utils/formatDate';
 
 type Props = {
   message: ChatMessageType;
@@ -54,17 +55,6 @@ export function ChatMessage({ message, attachment, prevMessageUserId, isUserOne 
 
   const insertBreaks = (text: string) => {
     return text.replace(/(\S{10,})/g, (match) => match.split('').join('\u200B'));
-  };
-
-  const getTimestamp = (utcDateString: string) => {
-    const utcDate = new Date(utcDateString);
-    const localOffset = new Date().getTimezoneOffset() / -60;
-    utcDate.setHours(utcDate.getHours() + localOffset);
-
-    return new Intl.DateTimeFormat('ru-RU', {
-      hour: '2-digit',
-      minute: '2-digit',
-    }).format(utcDate);
   };
 
   return (

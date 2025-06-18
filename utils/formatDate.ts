@@ -9,3 +9,14 @@ export function dateToString(date: Date): string {
   const year = date.getUTCFullYear();
   return `${day}.${month}.${year}`;
 }
+
+export function getTimestamp(dateString: string) {
+  const utcDate = new Date(dateString);
+  const localOffset = new Date().getTimezoneOffset() / -60;
+  utcDate.setHours(utcDate.getHours() + localOffset);
+
+  return new Intl.DateTimeFormat('ru-RU', {
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(utcDate);
+}
