@@ -98,7 +98,7 @@ export default function SearchFriendsScreen() {
           <Fragment key={user.friendId}>
             <FriendCard
               friend={user}
-              link={{ pathname: '/friends/friendProfile/[userId]', params: { userId: user.friendId } }}
+              link={{ pathname: '/friends/profile/[userId]', params: { userId: user.friendId } }}
             />
             {index !== filteredUsers.length - 1 && (
               <View style={[styles.divider, { backgroundColor: theme.tabBarBorder }]} />

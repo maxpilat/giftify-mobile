@@ -123,6 +123,15 @@ export default function ProfileScreen() {
     contentOpacity.value = withTiming(1, { duration: 300 });
   }, [currentVisibleTabIndex]);
 
+  useEffect(() => {
+    setWishes((prev) =>
+      prev.map((wish) => {
+        const booking = myBookings.find((booking) => booking.wish.wishId === wish.wishId);
+        return booking ? { ...wish, activeBookingId: booking.bookingId } : wish;
+      })
+    );
+  }, [myBookings]);
+
   const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     setIsHeaderVisible(event.nativeEvent.contentOffset.y > 210);
   };
@@ -431,9 +440,7 @@ export default function ProfileScreen() {
 
                     {wishListData.length || isWishesLoading ? (
                       <MasonryList
-                        data={
-                          isWishesLoading ? [{ wishId: 1 }, { wishId: 2 }, { wishId: 3 }, { wishId: 4 }] : wishListData
-                        }
+                        data={isWishesLoading ? [1, 2, 3, 4].map((wishId) => ({ wishId })) : wishListData}
                         keyExtractor={(wish: Wish) => wish.wishId.toString()}
                         numColumns={2}
                         contentContainerStyle={[styles.list, { paddingBottom: listPaddingBottom }]}
@@ -448,7 +455,7 @@ export default function ProfileScreen() {
                             return (
                               <Link
                                 asChild
-                                href={{ pathname: '/profile/wishes', params: { wishId: wish.wishId, userId } }}
+                                href={{ pathname: '/friends/wishes', params: { wishId: wish.wishId, userId } }}
                                 style={[
                                   { marginTop: [0, 1].includes(i) ? 0 : 16 },
                                   { [i % 2 === 0 ? 'marginRight' : 'marginLeft']: 8 },
@@ -479,10 +486,11 @@ export default function ProfileScreen() {
                           return (
                             <Skeleton
                               style={{
-                                height: screenWidth / 2 + Math.random() * 100,
+                                width: screenWidth / 2 - 24,
                                 [i % 2 === 0 ? 'marginRight' : 'marginLeft']: 8,
                                 marginTop: [0, 1].includes(i) ? 0 : 16,
                                 borderRadius: 25,
+                                aspectRatio: 0.8,
                               }}
                             />
                           );
@@ -512,7 +520,7 @@ export default function ProfileScreen() {
                         asChild
                         key={piggyBank.wishId}
                         style={styles.piggyBank}
-                        href={{ pathname: '/profile/piggyBanks', params: { piggyBankId: piggyBank.wishId, userId } }}
+                        href={{ pathname: '/friends/piggyBanks', params: { piggyBankId: piggyBank.wishId, userId } }}
                       >
                         <Pressable>
                           <View style={styles.piggyBankBody}>

@@ -70,7 +70,7 @@ export default function IntroductionModalScreen() {
           headerStyle: {
             backgroundColor: theme.background,
           },
-          headerTitle: () => <ThemedText>Узнайте больше</ThemedText>,
+          title: '',
           headerLeft: () => (
             <TouchableOpacity onPress={router.back}>
               <ThemedText style={{ color: theme.primary }}>Отмена</ThemedText>

@@ -19,6 +19,17 @@ export default function FriendsLayout() {
     },
   });
 
+  const getFeedScreenOptions = (title: string): NativeStackNavigationOptions => ({
+    headerTitle: () => <ThemedText type="bodyLargeMedium">{title}</ThemedText>,
+    headerLeft: () => <BackButton />,
+    headerStyle: {
+      backgroundColor: theme.background,
+    },
+    contentStyle: {
+      backgroundColor: theme.background,
+    },
+  });
+
   return (
     <Stack initialRouteName="[userId]">
       <Stack.Screen
@@ -45,7 +56,9 @@ export default function FriendsLayout() {
         }}
       />
       <Stack.Screen name="searchFriends" options={getSearchFriendsScreenOptions()} />
-      <Stack.Screen name="friendProfile/[userId]" />
+      <Stack.Screen name="profile/[userId]" />
+      <Stack.Screen name="wishes" options={() => getFeedScreenOptions('Желания')} />
+      <Stack.Screen name="piggyBanks" options={getFeedScreenOptions('Копилки')} />
     </Stack>
   );
 }

@@ -21,7 +21,7 @@ import {
   Wish,
   WishList,
 } from '@/models';
-import { useAuth } from './useAuth';
+import { useAuth } from '@/hooks/useAuth';
 import { apiFetchData, apiFetchImage } from '@/lib/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { base64ToBinaryArray, uriToBase64 } from '@/utils/convertImage';
@@ -151,10 +151,12 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
   }, [user.id, user.token]);
 
   const fetchFriends = useCallback(async () => {
-    const friends = await apiFetchData<Friend[]>({
+    let friends = await apiFetchData<Friend[]>({
       endpoint: API.friends.getFriends(user.id),
       token: user.token,
     });
+
+    setFriends(friends);
 
     const avatarsMap = new Map(
       await Promise.all(
@@ -168,12 +170,12 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
       )
     );
 
-    setFriends(
-      friends.map((friend) => ({
-        ...friend,
-        avatar: avatarsMap.get(friend.friendId),
-      }))
-    );
+    friends = friends.map((friend) => ({
+      ...friend,
+      avatar: avatarsMap.get(friend.friendId),
+    }));
+
+    setFriends(friends);
 
     return friends;
   }, [user.id, user.token]);

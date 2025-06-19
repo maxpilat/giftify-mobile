@@ -62,8 +62,9 @@ export default function FriendsScreen() {
   };
 
   const fetchData = async () => {
-    const promises: Promise<any>[] = [fetchFriends()];
+    const promises: Promise<any>[] = [];
     if (isCurrentUser) promises.push(fetchFriendRequests());
+    else promises.push(fetchFriends());
     await Promise.all(promises);
   };
 
@@ -75,30 +76,35 @@ export default function FriendsScreen() {
   }, [friendRequests]);
 
   const fetchFriends = async () => {
-    const friends = isCurrentUser
-      ? await fetchMyFriends()
-      : await apiFetchData<Friend[]>({ endpoint: API.friends.getFriends(+userId), token: authUser.token });
+    if (isCurrentUser) {
+      const friends = await fetchMyFriends();
+      setFriends(friends);
+    } else {
+      const friends = await apiFetchData<Friend[]>({
+        endpoint: API.friends.getFriends(+userId),
+        token: authUser.token,
+      });
+      setFriends(friends);
 
-    setFriends(friends);
+      const avatarsMap = new Map(
+        await Promise.all(
+          friends.map(async (friend) => {
+            const avatar = await apiFetchImage({
+              endpoint: API.profile.getAvatar(friend.friendId),
+              token: authUser.token,
+            });
+            return [friend.friendId, avatar] as const;
+          })
+        )
+      );
 
-    const avatarsMap = new Map(
-      await Promise.all(
-        friends.map(async (friend) => {
-          const avatar = await apiFetchImage({
-            endpoint: API.profile.getAvatar(friend.friendId),
-            token: authUser.token,
-          });
-          return [friend.friendId, avatar] as const;
-        })
-      )
-    );
-
-    setFriends((prev) =>
-      prev.map((friend) => ({
-        ...friend,
-        avatar: avatarsMap.get(friend.friendId),
-      }))
-    );
+      setFriends((prev) =>
+        prev.map((friend) => ({
+          ...friend,
+          avatar: avatarsMap.get(friend.friendId),
+        }))
+      );
+    }
   };
 
   const fetchPendingFriends = async () => {
@@ -188,7 +194,7 @@ export default function FriendsScreen() {
                 <Fragment key={friend.friendId}>
                   <FriendCard
                     friend={friend}
-                    link={{ pathname: '/friends/friendProfile/[userId]', params: { userId: friend.friendId } }}
+                    link={{ pathname: '/friends/profile/[userId]', params: { userId: friend.friendId } }}
                   />
                   {index !== friends.length - 1 && (
                     <View style={[styles.divider, { backgroundColor: theme.tabBarBorder }]} />

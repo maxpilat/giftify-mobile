@@ -30,7 +30,7 @@ export default function StartScreen() {
                 Продолжить с Google
               </ThemedText>
             </PlatformButton>
-            <PlatformButton onPress={() => router.push('./signUp')}>
+            <PlatformButton onPress={() => router.push('/signUp')}>
               <ThemedText type="bodyLargeMedium" style={styles.buttonText}>
                 Электронная почта
               </ThemedText>

@@ -6,7 +6,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Chat } from '@/models';
 import { Icon } from '@/components/Icon';
 import { Colors } from '@/constants/themes';
-import { Skeleton } from './Skeleton';
+import { Skeleton } from '@/components/Skeleton';
 import { getTimestamp } from '@/utils/formatDate';
 
 type Props = Chat;

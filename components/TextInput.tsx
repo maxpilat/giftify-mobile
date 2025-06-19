@@ -14,7 +14,7 @@ import { useActionSheet } from '@expo/react-native-action-sheet';
 import { Icon } from '@/components/Icon';
 import { Colors } from '@/constants/themes';
 import { Icons } from '@/constants/icons';
-import { ThemedText } from './ThemedText';
+import { ThemedText } from '@/components/ThemedText';
 import Animated, { useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
 import { useTheme } from '@/hooks/useTheme';
 

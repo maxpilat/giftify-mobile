@@ -405,7 +405,7 @@ export default function ProfileScreen() {
                     </View>
 
                     <View style={[styles.wishList, styles.addWishListButton, { backgroundColor: theme.button }]}>
-                      <Link asChild href={'./wishListModal'}>
+                      <Link asChild href={'/profile/wishListModal'}>
                         <TouchableOpacity activeOpacity={0.7} style={styles.addWishListButtonTouchable}>
                           <Icon name="plus" parentBackgroundColor={theme.button} />
                         </TouchableOpacity>
@@ -475,10 +475,11 @@ export default function ProfileScreen() {
                         return (
                           <Skeleton
                             style={{
-                              height: screenWidth / 2 + Math.random() * 100,
+                              width: screenWidth / 2 - 24,
                               [i % 2 === 0 ? 'marginRight' : 'marginLeft']: 8,
                               marginTop: [0, 1].includes(i) ? 0 : 16,
                               borderRadius: 25,
+                              aspectRatio: 0.8,
                             }}
                           />
                         );

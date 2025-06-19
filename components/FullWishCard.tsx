@@ -1,9 +1,9 @@
 import { StyleSheet, View, Image, TouchableOpacity, Alert, Share } from 'react-native';
-import { Action, ActionButton } from './ActionsButton';
-import { ExternalLink } from './ExternalLink';
-import { Icon } from './Icon';
-import { PlatformButton } from './PlatformButton';
-import { ThemedText } from './ThemedText';
+import { Action, ActionButton } from '@/components/ActionsButton';
+import { ExternalLink } from '@/components/ExternalLink';
+import { Icon } from '@/components/Icon';
+import { PlatformButton } from '@/components/PlatformButton';
+import { ThemedText } from '@/components/ThemedText';
 import { Wish } from '@/models';
 import { useTheme } from '@/hooks/useTheme';
 import { useAuth } from '@/hooks/useAuth';

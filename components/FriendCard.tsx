@@ -3,7 +3,7 @@ import { ThemedText } from '@/components/ThemedText';
 import { useTheme } from '@/hooks/useTheme';
 import { Friend } from '@/models';
 import { getDaysUntilBirthday } from '@/utils/getDaysUntil';
-import { Icon } from './Icon';
+import { Icon } from '@/components/Icon';
 import { useStore } from '@/hooks/useStore';
 import { apiFetchData } from '@/lib/api';
 import { API } from '@/constants/api';
@@ -12,7 +12,7 @@ import { Colors } from '@/constants/themes';
 import { router, Href } from 'expo-router';
 import { formatCountedPhrase } from '@/utils/formatCountedPhrase';
 import { showToast } from '@/utils/showToast';
-import { Skeleton } from './Skeleton';
+import { Skeleton } from '@/components/Skeleton';
 
 type Props = {
   friend: Friend;

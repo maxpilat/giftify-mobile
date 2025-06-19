@@ -8,7 +8,7 @@ import { Colors } from '@/constants/themes';
 import { useEffect, useRef } from 'react';
 import Animated, { Easing, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { useStore } from '@/hooks/useStore';
-import { Skeleton } from './Skeleton';
+import { Skeleton } from '@/components/Skeleton';
 import { getTimestamp } from '@/utils/formatDate';
 
 type Props = {

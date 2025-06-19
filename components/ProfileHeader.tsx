@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { StyleSheet, ImageBackground, View, TouchableOpacity, Image, Platform, StatusBar } from 'react-native';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
@@ -16,8 +16,7 @@ import { API } from '@/constants/api';
 import { useAuth } from '@/hooks/useAuth';
 import { showToast } from '@/utils/showToast';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Skeleton } from './Skeleton';
-import { PlatformButton } from './PlatformButton';
+import { Skeleton } from '@/components/Skeleton';
 
 const mask = `
   <svg width="280" height="130" viewBox="100 -0.5 280 161" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -44,6 +43,8 @@ export function ProfileHeader({ profile, avatar, background, friendsCount, frien
 
   const { top } = useSafeAreaInsets();
   const paddingTop = Platform.OS === 'ios' ? top : (StatusBar.currentHeight || 20) + 10;
+
+  useEffect(() => console.log(friendsAvatars?.map((a) => a?.slice(0, 10))), [friendsAvatars]);
 
   const acceptFriendRequest = () => {
     apiFetchData({
@@ -90,7 +91,9 @@ export function ProfileHeader({ profile, avatar, background, friendsCount, frien
     if (chat) router.push({ pathname: '/chats/[chatId]', params: { chatId: chat.chatId } });
     else {
       router.push({ pathname: '/chats' });
-      router.push({ pathname: '/chats/introductionModal', params: { friendId } });
+      setTimeout(() => {
+        router.push({ pathname: '/chats/introductionModal', params: { friendId } });
+      });
     }
   };
 
@@ -169,11 +172,11 @@ export function ProfileHeader({ profile, avatar, background, friendsCount, frien
                     <TouchableOpacity style={styles.friends}>
                       {friendsAvatars && friendsAvatars.length > 0 && (
                         <View style={styles.friendsAvatars}>
-                          {friendsAvatars.map((friendAvatar, index) =>
-                            friendAvatar ? (
+                          {friendsAvatars.map((avatar, index) =>
+                            avatar ? (
                               <Image
                                 key={index}
-                                source={{ uri: friendAvatar }}
+                                source={{ uri: avatar }}
                                 style={[
                                   styles.friendAvatar,
                                   index > 0 && { marginLeft: -13 },
