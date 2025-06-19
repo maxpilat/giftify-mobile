@@ -51,7 +51,7 @@ export const AuthProvider = ({ children, initialUser }: { children: ReactNode; i
         const newUser = { id, email, token };
         setUser(newUser);
         await SecureStore.setItemAsync('user', JSON.stringify(newUser));
-        router.push({ pathname: '/profile/[userId]', params: { userId: id } });
+        router.push({ pathname: '/profile' });
       }
     } catch (error) {
       showToast('error', 'Не удалось авторизоваться');

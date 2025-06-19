@@ -23,7 +23,7 @@ export default function SignInScreen() {
     if (!isValid()) return;
 
     signIn(email, password)
-      .then(({ id: userId }) => router.replace({ pathname: '/profile/[userId]', params: { userId } }))
+      .then(() => router.replace({ pathname: '/profile' }))
       .catch(() => showToast('error', 'Неверные почта или пароль'));
   };
 

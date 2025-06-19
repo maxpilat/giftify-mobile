@@ -38,7 +38,7 @@ export default function ProfileLayout() {
 
   return (
     <Stack>
-      <Stack.Screen name="[userId]" />
+      <Stack.Screen name="index" />
       <Stack.Screen
         name="wishes"
         options={({ route }) =>

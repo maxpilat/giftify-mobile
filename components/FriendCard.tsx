@@ -151,7 +151,7 @@ export const FriendCard = ({ friend, link, enableFriendButton = true }: Props) =
   };
 
   return (
-    <TouchableOpacity activeOpacity={0.7} style={styles.friend} onPress={() => link && router.replace(link)}>
+    <TouchableOpacity activeOpacity={0.7} style={styles.friend} onPress={() => link && router.push(link)}>
       {friend.avatar ? (
         <Image style={styles.friendAvatar} source={{ uri: friend.avatar }} />
       ) : (

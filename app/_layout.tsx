@@ -37,7 +37,7 @@ export default function RootLayout() {
 
     if (isFirstLaunch) router.replace('/welcome');
     else if (initialUser) {
-      router.replace({ pathname: '/(tabs)/profile/[userId]', params: { userId: initialUser.id } });
+      router.replace({ pathname: '/(tabs)/profile' });
       if (deepLink) router.push(deepLink as Href);
     } else {
       router.replace('/(auth)');

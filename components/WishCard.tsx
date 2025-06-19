@@ -116,7 +116,7 @@ export function WishCard({
           {wisher && (
             <TouchableOpacity
               style={styles.wisherContainer}
-              onPress={() => router.push({ pathname: '/profile/[userId]', params: { userId: wisher.userId } })}
+              onPress={() => router.push({ pathname: '/friends/[userId]', params: { userId: wisher.userId } })}
             >
               <Image style={styles.wisherAvatar} source={{ uri: wisher.avatar }} />
               <ThemedText type="labelLarge">

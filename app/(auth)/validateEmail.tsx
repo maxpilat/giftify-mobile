@@ -35,7 +35,7 @@ export default function ValidateEmailScreen() {
   const handleSubmit = (value: string) => {
     if (value === code) {
       signUp(userData)
-        .then((user) => router.replace({ pathname: '/profile/[userId]', params: { userId: user.id } }))
+        .then(() => router.replace({ pathname: '/profile' }))
         .catch(() => showToast('error', 'Не удалось авторизоваться'));
     } else {
       setIsValid(false);

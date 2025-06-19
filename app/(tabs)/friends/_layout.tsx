@@ -20,7 +20,7 @@ export default function FriendsLayout() {
   });
 
   return (
-    <Stack>
+    <Stack initialRouteName="[userId]">
       <Stack.Screen
         name="[userId]"
         options={{
@@ -45,6 +45,7 @@ export default function FriendsLayout() {
         }}
       />
       <Stack.Screen name="searchFriends" options={getSearchFriendsScreenOptions()} />
+      <Stack.Screen name="friendProfile/[userId]" />
     </Stack>
   );
 }

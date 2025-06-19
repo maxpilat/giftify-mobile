@@ -160,8 +160,7 @@ export default function ChatScreen() {
               activeOpacity={chat?.userTwoId === authUser.id ? 1 : undefined}
               onPress={() =>
                 chat?.userTwoId &&
-                chat?.userTwoId !== authUser.id &&
-                router.push({ pathname: '/profile/[userId]', params: { userId: chat.userTwoId } })
+                router.push({ pathname: '/friends/friendProfile/[userId]', params: { userId: chat.userTwoId } })
               }
             >
               {chat?.friendAvatar !== undefined ? (

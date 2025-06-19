@@ -156,7 +156,7 @@ export function ProfileHeader({ profile, avatar, background, friendsCount, frien
                 </ThemedText>
                 <View style={styles.details}>
                   <ThemedText type="bodyLargeMedium" numberOfLines={1} style={styles.username}>
-                    {profile.username || authUser.email}
+                    {profile.username || profile.email}
                   </ThemedText>
                   <Link asChild href={{ pathname: '/friends/[userId]', params: { userId: profile.userId } }}>
                     <TouchableOpacity style={styles.friends}>

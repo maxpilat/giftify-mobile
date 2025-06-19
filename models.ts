@@ -38,6 +38,7 @@ export interface Booking {
 
 export interface Profile {
   userId: number;
+  email: string;
   name: string;
   surname: string;
   username?: string;
