@@ -44,8 +44,6 @@ export function ProfileHeader({ profile, avatar, background, friendsCount, frien
   const { top } = useSafeAreaInsets();
   const paddingTop = Platform.OS === 'ios' ? top : (StatusBar.currentHeight || 20) + 10;
 
-  useEffect(() => console.log(friendsAvatars?.map((a) => a?.slice(0, 10))), [friendsAvatars]);
-
   const acceptFriendRequest = () => {
     apiFetchData({
       endpoint: API.friends.sendRequest,
