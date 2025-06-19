@@ -76,6 +76,7 @@ export default function ChatsScreen() {
           },
         }}
       />
+
       <GestureHandlerRootView>
         <ScrollView
           contentInsetAdjustmentBehavior="automatic"

@@ -39,7 +39,6 @@ export default function WriteMessageModalScreen() {
     <>
       <Stack.Screen
         options={{
-          presentation: 'modal',
           headerShadowVisible: false,
           headerStyle: {
             backgroundColor: theme.background,

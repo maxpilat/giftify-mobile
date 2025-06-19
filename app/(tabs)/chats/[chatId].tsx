@@ -183,18 +183,7 @@ export default function ChatScreen() {
         <Animated.View style={{ flex: 1, marginBottom: keyboardHeight }}>
           <GestureHandlerRootView style={[styles.messagesArea, { backgroundColor: theme.subBackground }]}>
             {messagesLength.current === null && (
-              <View
-                style={{
-                  position: 'absolute',
-                  height: '100%',
-                  width: '100%',
-                  top: 0,
-                  left: 0,
-                  zIndex: 1,
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                }}
-              >
+              <View style={styles.loaderContainer}>
                 <ActivityIndicator />
               </View>
             )}
@@ -272,5 +261,15 @@ const styles = StyleSheet.create({
     padding: 15,
     borderRadius: 40,
     alignSelf: 'flex-end',
+  },
+  loaderContainer: {
+    position: 'absolute',
+    height: '100%',
+    width: '100%',
+    top: 0,
+    left: 0,
+    zIndex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });

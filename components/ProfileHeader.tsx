@@ -88,7 +88,10 @@ export function ProfileHeader({ profile, avatar, background, friendsCount, frien
   const goToChat = (friendId: number) => {
     const chat = chats.find((chat) => chat.userTwoId === friendId);
     if (chat) router.push({ pathname: '/chats/[chatId]', params: { chatId: chat.chatId } });
-    else router.push({ pathname: '/chats/introductionModal', params: { friendId } });
+    else {
+      router.push({ pathname: '/chats' });
+      router.push({ pathname: '/chats/introductionModal', params: { friendId } });
+    }
   };
 
   const getFriendButton = () => {
@@ -96,11 +99,15 @@ export function ProfileHeader({ profile, avatar, background, friendsCount, frien
 
     if (isFriend(profile.userId)) {
       return (
-        <PlatformButton style={{ paddingVertical: 10, paddingHorizontal: 12 }} onPress={() => goToChat(profile.userId)}>
+        <TouchableOpacity
+          activeOpacity={0.7}
+          style={[styles.chatButton, { backgroundColor: theme.primary }]}
+          onPress={() => goToChat(profile.userId)}
+        >
           <ThemedText type="labelLarge" parentBackgroundColor={theme.primary}>
             Написать
           </ThemedText>
-        </PlatformButton>
+        </TouchableOpacity>
       );
     }
 
@@ -221,6 +228,11 @@ export function ProfileHeader({ profile, avatar, background, friendsCount, frien
 }
 
 const styles = StyleSheet.create({
+  chatButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 40,
+  },
   background: {
     justifyContent: 'center',
     alignItems: 'center',
