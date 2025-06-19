@@ -361,7 +361,6 @@ export default function ProfileScreen() {
               style={headerTitleAnimatedStyle}
             >{`${profile?.name} ${profile?.surname}`}</ThemedText>
           ),
-          // headerLeft: () => !isCurrentUser && <BackButton />,
           contentStyle: {
             backgroundColor: theme.background,
           },
